@@ -131,7 +131,9 @@ p { margin: 0; }
 .band span { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; }
 .card.allied .band { background: var(--allied); } .card.axis .band { background: var(--axis); }
 .card.elite .band { background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255,255,255,.2) 6px 9px); }
-.cname { font: 600 15px/1.12 var(--f-body); padding: 7px 8px 6px; text-wrap: balance; }
+.cname { font: 600 15px/1.12 var(--f-body); padding: 7px 8px 6px; text-wrap: balance; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
+.cname .cmark { flex: none; color: #24486f; margin-top: 1px; }
+.cname .cmark.pf { color: var(--kill-ink); }
 .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 7px; border: 1px solid var(--paper-2); border-radius: 3px; }
 .stats.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .stats div { display: grid; justify-items: center; padding: 3px 0 2px; }
@@ -141,6 +143,14 @@ p { margin: 0; }
 .stats b.z { color: var(--paper-2); }
 .stats b.down { color: var(--kill-ink); }
 .stats b.up { color: #1f7a3c; }
+.bicon { display: flex; align-items: center; gap: 10px; padding: 2px 8px 8px; }
+.bic { position: relative; display: block; color: var(--ink-2); }
+.dbadge { position: absolute; top: -5px; right: -9px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--kill-ink); color: #fff; font: 700 11px/1 var(--f-mono); box-shadow: 0 0 0 2px var(--paper); }
+.bcap { font: 600 10px/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.bcap b { font: 600 15px/1 var(--f-mono); color: var(--ink); margin-left: 3px; }
+.card.sm .bicon { gap: 8px; padding: 0 6px 6px; } .card.sm .dbadge { min-width: 17px; height: 17px; font-size: 10px; top: -4px; right: -8px; }
+.card.sm .bcap { font-size: 8.5px; } .card.sm .bcap b { font-size: 13px; }
 .cmeta { font: 600 9.5px/1.25 var(--f-mono); color: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; padding: 7px 8px 8px; }
 .ctext { font: 400 11.5px/1.3 var(--f-body); color: var(--ink-2); padding: 0 8px 8px; }
 .cfoot { margin-top: auto; font: 700 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; padding: 6px 8px; background: var(--ink); color: var(--paper); }
@@ -250,11 +260,11 @@ p { margin: 0; }
 .sit-h h3 { margin: 0; font: 800 23px/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
 .sit.allied h3 { color: var(--allied); } .sit.axis h3 { color: var(--axis); }
 .sit-h .note { margin-left: auto; font-size: 10.5px; text-align: right; }
-.mets { display: grid; gap: 4px; }
+.mets { display: grid; gap: 8px; }
 .met { display: grid; justify-items: center; align-content: start; gap: 7px; text-align: center; min-width: 0; }
 .met .ic { width: 34px; height: 34px; color: var(--fg); }
-.met .ml { font: 600 10.5px/1.1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
-.met .viz { height: 70px; display: grid; place-items: center; }
+.met .ml { font: 800 15px/1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; min-height: 30px; display: grid; align-items: end; text-wrap: balance; }
+.met .viz { height: 74px; display: grid; place-items: center; }
 .met .mv { font: 600 11.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .04em; }
 .met .mv small { display: block; color: var(--muted); font-size: 10px; }
 .killf { display: grid; grid-template-columns: repeat(4, 18px); gap: 3px; justify-content: center; align-content: center; }
@@ -263,6 +273,9 @@ p { margin: 0; }
 .objv small { font: 600 9px/1 var(--f-mono); color: var(--muted); letter-spacing: .1em; }
 .objv.lost b { color: var(--kill); font-size: 22px; }
 .cvs { display: flex; flex-wrap: wrap; gap: 2px 4px; justify-content: center; max-width: 80px; }
+.tankers { display: grid; grid-template-columns: repeat(5, 15px); gap: 4px 1px; justify-content: center; align-items: end; }
+.met .tankers .ic { width: 15px; height: 15px; color: var(--fg); stroke-width: 2; }
+.met .tankers .tk.sunk .ic { color: var(--kill); width: 16px; height: 16px; }
 .cvs { align-items: flex-end; } .met .cvs .ic { width: 27px; height: 27px; color: var(--fg); } .met .cvs .cv.sunk .ic { width: 31px; height: 31px; color: var(--kill); }
 .vc { display: grid; gap: 10px; }
 .vc h2 { margin: 0; font: 800 26px/1 var(--f-display); text-transform: uppercase; text-wrap: balance; }
@@ -403,8 +416,9 @@ const CARD_DB = {
   b17:   B({ name: 'B-17E Flying Fortress', side: 'allied', service: 'USAAF', role: 'Level-Bomber', bomb: 5, car: 1, conv: 1, def: 7, set: '1942' }),
   yorktown: { name: 'Yorktown', side: 'allied', kind: 'carrier', cap: 4, def: 9, abilities: ['twoHits'], set: '1942',
               text: 'Must attack twice to sink: Defense 9 for the 1st attack, 4 for the 2nd.' },
-  parafrag: { name: 'Para-Frags', side: 'allied', kind: 'war', attach: 'ownAirbase', abilities: ['paraFrag'], set: '1942', reactive: true,
-              text: 'Played during a base attack, attached to your airbase. +4 to base attack if a B-25, B-26 or A-20 survives interception (once per turn).' },
+  // Designer's ruling (Oct 2026): Para-Frags arm one land-based bomber for good, instead of a once-a-turn airbase card.
+  parafrag: { name: 'Para-Frags', side: 'allied', kind: 'war', attach: 'ownBomber', abilities: ['paraFrag'], set: '1942',
+              text: 'Mobilization: attach to an A-20, B-25 or B-26 in your hand. That bomber gets +4 against airbases on every mission until it is shot down.' },
   // ================= Axis — base set
   lae:     { name: 'Lae', side: 'axis', kind: 'airbase', cap: 2, def: 8, home: true },
   kavieng: { name: 'Kavieng', side: 'axis', kind: 'airbase', cap: 2, def: 7 },
@@ -456,9 +470,9 @@ Object.assign(CARD_DB, {
           text: 'On May 8 the Japanese carriers sailed under a front while the Americans were in clear skies. Instead of intercepting an Attack Mission or Carrier Strike on your carrier: it finds nothing and its aircraft land. That carrier cannot operate aircraft for one full round.' },
   // Guadalcanal '43
   blacksheep: F({ name: 'F4U-1 VMF-214 Black Sheep', side: 'allied', service: 'USMC', role: 'Fighter', elite: true, a2a: 6, def: 6, scenario: 'guadalcanal',
-              abilities: ['sweep'], text: 'Fighter sweep: +1 Air to Air when every aircraft in its Attack Mission or Carrier Strike is a fighter. Boyington\u2019s squadron flew sweeps over Kahili and Rabaul.' }),
+              abilities: ['firstStrike'], text: 'First strike: fires first in every fight. If it shoots the enemy down, the enemy doesn\u2019t fire back. Boyington\u2019s squadron flew sweeps over Kahili and Rabaul.' }),
   k204: F({ name: 'A6M3 204th Kokutai', side: 'axis', service: 'JNAF', role: 'Fighter', elite: true, a2a: 5, def: 5, model: 'A6M', scenario: 'guadalcanal',
-              abilities: ['homeDefense'], homeBase: 'rabaul', text: 'Rabaul defenders: +1 Air to Air when intercepting an attack on Rabaul. Six of its Zeros escorted Admiral Yamamoto on 18 April 1943.' }),
+              abilities: ['bomberKiller'], text: 'Bomber killer: after it shoots down a bomber, it may fight once more in the same combat. Rabaul\u2019s veteran defenders; six of its Zeros escorted Admiral Yamamoto on 18 April 1943.' }),
   coastwatchers: { name: 'Coastwatchers', side: 'allied', kind: 'battle', special: 'hypo', scenario: 'guadalcanal',
           text: 'Watchers in the hills of the Solomons radio a warning. Play in your Intercept Phase before scrambling: every aircraft in the incoming Attack Mission or Carrier Strike is revealed (scouted).' },
   igo: { name: 'Operation I-Go', side: 'axis', kind: 'battle', special: 'opmo', scenario: 'guadalcanal', boost: 4, boostPerAircraft: true,
@@ -488,14 +502,15 @@ const SCENARIOS = {
     // the 1942 units (Flying Tigers, Tainan Kokutai), carriers already sunk (Lexington, Yorktown, Akagi) and 1944 types (P1Y, Ki-67).
     exclude: ['f2a', 'f4f3', 'tbd', 'sb2u', 'p40b', 'p40ft', 'lexington', 'yorktown', 'claude', 'nate', 'tainan', 'akagi', 'frances', 'peggy'],
     // Balanced by self-play: 48% Axis (4,000 games); the air war decides about a third of games, evenly split.
-    turnLimit: 15, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 13 },
+    // Re-tuned Oct 2026 for the Allied last-turn all-in: 13 kills and Rabaul 14 (51.6 / 51.3% Axis over 2 x 4,000 games).
+    turnLimit: 15, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 14 },
     timeoutWinner: 'axis', timeoutText: 'The year is over. Rabaul still stands, and the Allies will have to go around it.',
     convoyEffects: {
       allied: { base: 'guadalcanal', fortDelta: -2, text: 'The Tokyo Express cut Guadalcanal\u2019s supplies.' },
       axis: { base: 'rabaul', fortDelta: -2, text: 'Like the Bismarck Sea convoy, Rabaul\u2019s supplies went to the bottom.' },
     },
-    victory: { holdBase: { allied: 'guadalcanal', axis: 'rabaul' }, kills: 12 },
-    victoryText: 'The Allies win by destroying Rabaul (Defense 13); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 12 enemy aircraft. If Rabaul still stands after turn 15, the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
+    victory: { holdBase: { allied: 'guadalcanal', axis: 'rabaul' }, kills: 13 },
+    victoryText: 'The Allies win by destroying Rabaul (Defense 14); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 13 enemy aircraft. If Rabaul still stands after turn 15, the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
     sides: {
       allied: { home: null, inPlay: ['guadalcanal', 'moresby'], hand: ['f4u', 'f4f4', 'p38', 'sbd', 'b25'],
                 special: ['coastwatchers', 'blacksheep'], specialInDeck: ['coastwatchers', 'blacksheep'],
@@ -756,13 +771,23 @@ function canMobilize(s, uid) {
   if (s.phase !== 'mobilize' || !p.hand.includes(uid)) return false;
   if (s.options.singleMobilization && s.mobilized >= 1) return false;
   if (d.kind === 'airbase' || d.kind === 'carrier') return true;
+  if (d.kind === 'war' && d.attach === 'ownBomber') return warTargets(s, uid).length > 0;
   if (d.kind === 'war') return !d.reactive && (d.attach === 'resource' || p.airbases.length > 0);
   return false;
+}
+/* Para-Frags carried by a bomber: { bomberUid: paraFragsUid } per player. */
+const planeWar = (s, side) => (s.players[side].planeWar = s.players[side].planeWar || {});
+const armedWith = (s, uid) => { const side = D(s, uid).side; return (s.players[side].planeWar || {})[uid] || null; };
+/* A carried war card goes to the discard pile with its aircraft (shot down, lost with a base, discarded). */
+function dropLostPlaneWar(s) {
+  for (const side of ['axis', 'allied']) { const p = s.players[side], pw = p.planeWar || {};
+    for (const [plane, w] of Object.entries(pw)) if (p.discard.includes(plane)) { delete pw[plane]; p.discard.push(w); } }
 }
 function warTargets(s, uid) {
   const p = s.players[s.active], d = D(s, uid);
   if (d.attach === 'resource') return ['industry', 'convoy'];
   if (d.attach === 'ownAirbase') return p.airbases.map((f) => f.uid);
+  if (d.attach === 'ownBomber') { const pw = p.planeWar || {}; return p.hand.filter((u) => has(D(s, u), 'paraFragBomber') && !pw[u]); }
   return [];
 }
 
@@ -832,7 +857,7 @@ const untouchable = (s, e) => has(D(s, e.uid), 'untouchable');
 const strikeable = (s, e) => e.alive && e.revealed && !e.safe && !e.escaped && !untouchable(s, e);
 /* An aircraft fights once per combat: after one engagement it is spent and only lands.
    Starting an engagement also needs an Air to Air value (a lone bomber can't strike back). */
-const canInitiate = (s, e) => e.alive && !e.spent && !e.safe && D(s, e.uid).type === 'fighter' && D(s, e.uid).a2a >= 1;
+const canInitiate = (s, e) => e.alive && !e.spent && !e.safe && !e.escaped && D(s, e.uid).type === 'fighter' && D(s, e.uid).a2a >= 1;
 function defCanAct(s) {
   const c = s.combat;
   return c.intercept.some((e) => canInitiate(s, e)) && (c.mission.some((m) => m.alive && !m.revealed) || c.mission.some((m) => strikeable(s, m)));
@@ -932,6 +957,7 @@ function resourcePreview(s, split) {
 /* ------------------------------------------------------------------ apply */
 function apply(state, action, inPlace) {
   const s = apply0(state, action, inPlace);
+  dropLostPlaneWar(s);
   if (s.phase !== 'gameover') checkKillVictory(s);
   if (s.phase !== 'gameover' && !s.combat && !s.pending.length) checkExhaustion(s);
   return s;
@@ -994,6 +1020,9 @@ function apply0(state, action, inPlace) {
         if (d.attach === 'resource') {
           if (!['industry', 'convoy'].includes(A_.attach)) fail('Choose Industry or Convoy.');
           p.resWar[A_.attach].push(A_.uid);
+        } else if (d.attach === 'ownBomber') {
+          if (!warTargets(s, A_.uid).includes(A_.attach)) fail('Choose an A-20, B-25 or B-26 in your hand.');
+          planeWar(s, actor)[A_.attach] = A_.uid;
         } else {
           const f = p.airbases.find((x) => x.uid === A_.attach);
           if (!f) fail('Choose one of your airbases.');
@@ -1010,7 +1039,8 @@ function apply0(state, action, inPlace) {
       p.hand.splice(p.hand.indexOf(A_.uid), 1);
       s.mobilized++;
       const cnt = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
-      if (d.kind === 'war') log(s, `The ${SIDE[actor]} player mobilized ${d.name} on ${A_.attach === 'industry' ? 'their Industry' : A_.attach === 'convoy' ? 'their Convoy' : nm(s, A_.attach)}.`, 'mob', { actor, detail: d.text });
+      if (d.kind === 'war' && d.attach === 'ownBomber') log(s, `The ${SIDE[actor]} player armed a bomber with ${d.name}.`, 'mob', { actor, detail: d.text });
+      else if (d.kind === 'war') log(s, `The ${SIDE[actor]} player mobilized ${d.name} on ${A_.attach === 'industry' ? 'their Industry' : A_.attach === 'convoy' ? 'their Convoy' : nm(s, A_.attach)}.`, 'mob', { actor, detail: d.text });
       else log(s, `The ${SIDE[actor]} player mobilized the ${d.name} ${d.kind}. They now have ${cnt(p.airbases.length, 'airbase')} and ${cnt(p.carriers.length, 'carrier')} active.`, 'mob',
         { actor, detail: `Capacity ${d.cap}, Defense ${d.def}.` });
       return s;
@@ -1204,7 +1234,7 @@ function apply0(state, action, inPlace) {
     case 'yield': {
       if (s.phase !== 'combat' || actor !== s.combat.att) fail('Not your decision.');
       // Any scouted defender the attacker declines to strike escapes and lands; it can't be attacked again this raid.
-      const gone = s.combat.intercept.filter((e) => strikeable(s, e));
+      const gone = s.combat.intercept.filter((e) => strikeable(s, e) && e.spent);
       for (const e of gone) e.escaped = true;
       log(s, `The ${SIDE[actor]} player held back instead of striking.${gone.length ? ` ${gone.map((e) => nm(s, e.uid)).join(' and ')} escaped to land.` : ''}`, '', { actor });
       s.combat.turn = 'def'; normalize(s);
@@ -1318,8 +1348,7 @@ function normalize(s) {
 function abilityA2A(s, uid, side) {
   const c = s.combat, d = D(s, uid);
   if (!c) return 0;
-  if (has(d, 'sweep') && side === c.att && c.mission.every((m) => !dmgCapableCard(D(s, m.uid)))) return 1;
-  if (has(d, 'homeDefense') && side === c.def && c.target.kind === 'airbase' && s.cards[c.target.uid] === d.homeBase) return 1;
+  void d; void side; // Black Sheep and the 204th Kokutai now have abilities of their own (engagementPreview, resolveEngagement).
   return 0;
 }
 const dmgCapableCard = (d) => (d.bomb || 0) + (d.car || 0) + (d.conv || 0) > 0;
@@ -1335,7 +1364,13 @@ function engagementPreview(s, extra) {
     return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + abilityA2A(s, who.uid, who.side), def: d.def + (b.def || 0) + am.def - (isTarget && e.mode === 'strike' ? 1 : 0), icpt, ace: !!(am.a2a || am.def), struck: isTarget && e.mode === 'strike' };
   };
   const I = stat(e.init, false), T = stat(e.tgt, true);
-  return { init: I, tgt: T, killT: I.a2a >= 1 && I.a2a >= T.def, killI: T.a2a >= 1 && T.a2a >= I.def };
+  let killT = I.a2a >= 1 && I.a2a >= T.def, killI = T.a2a >= 1 && T.a2a >= I.def;
+  // First strike (Black Sheep): it fires first, so an enemy it shoots down never fires back.
+  const fsI = has(D(s, e.init.uid), 'firstStrike'), fsT = has(D(s, e.tgt.uid), 'firstStrike');
+  if (fsI && !fsT && killT) killI = false;
+  if (fsT && !fsI && killI) killT = false;
+  I.fs = fsI; T.fs = fsT;
+  return { init: I, tgt: T, killT, killI };
 }
 
 function resolveEngagement(s) {
@@ -1360,6 +1395,7 @@ function resolveEngagement(s) {
     const extra = [];
     if (st.icpt) extra.push(`+${st.icpt} Interceptor`);
     if (st.ace) extra.push('Ace');
+    if (st.fs) extra.push('first strike');
     if (e.battles[x.side]) extra.push(nm(s, e.battles[x.side]));
     // DEF* = scouted (struck at -1 Defense, already included in the number).
     return `${SIDE[x.side]} ${nm(s, x.uid)} (${st.a2a} ATT | ${st.def} DEF${st.struck ? '*' : ''}${extra.length ? ', ' + extra.join(', ') : ''})`;
@@ -1374,6 +1410,14 @@ function resolveEngagement(s) {
   if (killI) lost.push({ side: e.init.side, name: nm(s, e.init.uid) });
   if (killT) lost.push({ side: e.tgt.side, name: nm(s, e.tgt.uid) });
   log(s, msg, 'fight', { side: e.init.side, lost });
+  // Bomber killer (204th Kokutai): after shooting down a bomber it may fight once more this combat.
+  for (const [who, foe, foeDead, selfDead] of [[e.init, e.tgt, killT, killI], [e.tgt, e.init, killI, killT]]) {
+    const me = entry(who);
+    if (foeDead && !selfDead && has(D(s, who.uid), 'bomberKiller') && D(s, foe.uid).type === 'bomber' && !me.again) {
+      me.again = true; me.spent = false;
+      log(s, `${nm(s, who.uid)} shot down a bomber and can fight once more in this combat.`, 'fight', { side: who.side });
+    }
+  }
   // An Ace's side draws 1 card (options.aceDraw, on unless set to false).
   for (const w of aces) {
     const got = s.options.aceDraw === false ? [] : draw(s, w.side, 1, true);
@@ -1413,7 +1457,7 @@ function goDamage(s) {
     offerAAA(s, split); return;
   }
   const att = s.players[c.att];
-  const off = reactiveOffer(s, c.att, 'paraFrag'), pf = off && off.card;
+  const off = null, pf = null; // Para-Frags are now armed on a bomber at Mobilization
   if (c.target.kind === 'airbase' && off && att.airbases.length && arriving.some((m) => has(D(s, m.uid), 'paraFragBomber')))
     s.pending.push({ player: c.att, kind: 'playWar', card: pf, cardName: off.name, count: 1, optional: true, options: pf ? att.airbases.map((b) => b.uid) : [],
       reason: `A B-25, B-26 or A-20 got through to the airbase. ${pf ? 'Play Para-Frags from your hand? Attach it to one of your airbases for +4 now and on later base attacks.' : 'You may play Para-Frags here if you hold it.'}` });
@@ -1463,8 +1507,7 @@ function facilityAttack(s, arriving) {
       dmg += d.bomb * (akagi ? 2 : 1);
       if (akagi) notes.push(`Akagi doubles ${d.name}`);
     }
-    const pf = att.airbases.some((b) => b.war.some((w) => has(D(s, w), 'paraFrag')));
-    if (pf && arriving.some((m) => has(D(s, m.uid), 'paraFragBomber'))) { dmg += 4; notes.push('Para-Frag +4'); }
+    for (const m of arriving) if (armedWith(s, m.uid)) { dmg += 4; notes.push(`Para-Frags +4 (${nm(s, m.uid)})`); }
     if (c.boost) { const b = c.boost.perAircraft ? Math.min(c.boost.amount, arriving.length) : c.boost.amount; dmg += b; notes.push(`${nm(s, c.boost.uid)} +${b}${c.boost.perAircraft ? ` (${arriving.length} aircraft reached the target)` : ''}`); }
     const guns = 2 * aaaOnBase(s, f);
     if (guns && dmg) { const cut = Math.min(guns, dmg); dmg -= cut; notes.push(`Heavy AAA −${cut}`); }
@@ -1493,7 +1536,12 @@ function facilityAttack(s, arriving) {
   const need = has(fd, 'twoHits') && f.hits ? 4 : facDef(s, f);
   log(s, `The ${opName(c.stage)} hit the ${SIDE[c.def]} ${kind} ${fd.name} ${forDmg} against a Defense of ${need}. ${destroyed ? (kind === 'carrier' ? 'She was sunk!' : 'The airbase was destroyed!') : 'It held.'}`, 'dmg',
     { detail: notes.length ? notes.join(', ') + '.' : '' });
-  if (destroyed) { raidStat(s, c.att, kind).kills++; destroyFacility(s, c.def, f, kind); }
+  if (destroyed) {
+    raidStat(s, c.att, kind).kills++;
+    if (kind === 'carrier') { const st = stats(s, c.att); st.sinks = st.sinks || {};
+      for (const m of arriving) if (dmgCapableCard(D(s, m.uid))) st.sinks[m.uid] = (st.sinks[m.uid] || 0) + 1; }
+    destroyFacility(s, c.def, f, kind);
+  }
 }
 
 function destroyFacility(s, side, f, kind) {
@@ -1696,7 +1744,7 @@ function allUids(s) {
   const out = [];
   for (const side of ['axis', 'allied']) {
     const p = s.players[side];
-    out.push(...p.deck, ...p.hand, ...p.discard, ...p.resWar.industry, ...p.resWar.convoy);
+    out.push(...p.deck, ...p.hand, ...p.discard, ...p.resWar.industry, ...p.resWar.convoy, ...Object.values(p.planeWar || {}));
     for (const kind of ['airbase', 'carrier']) for (const f of facs(p, kind)) out.push(f.uid, ...f.landed, ...f.war);
   }
   if (s.combat) {
@@ -1707,7 +1755,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -1871,7 +1919,8 @@ function mobilize(s, side, prof) {
   const d = D(s, pick);
   if (d.kind === 'war') {
     const t = E.warTargets(s, pick);
-    const best = t.slice().sort((a, b) => (D(s, b) ? D(s, b).cap || 0 : 0) - (D(s, a) ? D(s, a).cap || 0 : 0))[0];
+    const best = d.attach === 'ownBomber' ? t.slice().sort((a, b) => D(s, b).bomb - D(s, a).bomb || D(s, b).def - D(s, a).def)[0]
+      : t.slice().sort((a, b) => (D(s, b) ? D(s, b).cap || 0 : 0) - (D(s, a) ? D(s, a).cap || 0 : 0))[0];
     if (E.has(d, 'heavyAAA')) {
       // Cover what the enemy is most likely to hit: Industry for a production war, otherwise the Convoy.
       const can = E.aaaCovers(s);
@@ -1904,6 +1953,28 @@ function lastStand(s, side, mode) {
   return strike >= weakest;
 }
 
+/* The side racing the clock, on its last turn: losing is certain otherwise, so everything flies at the objective.
+   Bombers go even when they can't take it alone: they draw interceptors that our fighters can then strike. */
+function allIn(s, side) {
+  const clock = E.clockLimit(s), sc = E.scenarioOf(s);
+  if (!clock || !sc || sc.timeoutWinner === side || s.turnNo < clock - 1) return null;
+  const objId = sc.victory && sc.victory.holdBase && sc.victory.holdBase[E.other(side)];
+  const t = objId && E.attackTargets(s).find((x) => x.kind === 'airbase' && s.cards[x.uid] === objId);
+  if (!t) return null;
+  const p = s.players[side], cap = E.availCap(s, p, E.launchKind(s));
+  let elig = p.hand.filter((u) => E.launchEligible(s, u));
+  // Airbase Stage: keep carrier bombers for the Carrier Stage when there are carrier slots (damage adds up over the turn).
+  if (s.stage === 'airbase' && sc.stackAirbaseDamage) {
+    const cslots = E.availCap(s, p, 'carrier');
+    const keep = p.hand.filter((u) => D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && D(s, u).bomb).sort((a, b) => D(s, b).bomb - D(s, a).bomb).slice(0, cslots);
+    elig = elig.filter((u) => !keep.includes(u));
+  }
+  const score = (u) => { const d = D(s, u); return (d.bomb || 0) * 10 + (E.armedWith(s, u) ? 40 : 0) + d.a2a; };
+  const cards = elig.sort((a, b) => score(b) - score(a)).slice(0, cap);
+  if (!cards.length || !cards.some((u) => D(s, u).bomb || D(s, u).a2a)) return null;
+  const mo = p.hand.find((u) => D(s, u).special === 'opmo');
+  return { type: 'launch', target: t, cards, special: mo };
+}
 function planRaid(s, side, prof) {
   const p = s.players[side], opp = s.players[E.other(side)];
   const kind = E.launchKind(s), cap = E.availCap(s, p, kind);
@@ -1981,6 +2052,9 @@ function planRaid(s, side, prof) {
       const safeHome = E.isHomeProtected(s, f);
       if (safeHome && !f.landed.length && !f.war.length) continue; // nothing to gain from hitting a protected empty home
       const o = outlook(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb), t.kind);
+      // Para-Frags: +4 for each armed bomber that gets through to an airbase.
+      const pfN = t.kind === 'airbase' ? cards.filter((u) => E.armedWith(s, u)).length : 0;
+      if (pfN) o.delivered += 4 * pfN * Math.max(0, 1 - o.lost / cards.length);
       // Taking the enemy's objective base, or sinking the carrier that completes the carrier victory, wins outright.
       const oppSide = E.other(side), sinkN = sc && sc.victory && sc.victory.sinkCarriers;
       const wins = !safeHome && ((t.kind === 'airbase' && sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[oppSide] === s.cards[t.uid])
@@ -1990,7 +2064,7 @@ function planRaid(s, side, prof) {
       const moD = moCard && t.kind === 'airbase' ? D(s, moCard) : null;
       const moBonus = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, Math.max(0, cards.length - Math.round(o.lost))) : (moD.boost || 4)) : 0;
       const val = (k) => k + f.landed.length * 4 + f.war.length * 3 - o.lost * lossW;
-      const raw = sum(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb));
+      const raw = sum(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb)) + 4 * pfN;
       if (o.delivered >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill) });
       // Last stand: a strike that only gets there if it slips past the fighters is still worth flying.
       // It only uses deck space our carrier fighters won't need: bombers landing back on the carrier take their slots.
@@ -2095,13 +2169,18 @@ function planSweep(s, side, prof) {
 
 /* ------------------------------------------------------------------ combat helpers */
 /* Outcome of an engagement given each side's effective stats. */
-function duel(a, b) { return { killB: a.a2a >= 1 && a.a2a >= b.def, killA: b.a2a >= 1 && b.a2a >= a.def }; }
+function duel(a, b) {
+  let killB = a.a2a >= 1 && a.a2a >= b.def, killA = b.a2a >= 1 && b.a2a >= a.def;
+  if (a.fs && !b.fs && killB) killA = false; // first strike: the loser never fires back
+  if (b.fs && !a.fs && killA) killB = false;
+  return { killB, killA };
+}
 function eff(s, uid, foeUid, battleUid, struck) {
   const d = D(s, uid), b = battleUid ? (D(s, battleUid).mod || {}) : {};
   const foe = foeUid ? D(s, foeUid) : null;
   const icpt = d.interceptor && foe && foe.type === 'bomber' ? d.interceptor : 0;
   const am = E.aceMod(s, uid);
-  return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + E.abilityA2A(s, uid, d.side), def: d.def + (b.def || 0) + am.def - (struck ? 1 : 0) };
+  return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + E.abilityA2A(s, uid, d.side), def: d.def + (b.def || 0) + am.def - (struck ? 1 : 0), fs: E.has(d, 'firstStrike') };
 }
 
 function defenderMove(s, side, prof) {
@@ -2304,7 +2383,7 @@ function chooseAction(s, profile) {
   switch (s.phase) {
     case 'setup': return pickOpening(s, side);
     case 'mobilize': return mobilize(s, side, prof);
-    case 'attack': return planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
+    case 'attack': return (prof.allIn !== false && allIn(s, side)) || planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
     case 'intercept': return interceptMove(s, side, prof);
     case 'combat': return side === s.combat.def ? defenderMove(s, side, prof) : attackerMove(s, side);
     case 'respond': return respondMove(s, side);
@@ -2338,7 +2417,7 @@ const BALANCE = {
   campaign: { surpriseAttack: true, axis: 1 },   // not balanced yet: same as Basic for now
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
-  guadalcanal: { surpriseAttack: false, axis: 0 }, // 48%
+  guadalcanal: { surpriseAttack: false, axis: 0 }, // 51.5%: 13-kill air war, Rabaul Defense 14
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -2475,6 +2554,15 @@ const ICONS = {
   more: '<circle cx="5" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="2" fill="currentColor" stroke="none"/>',
   book: '<path d="M12 6.5C10.3 5.2 8 4.6 4.5 4.8v13.4c3.5-.2 5.8.4 7.5 1.7 1.7-1.3 4-1.9 7.5-1.7V4.8C16 4.6 13.7 5.2 12 6.5z"/><path d="M12 6.5v13.4"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  anchor: '<circle cx="12" cy="4.6" r="2"/><path d="M12 6.6v14.2"/><path d="M8 10.5h8"/><path d="M4.3 13.2c.4 4.3 3.6 7.6 7.7 7.6s7.3-3.3 7.7-7.6"/><path d="m2.8 15 1.5-1.8 1.9 1.4M21.2 15l-1.5-1.8-1.9 1.4"/>',
+  // Para-Frags: a parachute with a small bomb under it
+  parafrag: '<path d="M3.5 10.5a8.5 7 0 0 1 17 0z"/><path d="M3.5 10.5 12 17.5 20.5 10.5M9 10.5l3 7 3-7"/><rect x="10.3" y="17.5" width="3.4" height="4.6" rx="1.7" fill="currentColor"/>',
+  // Oil tanker, side view: long low hull, bridge aft, deck line forward.
+  tanker: '<path d="M1.8 13.5h20.4l-2 4.3H4.2z"/><path d="M15.5 13.5V9.6h3.6v3.9"/><path d="M17 9.6V7.8"/><path d="M3.5 13.5v-1.4h11"/>',
+  tankerSunk: '<g transform="rotate(-24 12 15)"><path d="M1.8 13.5h20.4l-2 4.3H4.2z"/><path d="M15.5 13.5V9.6h3.6v3.9"/><path d="M3.5 13.5v-1.4h11"/></g><path d="M1.5 19.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1" stroke="#7fb3e6" stroke-width="1.8"/>',
+  // Top-down airfield: two crossing runways with taxiway marks; top-down carrier: flight deck with island.
+  airfieldTop: '<g stroke="none" fill="currentColor"><rect x="1.5" y="9.6" width="21" height="4.6" rx=".8"/><rect x="9.7" y=".8" width="4.6" height="22.4" rx=".8" transform="rotate(40 12 12)"/><rect x="2.2" y="17.4" width="5.6" height="4.4" rx=".6"/></g><g stroke="#e6e2d3" stroke-width=".9" stroke-dasharray="1.7 1.3"><path d="M3.4 11.9h17.2"/><path d="M12 3v18" transform="rotate(40 12 12)"/></g>',
+  carrierTop: '<path stroke="none" fill="currentColor" d="M9.2 1.6h5.6l1.7 3.6v15.6l-2.2 1.8H9.7l-2.2-1.8V5.2z"/><path d="M12 4.2v16.2" stroke="#e6e2d3" stroke-width=".9" stroke-dasharray="1.7 1.3"/><rect stroke="none" fill="currentColor" x="17" y="9.2" width="2.6" height="4.6" rx=".6"/>',
   // A carrier going down by the stern: hull tipped up, flight deck awash, waves over the waterline.
   sunk: '<g transform="rotate(-28 12 15)"><path d="M2.5 13.5h19l-2.3 4.4H5z"/><path d="M15.5 13.5v-3h2V8.6h1.6v4.9"/></g><path d="M1.5 19.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1" stroke="#7fb3e6" stroke-width="1.8"/><path d="M4 22c1.3 0 1.3-.8 2.6-.8s1.3.8 2.6.8 1.3-.8 2.6-.8 1.3.8 2.6.8 1.3-.8 2.6-.8 1.3.8 2.6.8" stroke="#7fb3e6" stroke-width="1.2" opacity=".7"/>',
   objective: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8 7.5 9.5 4.3-1.5 7.5-4.9 7.5-9.5V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
@@ -2528,10 +2616,13 @@ function killsOf(uid) {
 const BOMB = (h) => `<svg class="bombm" viewBox="0 0 9 18" width="${(h * 9) / 18}" height="${h}" aria-hidden="true"><path d="M1.2 1 4.5 4.2 7.8 1z" fill="#2a2f2c"/><path d="M4.5 17c-1.9 0-3.3-2.6-3.3-6.5V7.2L4.5 5.5l3.3 1.7v3.3C7.8 14.4 6.4 17 4.5 17z" fill="#2a2f2c"/><path d="M2.5 13.8h4" stroke="#e6e2d3" stroke-width=".9"/></svg>`;
 /* Bomb markers: one per mission in which the aircraft reached its target. */
 const missionsOf = (uid) => ((((S.stats || {})[D(uid).side] || {}).missions || {})[uid]) || 0;
+const sinksOf = (uid) => ((((S.stats || {})[D(uid).side] || {}).sinks || {})[uid]) || 0;
 function killsHTML(uid, sm) {
   if (D(uid).kind !== 'aircraft') return '';
-  const k = killsOf(uid), b = missionsOf(uid); if (!k.length && !b) return '';
-  const bombs = b ? `<span class="bombs" title="${plural(b, 'mission')} over the target">${Array(b).fill(BOMB(sm ? 13 : 17)).join('')}</span>` : '';
+  const k = killsOf(uid), sk = sinksOf(uid), b = Math.max(0, missionsOf(uid) - sk); if (!k.length && !b && !sk) return '';
+  // One bomb per mission over the target; a mission that sank a carrier shows a sinking carrier instead (all in black).
+  const sunkMarks = Array(sk).fill(`<svg viewBox="0 0 24 24" width="${sm ? 15 : 19}" height="${sm ? 15 : 19}" fill="none" stroke="#2a2f2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.sunk.replace(/#7fb3e6/g, '#2a2f2c')}</svg>`).join('');
+  const bombs = b || sk ? `<span class="bombs" title="${plural(missionsOf(uid), 'mission')} over the target${sk ? `, ${plural(sk, 'carrier')} sunk` : ''}">${sunkMarks}${Array(b).fill(BOMB(sm ? 13 : 17)).join('')}</span>` : '';
   if (!k.length) return `<div class="kills">${bombs}</div>`;
   const ace = k.length >= E.ACE_KILLS;
   const am = E.aceMod(S, uid), bon = am.a2a || am.def ? ` (${am.a2a >= 0 ? '+' : '−'}${Math.abs(am.a2a)} A2A, ${am.def >= 0 ? '+' : '−'}${Math.abs(am.def)} DEF)` : '';
@@ -2550,13 +2641,15 @@ function cardHTML(uid, o) {
     body = `<div class="stats"><div><span>A2A</span><b class="${cl(am.a2a, av)}">${av || '–'}</b></div>${[['BMB', d.bomb], ['CAR', d.car], ['CNV', d.conv]].map(([k, v]) => `<div><span>${k}</span><b class="${v ? '' : 'z'}">${v || '–'}</b></div>`).join('')}<div><span>DEF</span><b class="${cl(am.def - (o.scouted ? 1 : 0), dv)}">${dv}</b></div></div>`;
     if (!sm) body += `<div class="cmeta">${E.carrierCapable(d) ? 'Land or carrier' : 'Land based'} ${esc(d.role)}${d.service ? ' · ' + esc(d.service) : ''}</div>`;
   } else if (d.kind === 'airbase' || d.kind === 'carrier') {
-    body = `<div class="stats two"><div><span>CAP</span><b>${d.cap}</b></div><div><span>DEF</span><b>${E.has(d, 'twoHits') ? '9/4' : (scen() && scen().defs && scen().defs[S.cards[uid]]) || d.def}</b></div></div>`;
+    const dv = E.has(d, 'twoHits') ? '9/4' : (scen() && scen().defs && scen().defs[S.cards[uid]]) || d.def;
+    body = `<div class="bicon"><span class="bic">${ico(d.kind === 'carrier' ? 'carrierTop' : 'airfieldTop', sm ? 34 : 44)}<b class="dbadge" title="Defense ${dv}">${dv}</b></span><span class="bcap">Capacity <b>${d.cap}</b></span></div>`;
   }
   if (d.text && (d.kind === 'war' || d.kind === 'battle' || !sm)) body += `<div class="ctext">${esc(d.text)}</div>`;
   if (!sm && d.kind !== 'aircraft' && !d.text) body += '<div style="height:8px"></div>';
   const foot = o.foot ? `<div class="cfoot ${o.footCls ? 'f-' + o.footCls : ''}">${esc(o.foot)}</div>` : '';
   return `<div class="${cls}"${attrs}>${o.fresh ? '<span class="new">NEW</span>' : ''}<div class="band"><span>${flag(natOf(uid), sm ? 14 : 17)}${esc(role)}</span><span>${o.tag ? esc(o.tag) : o.cost != null ? o.cost + ' PT' : ''}</span></div>
-    <div class="cname">${esc(d.name)}</div>${killsHTML(uid, sm)}${body}${foot}</div>`;
+    <div class="cname"><span>${esc(d.name)}</span>${d.kind === 'aircraft' && E.armedWith(S, uid) ? `<span class="cmark pf" title="Armed with Para-Frags: +4 against airbases">${ico('parafrag', sm ? 14 : 18)}</span>`
+      : d.kind === 'aircraft' && E.carrierCapable(d) ? `<span class="cmark" title="Carrier capable">${ico('anchor', sm ? 13 : 17)}</span>` : ''}</div>${killsHTML(uid, sm)}${body}${foot}</div>`;
 }
 const backHTML = (i, o) => { o = o || {};
   const attrs = o.pick ? ` data-slot="${i}" tabindex="0" role="button"` : '';
@@ -2655,7 +2748,8 @@ function estimate(cards, t) {
     const mo = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, ds.length) : moD.boost || 4) : 0;
     const akagi = S.stage === 'carrier' && S.players[S.active].carriers.some((c) => E.has(D(c.uid), 'akagi'));
     const guns = 2 * E.aaaOnBase(S, hf);
-    return `<div class="est">BMB <b>${sum('bomb') + mo}</b>${mo ? ` (with ${nm(ui.special)} +${mo})` : ''}${guns ? ` −${guns} Heavy AAA` : ''} vs DEF <b>${E.facDef(S, hf)}</b>${done ? `; already hit for <b>${done}</b> this turn, <b>${E.damageNeeded(S, hf)}</b> more destroys it` : ''}${akagi ? '. Akagi-based bombers double' : ''}${ds.some((d) => E.has(d, 'paraFragBomber')) ? '. +4 with Para-Frags' : ''}.</div>`; }
+    const pfB = 4 * cards.filter((u) => E.armedWith(S, u)).length;
+    return `<div class="est">BMB <b>${sum('bomb') + mo + pfB}</b>${mo ? ` (with ${nm(ui.special)} +${mo})` : ''}${guns ? ` −${guns} Heavy AAA` : ''} vs DEF <b>${E.facDef(S, hf)}</b>${done ? `; already hit for <b>${done}</b> this turn, <b>${E.damageNeeded(S, hf)}</b> more destroys it` : ''}${akagi ? '. Akagi-based bombers double' : ''}${pfB ? ` (incl. Para-Frags +${pfB})` : ''}.</div>`; }
   return `<div class="est">CAR <b>${sum('car') * mult}</b>${mult > 1 ? ' (×2 from carriers)' : ''} vs DEF <b>${E.has(D(t.uid), 'twoHits') && hf.hits ? 4 : E.facDef(S, hf)}</b>${E.turnDamage(S, hf) ? `; already hit for <b>${E.turnDamage(S, hf)}</b> this turn` : ''}.</div>`;
 }
 const inFight = (u) => !!(S.combat && S.combat.eng && (S.combat.eng.init.uid === u || S.combat.eng.tgt.uid === u));
@@ -2951,7 +3045,8 @@ function sitRep(side) {
   const mets = [];
   if (!(sc && sc.noIndustry)) { const mx = E.industryMax(S);
     mets.push({ icon: 'industry', label: 'Industry', viz: pie((mx - p.industry) / mx, side, 64), value: `${p.industry}/${mx}`, sub: 'Lost' }); }
-  mets.push({ icon: 'convoy', label: 'Convoy', viz: pie((15 - p.convoy) / 15, side, 64), value: `${p.convoy}/15`, sub: p.convoysLost ? `Lost · sunk ${p.convoysLost}×` : 'Lost' });
+  const tankers = Array.from({ length: 15 }, (_, i) => i < p.convoy ? `<span class="tk sunk" title="Sunk">${ico('tankerSunk', 16)}</span>` : `<span class="tk">${ico('tanker', 15)}</span>`).join('');
+  mets.push({ icon: 'convoy', label: 'Convoy', viz: `<div class="tankers" title="${p.convoy} of 15 lost">${tankers}</div>`, value: `${p.convoy}/15`, sub: p.convoysLost ? `Lost · sunk ${p.convoysLost}×` : 'Lost' });
   const hb = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
   if (hb) {
     const f = p.airbases.find((x) => S.cards[x.uid] === hb);
@@ -2971,7 +3066,7 @@ function sitRep(side) {
   const aces = Object.entries(((S.stats || {})[side] || {}).kills || {}).filter(([, k]) => k >= E.ACE_KILLS).map(([u]) => u);
   mets.push({ icon: 'target', label: 'Air to air', viz: downed.length ? `<div class="killf">${fl}</div>` : '<span class="note">None yet</span>', value: kv ? `${downed.length}/${kv}` : `${downed.length}`, sub: 'Enemy killed' });
   return `<section class="sit ${side}"><div class="sit-h"><h3>${SIDE[side]} sit rep</h3><span class="flags">${sideFlags(side)}</span><span class="note">Deck ${p.deck.length}<br>Hand ${p.hand.length}</span></div>
-    <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met">${ico(m.icon, 30)}<span class="ml">${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
+    <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml">${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
     ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}</section>`;
 }
 function clockHTML() {
@@ -3168,7 +3263,7 @@ function rulesPage(t) {
     <div class="tbl"><span class="k">Airbase</span><span>Where land aircraft fly from and land. <b>Capacity</b> is how many aircraft it can hold; <b>Defense</b> is the damage it takes to destroy it.</span>
       <span class="k">Carrier</span><span>An airbase at sea. Only aircraft marked <b>land or carrier</b> can use it. Attacks launched from carriers are Carrier Strikes.</span>
       <span class="k">Aircraft</span><span>Fighters and bombers, with the five values below.</span>
-      <span class="k">War card</span><span>Put into play in Mobilization and attached to one of your airbases (Satellite Field, Heavy AAA, Para-Frags).</span>
+      <span class="k">War card</span><span>Put into play in Mobilization. Satellite Field and Heavy AAA attach to one of your airbases; Para-Frags arm an A-20, B-25 or B-26 in your hand (+4 against airbases until it's shot down).</span>
       <span class="k">Battle card</span><span>Played during a fight (Thatch Weave, Attack From The Sun, aces) or at a set moment (Rain Squall, Station HYPO, Operation MO).</span></div>
     <h3>Aircraft values</h3>
     <div class="tbl"><span class="k">A2A</span><span>Air to Air: shoots down an enemy aircraft whose Defense is equal or lower.</span>
@@ -3180,9 +3275,15 @@ function rulesPage(t) {
     <ul><li><b>Patrol:</b> may intercept from an airbase during the enemy's Carrier Stage.</li>
       <li><b>Interceptor +N:</b> extra A2A when attacking a bomber.</li>
       <li><b>Hit and Run</b> (Flying Tigers): can't be attacked once scouted.</li>
+      <li><b>First strike</b> (VMF-214 Black Sheep): fires first; an enemy it shoots down never fires back.</li>
+      <li><b>Bomber killer</b> (204th Kokutai): after shooting down a bomber it may fight once more in the same combat.</li>
       <li><b>Elite units</b> (Flying Tigers, Tainan Kokutai, VMF-214, 204th Kokutai) are unique: one copy each.</li></ul>
+    <h3>Card markings</h3>
+    <ul><li>An <b>anchor</b> beside the name: the aircraft can fly from carriers.</li>
+      <li>A <b>parachute bomb</b>: the bomber carries Para-Frags.</li>
+      <li>Base cards show a top-down airfield or carrier with its <b>Defense</b> in the red badge.</li></ul>
     <h3>Aces and markers</h3>
-    <p>Every enemy aircraft a plane shoots down is painted on its card as a small flag. At <b>${E.ACE_KILLS} kills</b> it becomes an <b>Ace</b> (gold ring) and its side draws 1 card. Each time an aircraft reaches its target it earns a bomb marker.</p>
+    <p>Every enemy aircraft a plane shoots down is painted on its card as a small flag. At <b>${E.ACE_KILLS} kills</b> it becomes an <b>Ace</b> (gold ring) and its side draws 1 card. Each time an aircraft reaches its target it earns a bomb marker, or a sinking-carrier marker if that mission sank a carrier.</p>
     <h3>What's hidden</h3>
     <p>Your hand, the aircraft in an attack until they're scouted, and which aircraft landed on which base. Your opponent only ever sees how many. In pass-and-play, a hand-off screen hides each player's cards from the other.</p>
     <h3>Using the app</h3>
