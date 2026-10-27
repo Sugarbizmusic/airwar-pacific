@@ -589,6 +589,7 @@ const COSTS = {
 const costOf = (id) => COSTS[id] || 1;
 
 const INDUSTRY_MAX = 60, CONVOY_MAX = 15, CONVOY_PENALTY = 4;
+const VET_MISSIONS = 5; // an aircraft that has dropped on the target this many times is a Veteran (callout only)
 const ACE_KILLS = 5; // a single aircraft with this many kills is an Ace
 /* Optional Ace bonus (options.aceBonus): 'flat' = +1 A2A / +1 DEF for every Ace;
    'asym' = Allied Aces +2 A2A / -1 DEF (the best were rotated home to train new pilots),
@@ -739,7 +740,8 @@ function beginTurn(s, first) {
   const p = s.players[s.active];
   log(s, `— Turn ${s.turnNo}: ${SIDE[s.active]} —`, 'turn');
   if (!first) {
-    if (s.options.drawKeep) {
+    if (!p.deck.length) log(s, `The ${SIDE[s.active]} deck is empty: no cards to draw.`, 'minor');
+    else if (s.options.drawKeep) {
       const got = draw(s, s.active, 3);
       if (got.length === 3) s.pending.push({ player: s.active, kind: 'keepTwo', count: 2, options: got,
         reason: 'You drew 3 cards. Keep 2; the other is shuffled back into your deck.' });
@@ -748,6 +750,22 @@ function beginTurn(s, first) {
   let back = 0;
   for (const kind of ['airbase', 'carrier']) for (const f of facs(p, kind)) { back += f.landed.length; p.hand.push(...f.landed); f.landed = []; }
   if (back) log(s, `${SIDE[s.active]} recovers ${back} landed aircraft to hand.`, 'minor');
+}
+
+/* Enter the Mobilization Stage, skipping it when nothing in hand can be put into play. */
+function enterMobilize(s) {
+  s.phase = 'mobilize';
+  const p = s.players[s.active];
+  if (s.options.skipEmptyMobilize === false || p.hand.some((u) => canMobilize(s, u))) return;
+  log(s, `${SIDE[s.active]} has nothing to mobilize.`, 'minor');
+  endMobilization(s);
+}
+function endMobilization(s) {
+  if (s.turnNo === 1 && s.options.noFirstTurnAttack) {
+    log(s, `First turn: the ${SIDE[s.active]} player mobilizes only and cannot attack.`, 'minor');
+    s.stage = 'carrier'; endStage(s); return;
+  }
+  s.stage = 'airbase'; s.phase = 'attack';
 }
 
 /* ------------------------------------------------------------------ queries used by UI + engine */
@@ -932,8 +950,45 @@ function canRespond(s, side) {
   const live = Object.keys(s.cards).filter((u) => CARD_DB[s.cards[u]].side === side && D(s, u).kind === 'battle' && !used.includes(u));
   void p;
   const lrfPossible = c.eng.tgt.side === side && D(s, mine).type === 'bomber';
-  if (openInfo(s)) return battleOptions(s, side, mine).length > 0 || (lrfPossible && lrfOptions(s).cards.length > 0);
-  return live.some((u) => battleFits(s, u, mine) || (lrfPossible && D(s, u).special === 'longRange'));
+  const lrfHeld = lrfPossible && (openInfo(s) ? lrfOptions(s).cards.length > 0 : lrfOptions(s).subs.length > 0 && live.some((u) => D(s, u).special === 'longRange'));
+  const mineCards = openInfo(s) ? battleOptions(s, side, mine) : live.filter((u) => battleFits(s, u, mine));
+  if (!mineCards.length && !lrfHeld) return false;
+  return cardCouldMatter(s, side, mineCards, lrfHeld);
+}
+/* Would any of these battle cards (or Long Range Fighters) change who goes down? Checked against every
+   card the opponent could still answer with, so a skipped prompt never depends on the opponent's hidden hand
+   (outside open-information games against the computer, where hands are known anyway). */
+function cardCouldMatter(s, side, mineCards, lrfHeld) {
+  const c = s.combat, e = c.eng, opp = other(side);
+  const oppUid = e.init.side === opp ? e.init.uid : e.tgt.uid;
+  const used = s.publicUsed || [];
+  // The opponent's possible battle cards: fixed if already played or already asked, otherwise anything that fits.
+  let oppCards = [null];
+  if (e.battles[opp]) oppCards = [e.battles[opp]];
+  else if (!(e.asked || []).includes(opp)) {
+    const pool = openInfo(s) ? s.players[opp].hand : Object.keys(s.cards).filter((u) => CARD_DB[s.cards[u]].side === opp && D(s, u).kind === 'battle' && !used.includes(u));
+    oppCards = [null, ...pool.filter((u) => battleFits(s, u, oppUid))];
+  }
+  // Long Range Fighters by the opponent swaps their bomber for one of their escorts.
+  const oppLrf = !(e.asked || []).includes(opp) && !e.battles[opp] && e.tgt.side === opp && D(s, e.tgt.uid).type === 'bomber' && lrfOptions(s).subs.length > 0
+    && (openInfo(s) ? lrfOptions(s).cards.length > 0 : Object.keys(s.cards).some((u) => CARD_DB[s.cards[u]].side === opp && D(s, u).special === 'longRange' && !used.includes(u)));
+  const tgts = [e.tgt.uid, ...(oppLrf ? lrfOptions(s).subs : [])];
+  const saveB = e.battles, saveT = e.tgt.uid;
+  const res = (mineB, oppB, tgt) => {
+    e.battles = Object.assign({}, saveB, { [side]: mineB || undefined, [opp]: oppB || undefined }); e.tgt.uid = tgt;
+    for (const k of Object.keys(e.battles)) if (!e.battles[k]) delete e.battles[k];
+    const r = engagementPreview(s); return `${r.killT}|${r.killI}`;
+  };
+  let matters = false;
+  try {
+    for (const tgt of tgts) for (const ob of tgt === saveT ? oppCards : [null]) {
+      const base = res(null, ob, tgt);
+      if (mineCards.some((u) => res(u, ob, tgt) !== base)) { matters = true; break; }
+      // Long Range Fighters always matters when the bomber would go down.
+      if (lrfHeld && tgt === saveT && base.split('|')[0] === 'true') { matters = true; break; }
+    }
+  } finally { e.battles = saveB; e.tgt.uid = saveT; }
+  return matters;
 }
 
 /* Preview of resource damage for a split (used by UI + allocate). */
@@ -1045,11 +1100,7 @@ function apply0(state, action, inPlace) {
     }
     case 'endMobilization': {
       if (s.phase !== 'mobilize') fail('Not the Mobilization Stage.');
-      if (s.turnNo === 1 && s.options.noFirstTurnAttack) {
-        log(s, `First turn: the ${SIDE[actor]} player mobilizes only and cannot attack.`, 'minor');
-        s.stage = 'carrier'; endStage(s); return s;
-      }
-      s.stage = 'airbase'; s.phase = 'attack';
+      endMobilization(s);
       return s;
     }
     case 'skipStage': {
@@ -1198,8 +1249,10 @@ function apply0(state, action, inPlace) {
       const resp = other(side);
       // Battle cards come once the engagement is declared. A blind intercept has just revealed its target,
       // so the interceptor gets its chance now (if it didn't play one), then the other side.
+      // A side whose battle cards can't change the outcome isn't asked.
       const queue = [];
-      if (A_.mode === 'intercept' && !A_.battle && canRespond(s, side)) queue.push(side);
+      c.eng.asked = A_.mode === 'intercept' && !A_.battle ? [] : [side];
+      if (A_.mode === 'intercept' && !A_.battle) { if (canRespond(s, side)) queue.push(side); else c.eng.asked.push(side); }
       if (canRespond(s, resp)) queue.push(resp);
       if (queue.length) { c.responder = queue.shift(); c.respondQueue = queue; s.phase = 'respond'; }
       else resolveEngagement(s);
@@ -1224,7 +1277,11 @@ function apply0(state, action, inPlace) {
         p.hand.splice(p.hand.indexOf(A_.battle), 1);
         c.eng.battles[actor] = A_.battle;
       }
-      if (c.respondQueue && c.respondQueue.length) { c.responder = c.respondQueue.shift(); return s; }
+      (c.eng.asked = c.eng.asked || []).push(actor);
+      while (c.respondQueue && c.respondQueue.length) {
+        const nx = c.respondQueue.shift();
+        if (canRespond(s, nx)) { c.responder = nx; return s; }
+      }
       c.responder = null; c.respondQueue = null;
       resolveEngagement(s);
       return s;
@@ -1443,11 +1500,14 @@ function goDamage(s) {
   const stat = tk === 'airbase' || tk === 'industry' ? ['bomb', 'BMB'] : tk === 'carrier' ? ['car', 'CAR'] : tk === 'convoy' ? ['conv', 'CNV'] : null;
   const st = stats(s, c.att); st.missions = st.missions || {};
   const drops = (d) => (stat ? (d[stat[0]] || 0) > 0 : (d.bomb || 0) + (d.conv || 0) > 0); // resources: Industry or Convoy
-  for (const m of arriving) if (drops(D(s, m.uid))) st.missions[m.uid] = (st.missions[m.uid] || 0) + 1;
+  const vets = [];
+  for (const m of arriving) if (drops(D(s, m.uid))) { st.missions[m.uid] = (st.missions[m.uid] || 0) + 1; if (st.missions[m.uid] === VET_MISSIONS) vets.push(m.uid); }
   log(s, `Over the target: ${arriving.map((m) => { const d = D(s, m.uid);
     if (!stat) return d.name;
     const pf = tk === 'airbase' && armedWith(s, m.uid) ? ' +4 Para-Frags' : '';
     return `${d.name} (${d[stat[0]] || 0} ${stat[1]}${mult > 1 && d[stat[0]] ? ' ×2' : ''}${pf})`; }).join(', ')}.`, 'dmg', { arrived: arriving.map((m) => m.uid) });
+  // A crew that has flown 5 missions over the target is a Veteran: a callout only, no extra card.
+  for (const u of vets) log(s, `${SIDE[c.att]} ${nm(s, u)} has flown ${VET_MISSIONS} missions over the target and is now a Veteran crew!`, 'ace', { side: c.att, vet: u });
   if (c.target.kind === 'resources') {
     if (arriving.every((m) => !D(s, m.uid).bomb && !D(s, m.uid).conv)) {
       log(s, `Only fighters reached the ${SIDE[c.def]} Industry and Convoy. They carry no bombs, so no damage was done.`, 'dmg');
@@ -1629,7 +1689,7 @@ function flush(s) {
   const a = s.after; s.after = null;
   if (a === 'land') land(s);
   else if (a === 'endRaid') endRaid(s);
-  else if (a === 'mobilize') s.phase = 'mobilize';
+  else if (a === 'mobilize') enterMobilize(s);
   else if (a === 'facility') { facilityAttack(s, s.combat.mission.filter((m) => m.alive)); s.after = 'land'; flush(s); }
   else if (a === 'resources') {
     const c = s.combat, r = resourcePreview(s, c.split);
@@ -1740,6 +1800,7 @@ function endStage(s) {
   s.active = other(s.active); s.turnNo++; s.stage = 'mobilize'; s.phase = 'mobilize'; s.mobilized = 0;
   beginTurn(s, false);
   if (s.pending.length) { s.phase = 'choice'; s.after = 'mobilize'; }
+  else enterMobilize(s);
 }
 
 /* every card uid in the game, wherever it is (for tests) */
@@ -1758,7 +1819,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -2625,7 +2686,8 @@ function killsHTML(uid, sm) {
   const k = killsOf(uid), sk = sinksOf(uid), b = Math.max(0, missionsOf(uid) - sk); if (!k.length && !b && !sk) return '';
   // One bomb per mission over the target; a mission that sank a carrier shows a sinking carrier instead (all in black).
   const sunkMarks = Array(sk).fill(`<svg viewBox="0 0 24 24" width="${sm ? 15 : 19}" height="${sm ? 15 : 19}" fill="none" stroke="#2a2f2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.sunk.replace(/#7fb3e6/g, '#2a2f2c')}</svg>`).join('');
-  const bombs = b || sk ? `<span class="bombs" title="${plural(missionsOf(uid), 'mission')} over the target${sk ? `, ${plural(sk, 'carrier')} sunk` : ''}">${sunkMarks}${Array(b).fill(BOMB(sm ? 13 : 17)).join('')}</span>` : '';
+  const vet = missionsOf(uid) >= E.VET_MISSIONS ? '<span class="ace">VET</span>' : '';
+  const bombs = b || sk ? `<span class="bombs" title="${plural(missionsOf(uid), 'mission')} over the target${sk ? `, ${plural(sk, 'carrier')} sunk` : ''}${vet ? ': Veteran crew' : ''}">${vet}${sunkMarks}${Array(b).fill(BOMB(sm ? 13 : 17)).join('')}</span>` : '';
   if (!k.length) return `<div class="kills">${bombs}</div>`;
   const ace = k.length >= E.ACE_KILLS;
   const am = E.aceMod(S, uid), bon = am.a2a || am.def ? ` (${am.a2a >= 0 ? '+' : '−'}${Math.abs(am.a2a)} A2A, ${am.def >= 0 ? '+' : '−'}${Math.abs(am.def)} DEF)` : '';
@@ -2634,7 +2696,7 @@ function killsHTML(uid, sm) {
 function cardHTML(uid, o) {
   o = o || {};
   const d = D(uid), sm = o.size !== 'lg';
-  const cls = ['card', d.side, sm ? 'sm' : 'lg', d.kind === 'aircraft' && killsOf(uid).length >= E.ACE_KILLS ? 'is-ace' : '', o.sel ? 'sel' : '', o.pick ? 'pick' : '', o.dim ? 'dim' : '', o.dead ? 'dead' : '', o.landed ? 'landed' : '', d.elite ? 'elite' : ''].join(' ');
+  const cls = ['card', d.side, sm ? 'sm' : 'lg', d.kind === 'aircraft' && (killsOf(uid).length >= E.ACE_KILLS || missionsOf(uid) >= E.VET_MISSIONS) ? 'is-ace' : '', o.sel ? 'sel' : '', o.pick ? 'pick' : '', o.dim ? 'dim' : '', o.dead ? 'dead' : '', o.landed ? 'landed' : '', d.elite ? 'elite' : ''].join(' ');
   const attrs = o.pick ? ` data-card="${uid}" data-zone="${o.zone || ''}" tabindex="0" role="button" aria-pressed="${o.sel ? 'true' : 'false'}"` : '';
   const role = d.kind === 'aircraft' ? (d.elite ? 'Elite' : d.type) : d.kind === 'war' ? 'War card' : d.kind === 'battle' ? 'Battle card' : d.kind;
   let body = '';
@@ -2688,10 +2750,10 @@ function turnItems(t) {
       const add = (label, text) => { const last = secs[secs.length - 1]; if (last && last.label === label) last.lines.push(text); else secs.push({ label, lines: [text] }); };
       add('Launch', `<b>${esc(l.short)}</b>`);
       if (resp) add('Intercept', esc(resp.short));
-      for (const x of R.filter((x) => x !== l && x !== resp && !['minor', 'turn', 'dmg', 'land', 'sys', 'mob'].includes(x.cls))) add('Combat', x.cls === 'ace' ? `<b style="color:var(--signal)">${esc(x.msg)}</b>` : esc(pubMsg(x)));
+      for (const x of R.filter((x) => x !== l && x !== resp && !x.vet && !['minor', 'turn', 'dmg', 'land', 'sys', 'mob'].includes(x.cls))) add('Combat', x.cls === 'ace' ? `<b style="color:var(--signal)">${esc(x.msg)}</b>` : esc(pubMsg(x)));
       add('Losses', lossOf(me()));
       add('Enemy losses', lossOf(E.other(me())));
-      for (const x of R.filter((x) => x.cls === 'dmg')) add('Target', esc(pubMsg(x)) + (x.detail && !x.arrived ? `<small class="aar-detail">${esc(x.detail)}</small>` : ''));
+      for (const x of R.filter((x) => x.cls === 'dmg' || x.vet)) add('Target', x.vet ? `<b style="color:var(--signal)">${esc(x.msg)}</b>` : esc(pubMsg(x)) + (x.detail && !x.arrived ? `<small class="aar-detail">${esc(x.detail)}</small>` : ''));
       for (const x of R.filter((x) => x.cls === 'land')) add('Landing', esc(x.msg));
       items.push(`<li class="side-${l.side}"><span>${opTag(l.stage)}</span>${secs.map((sc) => `<span class="aar"><em>${sc.label}</em><span class="aar-lines">${sc.lines.map((x) => `<span>${x}</span>`).join('')}</span></span>`).join('')}</li>`);
     }
@@ -3068,10 +3130,12 @@ function sitRep(side) {
   const kv = sc && sc.victory && sc.victory.kills;
   const fl = downed.slice(0, 16).map((u) => flag(natOf(u), 18)).join('');
   const aces = Object.entries(((S.stats || {})[side] || {}).kills || {}).filter(([, k]) => k >= E.ACE_KILLS).map(([u]) => u);
+  const vets = Object.entries(((S.stats || {})[side] || {}).missions || {}).filter(([, k]) => k >= E.VET_MISSIONS).map(([u]) => u);
   mets.push({ icon: 'target', label: 'Air to air', viz: downed.length ? `<div class="killf">${fl}</div>` : '<span class="note">None yet</span>', value: kv ? `${downed.length}/${kv}` : `${downed.length}`, sub: 'Enemy killed' });
   return `<section class="sit ${side}"><div class="sit-h"><h3>${SIDE[side]} sit rep</h3><span class="flags">${sideFlags(side)}</span><span class="note">Deck ${p.deck.length}<br>Hand ${p.hand.length}</span></div>
     <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml"${m.label.length > 9 && !m.label.includes(' ') ? ' style="font-size:13px"' : ''}>${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
-    ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}</section>`;
+    ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}
+    ${vets.length ? `<div class="aces"><span class="ace">VETERAN${vets.length > 1 ? 'S' : ''}</span>${vets.map((u) => `${nm(u)} (${plural(missionsOf(u), 'mission')}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}</section>`;
 }
 function clockHTML() {
   const sc = scen();
@@ -3287,7 +3351,7 @@ function rulesPage(t) {
       <li>A <b>parachute bomb</b>: the bomber carries Para-Frags.</li>
       <li>Base cards show a top-down airfield or carrier with its <b>Defense</b> in the red badge.</li></ul>
     <h3>Aces and markers</h3>
-    <p>Every enemy aircraft a plane shoots down is painted on its card as a small flag. At <b>${E.ACE_KILLS} kills</b> it becomes an <b>Ace</b> (gold ring) and its side draws 1 card. Each time an aircraft reaches its target it earns a bomb marker, or a sinking-carrier marker if that mission sank a carrier.</p>
+    <p>Every enemy aircraft a plane shoots down is painted on its card as a small flag. At <b>${E.ACE_KILLS} kills</b> it becomes an <b>Ace</b> (gold ring) and its side draws 1 card. Each time an aircraft reaches its target and drops on it, it earns a bomb marker, or a sinking-carrier marker if that mission sank a carrier. At <b>${E.VET_MISSIONS} missions</b> its crew is called out as a <b>Veteran</b> (VET tag and gold ring); there is no extra card for it.</p>
     <h3>What's hidden</h3>
     <p>Your hand, the aircraft in an attack until they're scouted, and which aircraft landed on which base. Your opponent only ever sees how many. In pass-and-play, a hand-off screen hides each player's cards from the other.</p>
     <h3>Using the app</h3>
@@ -3433,7 +3497,7 @@ function reportText() {
     L.push(`${SIDE[sd].toUpperCase()}: enemy aircraft shot down ${kills}; carriers lost ${(S.sunk || {})[sd] || 0}; convoy ${p.convoy}/15 (sunk ${p.convoysLost || 0}x)${sc && sc.noIndustry ? '' : `; Industry ${p.industry}/${E.industryMax(S)}`}; deck ${p.deck.length}, hand ${p.hand.length}`);
     const vets = Object.keys(S.cards).filter((u) => D(u).side === sd && D(u).kind === 'aircraft' && ((st.kills || {})[u] || (st.missions || {})[u]))
       .sort((a, b) => ((st.kills || {})[b] || 0) - ((st.kills || {})[a] || 0));
-    for (const u of vets) L.push(`  ${D(u).name}: ${plural((st.kills || {})[u] || 0, 'kill')}${((st.kills || {})[u] || 0) >= E.ACE_KILLS ? ' (ACE)' : ''}, ${plural((st.missions || {})[u] || 0, 'mission')} over target${(S.downed || []).includes(u) ? ', lost' : ''}`);
+    for (const u of vets) L.push(`  ${D(u).name}: ${plural((st.kills || {})[u] || 0, 'kill')}${((st.kills || {})[u] || 0) >= E.ACE_KILLS ? ' (ACE)' : ''}, ${plural((st.missions || {})[u] || 0, 'mission')} over target${((st.missions || {})[u] || 0) >= E.VET_MISSIONS ? ' (VETERAN)' : ''}${(S.downed || []).includes(u) ? ', lost' : ''}`);
   }
   L.push('', 'WAR RECORD' + (full ? '' : ' (enemy remaining forces hidden until the game ends)'));
   L.push(htmlText(warReportHTML('allied', full || me() === 'allied')), htmlText(warReportHTML('axis', full || me() === 'axis')));
