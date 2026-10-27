@@ -133,7 +133,8 @@ p { margin: 0; }
 .card.elite .band { background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255,255,255,.2) 6px 9px); }
 .cname { font: 600 15px/1.12 var(--f-body); padding: 7px 8px 6px; text-wrap: balance; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
 .cname .cmark { flex: none; color: #24486f; margin-top: 1px; }
-.cname .cmark.pf { color: var(--kill-ink); }
+.cname .cmark.pf { color: #2a2f2c; }
+.ctext.pfx { color: var(--ink); font-weight: 600; }
 .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 7px; border: 1px solid var(--paper-2); border-radius: 3px; }
 .stats.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .stats div { display: grid; justify-items: center; padding: 3px 0 2px; }
@@ -143,14 +144,6 @@ p { margin: 0; }
 .stats b.z { color: var(--paper-2); }
 .stats b.down { color: var(--kill-ink); }
 .stats b.up { color: #1f7a3c; }
-.bicon { display: flex; align-items: center; gap: 10px; padding: 2px 8px 8px; }
-.bic { position: relative; display: block; color: var(--ink-2); }
-.dbadge { position: absolute; top: -5px; right: -9px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; display: grid; place-items: center;
-  background: var(--kill-ink); color: #fff; font: 700 11px/1 var(--f-mono); box-shadow: 0 0 0 2px var(--paper); }
-.bcap { font: 600 10px/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
-.bcap b { font: 600 15px/1 var(--f-mono); color: var(--ink); margin-left: 3px; }
-.card.sm .bicon { gap: 8px; padding: 0 6px 6px; } .card.sm .dbadge { min-width: 17px; height: 17px; font-size: 10px; top: -4px; right: -8px; }
-.card.sm .bcap { font-size: 8.5px; } .card.sm .bcap b { font-size: 13px; }
 .cmeta { font: 600 9.5px/1.25 var(--f-mono); color: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; padding: 7px 8px 8px; }
 .ctext { font: 400 11.5px/1.3 var(--f-body); color: var(--ink-2); padding: 0 8px 8px; }
 .cfoot { margin-top: auto; font: 700 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; padding: 6px 8px; background: var(--ink); color: var(--paper); }
@@ -239,6 +232,7 @@ p { margin: 0; }
 .aar { display: grid; grid-template-columns: 78px 1fr; gap: 8px; font-size: 13.5px; }
 .aar em { font: 600 9.5px/1.9 var(--f-mono); font-style: normal; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .aar-lines { display: grid; gap: 3px; min-width: 0; }
+.aar-detail { display: block; font: 500 11.5px/1.4 var(--f-mono); color: var(--signal); margin-top: 2px; }
 .turn-h { font: 800 19px/1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; display: flex; justify-content: space-between; align-items: baseline; }
 .turn-h.side-axis { color: var(--axis); } .turn-h.side-allied { color: var(--allied); }
 .turn-h .pill { font-size: 9px; }
@@ -268,10 +262,13 @@ p { margin: 0; }
 .met .mv { font: 600 11.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .04em; }
 .met .mv small { display: block; color: var(--muted); font-size: 10px; }
 .killf { display: grid; grid-template-columns: repeat(4, 18px); gap: 3px; justify-content: center; align-content: center; }
-.objv { display: grid; justify-items: center; }
-.objv b { font: 800 34px/.9 var(--f-display); }
-.objv small { font: 600 9px/1 var(--f-mono); color: var(--muted); letter-spacing: .1em; }
-.objv.lost b { color: var(--kill); font-size: 22px; }
+.objv { position: relative; display: block; width: 50px; height: 50px; color: var(--fg); }
+.met .objv .ic { width: 50px; height: 50px; color: var(--muted); }
+.objv .shield { position: absolute; top: -12px; right: -18px; width: 30px; height: 35px; display: grid; place-items: center; }
+.objv .shield svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--paper); stroke: #0b1218; stroke-width: 1.5; }
+.objv .shield b { position: relative; font: 800 17px/1 var(--f-display); color: var(--ink); margin-top: -3px; }
+.objv.lost { width: auto; height: auto; }
+.objv.lost b { font: 800 22px/.9 var(--f-display); color: var(--kill); }
 .cvs { display: flex; flex-wrap: wrap; gap: 2px 4px; justify-content: center; max-width: 80px; }
 .tankers { display: grid; grid-template-columns: repeat(5, 15px); gap: 4px 1px; justify-content: center; align-items: end; }
 .met .tankers .ic { width: 15px; height: 15px; color: var(--fg); stroke-width: 2; }
@@ -502,19 +499,20 @@ const SCENARIOS = {
     // the 1942 units (Flying Tigers, Tainan Kokutai), carriers already sunk (Lexington, Yorktown, Akagi) and 1944 types (P1Y, Ki-67).
     exclude: ['f2a', 'f4f3', 'tbd', 'sb2u', 'p40b', 'p40ft', 'lexington', 'yorktown', 'claude', 'nate', 'tainan', 'akagi', 'frances', 'peggy'],
     // Balanced by self-play: 48% Axis (4,000 games); the air war decides about a third of games, evenly split.
-    // Re-tuned Oct 2026 for the Allied last-turn all-in: 13 kills and Rabaul 14 (51.6 / 51.3% Axis over 2 x 4,000 games).
-    turnLimit: 15, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 14 },
+    // Re-tuned Oct 2026: 13-kill air war, one B-17 (by 1943 the Solomons heavy groups were moving to B-24s), Rabaul 13.
+    // 51.5 / 52.4% Axis over 2 x 4,000 games.
+    turnLimit: 15, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 13 },
     timeoutWinner: 'axis', timeoutText: 'The year is over. Rabaul still stands, and the Allies will have to go around it.',
     convoyEffects: {
       allied: { base: 'guadalcanal', fortDelta: -2, text: 'The Tokyo Express cut Guadalcanal\u2019s supplies.' },
       axis: { base: 'rabaul', fortDelta: -2, text: 'Like the Bismarck Sea convoy, Rabaul\u2019s supplies went to the bottom.' },
     },
     victory: { holdBase: { allied: 'guadalcanal', axis: 'rabaul' }, kills: 13 },
-    victoryText: 'The Allies win by destroying Rabaul (Defense 14); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 13 enemy aircraft. If Rabaul still stands after turn 15, the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
+    victoryText: 'The Allies win by destroying Rabaul (Defense 13); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 13 enemy aircraft. If Rabaul still stands after turn 15, the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
     sides: {
       allied: { home: null, inPlay: ['guadalcanal', 'moresby'], hand: ['f4u', 'f4f4', 'p38', 'sbd', 'b25'],
                 special: ['coastwatchers', 'blacksheep'], specialInDeck: ['coastwatchers', 'blacksheep'],
-                extra: { f4u: 2, p38: 1, b17: 1, tbf: 1, p40e: 1, sbd: 1 } },
+                extra: { f4u: 2, p38: 1, tbf: 1, p40e: 1, sbd: 1 } },
       axis:   { home: null, inPlay: ['rabaul', 'kavieng'], hand: ['hamp', 'zero', 'tony', 'betty', 'val'],
                 special: ['igo', 'k204'], specialInDeck: ['igo', 'k204'],
                 extra: { hamp: 2, zero: 1, tony: 1, tojo: 1, betty: 1, val: 1 } },
@@ -1439,12 +1437,17 @@ function goDamage(s) {
   for (const m of arriving) { m.revealed = true; markSeen(s, m.uid); }
   if (!arriving.length) { log(s, 'Every attacker was shot down. Nothing reached the target.', 'dmg'); s.after = 'land'; flush(s); return; }
   // Public: the cards that reached the target are turned face up to count the damage, as at the table.
-  // Each aircraft that carries a damage value scores a mission (bomb markers on the card).
+  // An aircraft scores a mission (a bomb marker) only if it actually drops something on this target:
+  // a P-38 on a convoy attack (CNV 0) is flying escort, not bombing.
   const tk = c.target.kind, mult = c.stage === 'carrier' && (tk === 'carrier' || (tk === 'convoy' && s.options.convoyCarrierDouble !== false)) ? 2 : 1;
   const stat = tk === 'airbase' || tk === 'industry' ? ['bomb', 'BMB'] : tk === 'carrier' ? ['car', 'CAR'] : tk === 'convoy' ? ['conv', 'CNV'] : null;
   const st = stats(s, c.att); st.missions = st.missions || {};
-  for (const m of arriving) { const d = D(s, m.uid); if ((d.bomb || 0) + (d.car || 0) + (d.conv || 0) > 0) st.missions[m.uid] = (st.missions[m.uid] || 0) + 1; }
-  log(s, `Over the target: ${arriving.map((m) => { const d = D(s, m.uid); return stat ? `${d.name} (${d[stat[0]] || 0} ${stat[1]}${mult > 1 && d[stat[0]] ? ' ×2' : ''})` : d.name; }).join(', ')}.`, 'dmg', { arrived: arriving.map((m) => m.uid) });
+  const drops = (d) => (stat ? (d[stat[0]] || 0) > 0 : (d.bomb || 0) + (d.conv || 0) > 0); // resources: Industry or Convoy
+  for (const m of arriving) if (drops(D(s, m.uid))) st.missions[m.uid] = (st.missions[m.uid] || 0) + 1;
+  log(s, `Over the target: ${arriving.map((m) => { const d = D(s, m.uid);
+    if (!stat) return d.name;
+    const pf = tk === 'airbase' && armedWith(s, m.uid) ? ' +4 Para-Frags' : '';
+    return `${d.name} (${d[stat[0]] || 0} ${stat[1]}${mult > 1 && d[stat[0]] ? ' ×2' : ''}${pf})`; }).join(', ')}.`, 'dmg', { arrived: arriving.map((m) => m.uid) });
   if (c.target.kind === 'resources') {
     if (arriving.every((m) => !D(s, m.uid).bomb && !D(s, m.uid).conv)) {
       log(s, `Only fighters reached the ${SIDE[c.def]} Industry and Convoy. They carry no bombs, so no damage was done.`, 'dmg');
@@ -1539,7 +1542,7 @@ function facilityAttack(s, arriving) {
   if (destroyed) {
     raidStat(s, c.att, kind).kills++;
     if (kind === 'carrier') { const st = stats(s, c.att); st.sinks = st.sinks || {};
-      for (const m of arriving) if (dmgCapableCard(D(s, m.uid))) st.sinks[m.uid] = (st.sinks[m.uid] || 0) + 1; }
+      for (const m of arriving) if ((D(s, m.uid).car || 0) > 0) st.sinks[m.uid] = (st.sinks[m.uid] || 0) + 1; }
     destroyFacility(s, c.def, f, kind);
   }
 }
@@ -2417,7 +2420,7 @@ const BALANCE = {
   campaign: { surpriseAttack: true, axis: 1 },   // not balanced yet: same as Basic for now
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
-  guadalcanal: { surpriseAttack: false, axis: 0 }, // 51.5%: 13-kill air war, Rabaul Defense 14
+  guadalcanal: { surpriseAttack: false, axis: 0 }, // 52%: 13-kill air war, Rabaul Defense 13, one B-17
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -2641,10 +2644,10 @@ function cardHTML(uid, o) {
     body = `<div class="stats"><div><span>A2A</span><b class="${cl(am.a2a, av)}">${av || '–'}</b></div>${[['BMB', d.bomb], ['CAR', d.car], ['CNV', d.conv]].map(([k, v]) => `<div><span>${k}</span><b class="${v ? '' : 'z'}">${v || '–'}</b></div>`).join('')}<div><span>DEF</span><b class="${cl(am.def - (o.scouted ? 1 : 0), dv)}">${dv}</b></div></div>`;
     if (!sm) body += `<div class="cmeta">${E.carrierCapable(d) ? 'Land or carrier' : 'Land based'} ${esc(d.role)}${d.service ? ' · ' + esc(d.service) : ''}</div>`;
   } else if (d.kind === 'airbase' || d.kind === 'carrier') {
-    const dv = E.has(d, 'twoHits') ? '9/4' : (scen() && scen().defs && scen().defs[S.cards[uid]]) || d.def;
-    body = `<div class="bicon"><span class="bic">${ico(d.kind === 'carrier' ? 'carrierTop' : 'airfieldTop', sm ? 34 : 44)}<b class="dbadge" title="Defense ${dv}">${dv}</b></span><span class="bcap">Capacity <b>${d.cap}</b></span></div>`;
+    body = `<div class="stats two"><div><span>CAP</span><b>${d.cap}</b></div><div><span>DEF</span><b>${E.has(d, 'twoHits') ? '9/4' : (scen() && scen().defs && scen().defs[S.cards[uid]]) || d.def}</b></div></div>`;
   }
   if (d.text && (d.kind === 'war' || d.kind === 'battle' || !sm)) body += `<div class="ctext">${esc(d.text)}</div>`;
+  if (d.kind === 'aircraft' && E.armedWith(S, uid)) body += `<div class="ctext pfx">Para-Frags: +4 against airbases until shot down.</div>`;
   if (!sm && d.kind !== 'aircraft' && !d.text) body += '<div style="height:8px"></div>';
   const foot = o.foot ? `<div class="cfoot ${o.footCls ? 'f-' + o.footCls : ''}">${esc(o.foot)}</div>` : '';
   return `<div class="${cls}"${attrs}>${o.fresh ? '<span class="new">NEW</span>' : ''}<div class="band"><span>${flag(natOf(uid), sm ? 14 : 17)}${esc(role)}</span><span>${o.tag ? esc(o.tag) : o.cost != null ? o.cost + ' PT' : ''}</span></div>
@@ -2688,7 +2691,7 @@ function turnItems(t) {
       for (const x of R.filter((x) => x !== l && x !== resp && !['minor', 'turn', 'dmg', 'land', 'sys', 'mob'].includes(x.cls))) add('Combat', x.cls === 'ace' ? `<b style="color:var(--signal)">${esc(x.msg)}</b>` : esc(pubMsg(x)));
       add('Losses', lossOf(me()));
       add('Enemy losses', lossOf(E.other(me())));
-      for (const x of R.filter((x) => x.cls === 'dmg')) add('Target', esc(pubMsg(x)));
+      for (const x of R.filter((x) => x.cls === 'dmg')) add('Target', esc(pubMsg(x)) + (x.detail && !x.arrived ? `<small class="aar-detail">${esc(x.detail)}</small>` : ''));
       for (const x of R.filter((x) => x.cls === 'land')) add('Landing', esc(x.msg));
       items.push(`<li class="side-${l.side}"><span>${opTag(l.stage)}</span>${secs.map((sc) => `<span class="aar"><em>${sc.label}</em><span class="aar-lines">${sc.lines.map((x) => `<span>${x}</span>`).join('')}</span></span>`).join('')}</li>`);
     }
@@ -3051,7 +3054,8 @@ function sitRep(side) {
   if (hb) {
     const f = p.airbases.find((x) => S.cards[x.uid] === hb);
     const name = E.CARD_DB[hb].name;
-    const viz = f ? `<div class="objv"><b>${defText(f)}</b><small>DEF</small></div>` : '<div class="objv lost"><b>LOST</b></div>';
+    const viz = f ? `<div class="objv" title="Defense ${defText(f)}">${ico('airfieldTop', 50)}<span class="shield"><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1.5 2.5 5v8.2c0 6.6 4.1 11.1 9.5 13.3 5.4-2.2 9.5-6.7 9.5-13.3V5z"/></svg><b>${defText(f)}</b></span></div>`
+      : '<div class="objv lost"><b>LOST</b></div>';
     const dmg = f && E.turnDamage(S, f);
     mets.push({ icon: 'objective', label: name.replace('Port ', 'Pt. '), viz, value: 'Objective', sub: f ? (dmg ? `Hit ${dmg} this turn` : f.fort ? `${f.fort} supplies` : 'Holding') : 'Destroyed' });
   }
@@ -3066,7 +3070,7 @@ function sitRep(side) {
   const aces = Object.entries(((S.stats || {})[side] || {}).kills || {}).filter(([, k]) => k >= E.ACE_KILLS).map(([u]) => u);
   mets.push({ icon: 'target', label: 'Air to air', viz: downed.length ? `<div class="killf">${fl}</div>` : '<span class="note">None yet</span>', value: kv ? `${downed.length}/${kv}` : `${downed.length}`, sub: 'Enemy killed' });
   return `<section class="sit ${side}"><div class="sit-h"><h3>${SIDE[side]} sit rep</h3><span class="flags">${sideFlags(side)}</span><span class="note">Deck ${p.deck.length}<br>Hand ${p.hand.length}</span></div>
-    <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml">${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
+    <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml"${m.label.length > 9 && !m.label.includes(' ') ? ' style="font-size:13px"' : ''}>${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
     ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}</section>`;
 }
 function clockHTML() {
