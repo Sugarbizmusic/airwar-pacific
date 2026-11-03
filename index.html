@@ -1849,6 +1849,11 @@ const PROFILES = {
   industry: { target: 'industry', escortRatio: 0.5, homeGuard: 5, takeKills: false, cautious: true, planeLoss: 5, minNet: 3, carrierThreat: true, carrierDefenders: 1, lastStand: 'last', winGamble: 0.7 },
   reckless: { target: 'balanced', escortRatio: 0.5, homeGuard: 2, takeKills: true, cautious: false }, // the first AI, kept for comparison
 };
+/* The waiting game (a playtester's strategy): sit back and defend to rack up kills, break off obvious fighter
+   sweeps, lead interceptions with lesser fighters and save the bomber killers, take safe kills and the big
+   bombers, attack only when resistance is light or a kill is sure, and save everything for one big combined
+   strike at the end (or, for the side holding out, a convoy strike that ends the battle early). */
+PROFILES.waiting = Object.assign({}, PROFILES.balanced, { waiting: true });
 
 /* ------------------------------------------------------------------ what the AI knows about the enemy
    Only public information: fighters it has seen face up (in combat or landed on the table), which of those
@@ -2019,9 +2024,11 @@ function lastStand(s, side, mode) {
 
 /* The side racing the clock, on its last turn: losing is certain otherwise, so everything flies at the objective.
    Bombers go even when they can't take it alone: they draw interceptors that our fighters can then strike. */
-function allIn(s, side) {
+function allIn(s, side, prof) {
   const clock = E.clockLimit(s), sc = E.scenarioOf(s);
-  if (!clock || !sc || sc.timeoutWinner === side || s.turnNo < clock - 1) return null;
+  // The waiting player strikes on its last turn, or a turn earlier if its own convoy might not last that long.
+  const early = prof && prof.waiting && s.players[side].convoy >= 8 ? 2 : 1;
+  if (!clock || !sc || sc.timeoutWinner === side || s.turnNo < clock - early) return null;
   const objId = sc.victory && sc.victory.holdBase && sc.victory.holdBase[E.other(side)];
   const t = objId && E.attackTargets(s).find((x) => x.kind === 'airbase' && s.cards[x.uid] === objId);
   if (!t) return null;
@@ -2129,7 +2136,7 @@ function planRaid(s, side, prof) {
       const moBonus = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, Math.max(0, cards.length - Math.round(o.lost))) : (moD.boost || 4)) : 0;
       const val = (k) => k + f.landed.length * 4 + f.war.length * 3 - o.lost * lossW;
       const raw = sum(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb)) + 4 * pfN;
-      if (o.delivered >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill) });
+      if (o.delivered >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill), sure: o.lost <= (prof.sureLoss ?? 1.5) });
       // Last stand: a strike that only gets there if it slips past the fighters is still worth flying.
       // It only uses deck space our carrier fighters won't need: bombers landing back on the carrier take their slots.
       else if (desperate && t.kind === 'carrier' && s.stage === 'carrier') {
@@ -2139,7 +2146,7 @@ function planRaid(s, side, prof) {
         if (sc2.length && raw2 >= need) { const o2 = outlook(sc2, (d) => d.car * mult, 'carrier');
           options.push({ target: t, cards: sc2, lost: o2.lost, value: kill * Math.max(0.3, o2.delivered / need) + f.landed.length * 4 - o2.lost * lossW, stand: true }); }
       }
-      else if (o.delivered + moBonus >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill), mo: true });
+      else if (o.delivered + moBonus >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill), mo: true, sure: o.lost <= (prof.sureLoss ?? 1.5) });
       // Our last turn on the clock: a winning raid that only works if it slips past the fighters is still the best shot.
       else if (wins && (lastChance || E.turnDamage(s, f) > 0 || (prof.winGamble != null && (o.delivered + moBonus) / need >= prof.winGamble)) && raw + (moD ? Math.min(moD.boost || 4, cards.length) : 0) >= need)
         options.push({ target: t, cards, lost: o.lost, value: kill * Math.max(0.2, (o.delivered + moBonus) / need), mo: !!moD, stand: true });
@@ -2150,13 +2157,20 @@ function planRaid(s, side, prof) {
         const fo = outlook(followCards, (d) => d.bomb, 'airbase');
         const later = (prof.softenOutlook === false ? followCards.reduce((x, u) => x + (D(s, u).bomb || 0), 0) : fo.delivered)
           + (moD ? Math.min(moD.boost || 4, Math.max(0, followCards.length - Math.round(fo.lost))) : 0);
-        if (o.delivered > 0 && o.delivered + later >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill * 0.7) });
+        if (o.delivered > 0 && o.delivered + later >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill * 0.7), sure: o.lost + fo.lost <= (prof.sureLoss ?? 1.5) });
       }
     }
   }
   options.sort((a, b) => b.value - a.value);
   const o = options[0];
   if (!o || !o.cards.length) return null;
+  if ((prof.waiting || prof.waitGate) && prof.waitGate !== false) {
+    // Waiting: no attacks except late, a sure kill, a raid that meets little resistance, or one that wins the game.
+    const racing = !!(clock && scc && scc.timeoutWinner !== side);
+    const late = clock ? s.turnNo >= clock - (racing ? (prof.raceWake ?? 3) : 3) : !p.deck.length;
+    const soft = o.lost <= 0.35 && o.value > 0;
+    if (!(late || o.sure || soft || o.value >= WIN_VALUE * 0.5 || desperate)) return null;
+  }
   // Careful play: hold back when the raid is expected to cost more than it gains, unless the hand is
   // overflowing or the enemy is close to collapse. Single-target profiles still respect the loss math.
   if (careful) {
@@ -2180,7 +2194,8 @@ function planRaid(s, side, prof) {
    (seen ones, plus a typical 4/4 for unseen), and our own carriers stay covered while the sweep fighters are
    landed: a Rain Squall / Weather Front in hand, or enough fighters held back. */
 function planSweep(s, side, prof) {
-  if (prof.sweep === false) return null;
+  // The waiting player sweeps in scenarios (cheap kills count there), not in the long Campaign (self-play: stronger without).
+  if (prof.sweep === false || (prof.waiting && !E.scenarioOf(s))) return null;
   const p = s.players[side], op = s.players[E.other(side)];
   const kind = E.launchKind(s), cap = E.availCap(s, p, kind);
   const land = s.stage === 'airbase';
@@ -2231,6 +2246,41 @@ function planSweep(s, side, prof) {
   return best ? { type: 'launch', target: best.target, cards: best.cards } : null;
 }
 
+/* The side holding out (e.g. the Allies at Coral Sea): sinking the enemy convoy brings the end of the battle
+   closer. The waiting player saves its convoy bombers for one strike late in the game, Attack Mission and
+   Carrier Strike together, or takes a sure sinking at any time. */
+function convoyFinisher(s, side, prof) {
+  const sc = E.scenarioOf(s), clock = E.clockLimit(s);
+  if (!(prof.waiting || prof.waitFinisher) || prof.waitFinisher === false || !sc || !clock || sc.timeoutWinner !== side) return null;
+  const opp = E.other(side), op = s.players[opp], fx = sc.convoyEffects && sc.convoyEffects[opp];
+  if (!fx || !fx.clock || !E.attackTargets(s).some((t) => t.kind === 'convoy')) return null;
+  const p = s.players[side], kind = E.launchKind(s), cap = E.availCap(s, p, kind);
+  const mult = s.stage === 'carrier' && s.options.convoyCarrierDouble !== false ? 2 : 1;
+  const remaining = E.CONVOY_MAX - op.convoy + 2 * op.resWar.convoy.length;
+  const elig = p.hand.filter((u) => E.launchEligible(s, u));
+  // Airbase Stage: land-based bombers go now; carrier aircraft wait for the Carrier Stage, where Convoy doubles.
+  const now = elig.filter((u) => D(s, u).conv && (s.stage === 'carrier' || !E.carrierCapable(D(s, u)) || !p.carriers.length))
+    .sort((a, b) => D(s, b).conv - D(s, a).conv).slice(0, cap);
+  if (!now.length) return null;
+  const esc = elig.filter((u) => !now.includes(u) && isFighter(D(s, u)) && !dmgCapable(D(s, u))).sort((a, b) => D(s, b).a2a - D(s, a).a2a)
+    .slice(0, Math.max(0, cap - now.length));
+  const cards = now.concat(esc);
+  const o = raidOutlook(s, cards, (d) => d.conv * mult, enemyThreat(s, side, 'convoy'));
+  let later = 0;
+  if (s.stage === 'airbase' && p.carriers.length) {
+    const cc = p.hand.filter((u) => !cards.includes(u) && D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && D(s, u).conv)
+      .sort((a, b) => D(s, b).conv - D(s, a).conv).slice(0, E.availCap(s, p, 'carrier'));
+    later = raidOutlook(s, cc, (d) => d.conv * 2, enemyThreat(s, side, 'convoy')).delivered * 0.8;
+  }
+  // Only when sinking it now ends the battle at once (otherwise our fighters are away for the enemy's last strike),
+  // or when the bombers alone are sure to sink it.
+  const endsNow = s.turnNo >= clock + fx.clock;
+  if (endsNow && o.delivered + later >= remaining * 0.9) return { type: 'launch', target: { kind: 'convoy' }, cards };
+  const ob = raidOutlook(s, now, (d) => d.conv * mult, enemyThreat(s, side, 'convoy'));
+  if (ob.delivered >= remaining + 1) return { type: 'launch', target: { kind: 'convoy' }, cards: now };
+  return null;
+}
+
 /* ------------------------------------------------------------------ combat helpers */
 /* Outcome of an engagement given each side's effective stats. */
 function duel(a, b) {
@@ -2248,6 +2298,7 @@ function eff(s, uid, foeUid, battleUid, struck) {
 }
 
 function defenderMove(s, side, prof) {
+  if (prof && (prof.waiting || prof.waitDefense) && prof.waitDefense !== false) return waitingDefense(s, side, prof);
   const c = s.combat, p = s.players[side];
   const mine = c.intercept.filter((e) => E.canInitiate(s, e)).sort((a, b) => D(s, b.uid).a2a - D(s, a.uid).a2a);
   const strikes = c.mission.filter((m) => E.strikeable(s, m));
@@ -2269,6 +2320,47 @@ function defenderMove(s, side, prof) {
     // best fighters wait to strike what has been revealed.
     const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def;
     const lead = prof && prof.scoutFirst === false || mine.length < 2 ? mine[0] : [...mine].sort((x, y) => worth(x) - worth(y))[0];
+    return { type: 'engage', mode: 'intercept', own: lead.uid, slot: hidden[Math.floor(rnd() * hidden.length)] };
+  }
+  if (best) return best.action;
+  return { type: 'endCombat' };
+}
+
+/* Waiting defense: break off a raid that has shown itself to be a fighter sweep, lead blind interceptions with
+   lesser fighters, keep bomber killers (Interceptor ability) for bombers, prefer kills where our fighter
+   survives, go for the big bombers and the enemy's best fighters. */
+function waitingDefense(s, side, prof) {
+  const c = s.combat, p = s.players[side];
+  const mine = c.intercept.filter((e) => E.canInitiate(s, e));
+  const strikes = c.mission.filter((m) => E.strikeable(s, m));
+  const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
+  const icpt = (u) => (D(s, u).interceptor || 0) > 0;
+  const dmgOf = (d) => Math.max(d.bomb || 0, d.conv || 0, d.car || 0);
+  // Fighter sweep: two or more raiders shown and every one a fighter. Breaking off saves our fighters, unless the
+  // hidden rest could still finish off what they're attacking.
+  const shown = c.mission.filter((m) => m.revealed);
+  if (shown.length >= 2 && hidden.length && shown.every((m) => !dmgCapable(D(s, m.uid)))) {
+    const t = c.target, maxHit = hidden.length * 5 * (c.stage === 'carrier' && t.kind !== 'airbase' ? 2 : 1);
+    let danger = false;
+    if (t.kind === 'convoy') danger = E.CONVOY_MAX - p.convoy <= maxHit;
+    else if (t.kind === 'airbase' || t.kind === 'carrier') { const f = E.findFac(p, t.uid); danger = !!f && E.damageNeeded(s, f.f) <= maxHit; }
+    if (!danger) return { type: 'endCombat' };
+  }
+  let best = null;
+  for (const own of mine) for (const t of strikes) for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
+    const td = D(s, t.uid), r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true));
+    if (!r.killB) continue;
+    const big = dmgCapable(td) ? dmgOf(td) : 0;
+    let score = 10 + (big ? 4 + big * 1.5 : td.a2a * 1.2) - (bc ? 2 : 0);
+    if (r.killA) score -= big >= 4 ? 6 : 12; // a trade is only worth it for a big bomber
+    if (icpt(own.uid)) score += big ? 2 : -3; // bomber killers are for bombers
+    if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
+  }
+  if (best && best.score > 6) return best.action;
+  if (hidden.length && mine.length) {
+    // Lesser fighters go in blind first; bomber killers and the best fighters wait to strike what is revealed.
+    const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def + (icpt(e.uid) ? 4 : 0) + (D(s, e.uid).elite ? 3 : 0);
+    const lead = [...mine].sort((x, y) => worth(x) - worth(y))[0];
     return { type: 'engage', mode: 'intercept', own: lead.uid, slot: hidden[Math.floor(rnd() * hidden.length)] };
   }
   if (best) return best.action;
@@ -2447,7 +2539,7 @@ function chooseAction(s, profile) {
   switch (s.phase) {
     case 'setup': return pickOpening(s, side);
     case 'mobilize': return mobilize(s, side, prof);
-    case 'attack': return (prof.allIn !== false && allIn(s, side)) || planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
+    case 'attack': return (prof.allIn !== false && allIn(s, side, prof)) || convoyFinisher(s, side, prof) || planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
     case 'intercept': return interceptMove(s, side, prof);
     case 'combat': return side === s.combat.def ? defenderMove(s, side, prof) : attackerMove(s, side);
     case 'respond': return respondMove(s, side);
@@ -2494,6 +2586,14 @@ const MODES = {
   scenario: { name: 'Scenario', text: 'A short historical battle with its own forces, special cards and victory conditions.' },
   campaign: { name: 'Campaign', text: `The long war, fought to 60 Industry. Home base, 5 set cards, ${E.CAMPAIGN_BUY.picks} picks for up to ${E.CAMPAIGN_BUY.budget} points, then ${E.CAMPAIGN_BUY.draws} draws. Still being balanced.` },
 };
+/* Computer opponent styles (ai.js profiles). Industry only makes sense where there is an Industry track. */
+const STYLES = [
+  ['balanced', 'Mixed', 'Attacks whenever the numbers look good.'],
+  ['waiting', 'Waiting', 'Sits back and defends to rack up kills, breaks off fighter sweeps, and only strikes when resistance is light, a kill is sure, or near the end of the battle.'],
+  ['convoy', 'Convoy raider', 'Goes after your Convoy.'],
+  ['industry', 'Industrial bomber', 'Goes after your Industry (Campaign).'],
+];
+const styleName = (id) => (STYLES.find((x) => x[0] === id) || [id, id])[1];
 const OLD_MODES = { basic: 'Basic rules', pointbuy: 'Point buy', classic: 'Original rules' };
 
 function fresh() { return { sel: [], target: null, own: null, slot: null, strike: null, battle: null, sub: null, split: {}, special: null }; }
@@ -3080,7 +3180,7 @@ function phaseBlurb() {
 let repInline = false;
 function ordersPage(reps) {
   if (over()) {
-    return `<section class="result ord-head"><span class="label">Game over · turn ${S.turnNo}</span><h2>${S.winner === 'draw' ? 'Draw' : SIDE[S.winner] + ' victory'}</h2><p>${esc(S.endReason || '')}</p></section>
+    return `<section class="result ord-head"><span class="label">Game over · turn ${S.turnNo}</span><h2>${S.winner === 'draw' ? 'Draw' : SIDE[S.winner] + ' victory'}</h2><p>${esc(S.endReason || '')}</p>${S.options.ai ? `<p class="note">Computer ${SIDE[S.options.ai.side]}: ${esc(styleName(S.options.ai.profile))} style.</p>` : ''}</section>
       ${turnHTML(S.turnNo, false)}${warReportHTML('allied', true)}${warReportHTML('axis', true)}
       <div class="actions">${btn('openNew', 'New game', { cls: 'go' })}</div>`;
   }
@@ -3422,7 +3522,7 @@ function rulesPage(t) {
       <span class="k">Opening</span><span>Scenario: set hand + 2 draws. Campaign: home base, set hand, 2 picks, 2 draws.</span></div>
     <h3>Opponents and options</h3>
     <ul><li><b>Pass and play:</b> two players share the device, with hand-off screens.</li>
-      <li><b>Against the computer:</b> choose your side; the computer plays the other.</li>
+      <li><b>Against the computer:</b> choose your side; the computer plays the other. Pick its style in New game: <b>Mixed</b> attacks whenever the numbers look good; <b>Waiting</b> sits back, defends to rack up kills and saves everything for safe kills and one big strike late in the battle.</li>
       <li>New game options (Axis head start, surprise attack, draw 3 keep 2 and so on) are set to the most even values found in thousands of test games; you can change them.</li></ul></section>`;
 }
 function newHTML() {
@@ -3437,8 +3537,11 @@ function newHTML() {
     <div class="label">Opponent</div>
     ${[['', 'Pass and play', 'Two players share this device, with hand-off screens.'], ['axis', 'You play Allied', 'The computer commands the Axis.'], ['allied', 'You play Axis', 'The computer commands the Allies.']]
       .map(([id, n, tx]) => opt('opp', id, oppV === id, n, tx)).join('')}
-    ${newOpts.ai ? `<label class="tog sel"><span>Computer's style</span><select id="opt-style">${[['balanced', 'Mixed'], ['industry', 'Industrial bomber'], ['convoy', 'Convoy raider']]
-        .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>` : ''}
+    ${newOpts.ai ? (() => { const list = STYLES.filter(([v]) => v !== 'industry' || newOpts.mode !== 'scenario');
+        if (!list.some(([v]) => v === newOpts.ai.profile)) newOpts.ai.profile = 'balanced';
+        const cur = STYLES.find(([v]) => v === newOpts.ai.profile);
+        return `<label class="tog sel"><span>Computer's style<small>${esc(cur[2])}</small></span><select id="opt-style">${list
+        .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`; })() : ''}
     <div class="label">Options</div>
     <p class="note">Choosing a mode sets the surprise attack and Axis head start to the values closest to 50/50 in computer test games.</p>
     <label class="tog"><input type="checkbox" id="opt-surprise" ${newOpts.surpriseAttack ? 'checked' : ''}><span>Pearl Harbor surprise attack<small>On turn 1 the Allies cannot intercept.</small></span></label>
@@ -3487,7 +3590,7 @@ function reportText() {
   const now = new Date(), d2 = (n) => String(n).padStart(2, '0');
   L.push('AIRWAR PACIFIC! GAME REPORT', `Exported ${now.getFullYear()}-${d2(now.getMonth() + 1)}-${d2(now.getDate())} ${d2(now.getHours())}:${d2(now.getMinutes())}`, '');
   L.push(`Game: ${modeName()}${sc ? ' (scenario)' : ''}`);
-  L.push(`Players: ${aiSide() ? `human ${SIDE[human()]} vs computer ${SIDE[aiSide()]} (${o.ai.profile})` : 'pass and play'}`);
+  L.push(`Players: ${aiSide() ? `human ${SIDE[human()]} vs computer ${SIDE[aiSide()]} (${styleName(o.ai.profile)} style)` : 'pass and play'}`);
   L.push(`Options: Axis +${(o.bonusCards || {}).axis || 0} cards; surprise attack ${o.surpriseAttack ? 'on' : 'off'}; draw 3 keep 2 ${o.drawKeep ? 'on' : 'off'}; protected home ${o.indestructibleHome ? 'on' : 'off'}; convoy discards ${o.convoyDiscards ?? 2}${o.singleMobilization ? '; single mobilization' : ''}`);
   L.push(full ? `Result: ${S.winner === 'draw' ? 'Draw' : SIDE[S.winner] + ' victory'} on turn ${S.turnNo}. ${S.endReason || ''}` : `In progress: turn ${S.turnNo}${sc && sc.turnLimit ? ' of ' + E.clockLimit(S) : ''}, ${SIDE[S.active]} to play.`);
   L.push('');
@@ -3707,7 +3810,7 @@ document.addEventListener('change', (e) => {
   if (e.target.id === 'opt-convoy') newOpts.convoyDiscards = e.target.checked ? 1 : 2;
   if (e.target.name === 'mode') { newOpts.mode = e.target.value; applyBalance(); render(); }
   if (e.target.name === 'opp') { newOpts.ai = e.target.value ? { side: e.target.value, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; render(); }
-  if (e.target.id === 'opt-style' && newOpts.ai) newOpts.ai.profile = e.target.value;
+  if (e.target.id === 'opt-style' && newOpts.ai) { newOpts.ai.profile = e.target.value; render(); }
   if (e.target.id === 'opt-surprise') newOpts.surpriseAttack = e.target.checked;
   if (e.target.id === 'opt-bonus') newOpts.bonusCards = +e.target.value ? { axis: +e.target.value } : undefined;
   if (e.target.name === 'scen') { newOpts.scenario = e.target.value; applyBalance(); render(); }
