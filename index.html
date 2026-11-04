@@ -257,6 +257,53 @@ p { margin: 0; }
 @keyframes fadeIn { to { opacity: 1; visibility: visible; } }
 @media (prefers-reduced-motion: reduce) { .play .tracer, .play .bcard.lost, .play .bcard.lost .boom { animation: none !important; } }
 .sheet .optrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+/* Bombing popup */
+.formation { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.formation .mcard { width: var(--mw, 140px); }
+.mcard { border-radius: 5px; overflow: hidden; background: var(--paper); color: var(--ink); box-shadow: 0 3px 10px rgba(0,0,0,.45); min-width: 0; }
+.mcard .mrail { display: flex; align-items: center; gap: 5px; padding: 4px 6px; color: #fff; font: 600 11.5px/1.1 var(--f-body); white-space: nowrap; overflow: hidden; }
+.mcard.allied .mrail { background: var(--allied); } .mcard.axis .mrail { background: var(--axis); }
+.mcard .mart { aspect-ratio: 3 / 2; margin: 4px 4px 0; border: 1px solid var(--ink); overflow: hidden; display: grid; place-items: center; background: #d4cfbd; color: rgba(27,34,38,.3); }
+.mcard .mart img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mcard .mval { padding: 4px 6px 5px; font: 600 10px/1.25 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.mcard .mval b { color: var(--ink); font-size: 12px; } .mcard .mval span { color: #7a2a22; }
+.dropzone { position: relative; height: 58px; }
+.bombf { position: absolute; top: -4px; margin-left: -4px; opacity: 0; }
+.bombf svg path:first-child, .bombf svg path:nth-child(2) { fill: #e6e2d3; }
+.play .bombf { animation: fall .75s ease-in forwards; }
+@keyframes fall { 0% { opacity: 1; transform: translateY(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(66px); } }
+.tcard { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; padding: 14px 14px 64px; border-radius: 7px; background: var(--paper); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.5); overflow: hidden; }
+.tcard .tico { color: var(--ink); }
+.tcard .tname b { display: block; font: 800 22px/1 var(--f-display); text-transform: uppercase; }
+.tcard .tname small { display: block; margin-top: 4px; font: 600 10.5px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.tbadge { position: relative; display: grid; justify-items: center; gap: 2px; min-width: 54px; }
+.tbadge small { font: 600 8.5px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.tbadge .sv0, .tbadge .sv1 { grid-area: 1 / 1; }
+.tbadge .sv1 { opacity: 0; }
+.tshield { position: relative; width: 36px; height: 42px; display: grid; place-items: center; }
+.tshield svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--paper-2); stroke: #0b1218; stroke-width: 1.5; }
+.tshield b { position: relative; font: 800 20px/1 var(--f-display); margin-top: -3px; }
+.tbadge.track .sv0, .tbadge.track .sv1 { font: 600 13px/1 var(--f-mono); padding: 12px 0 8px; } .tbadge.track b { font: 800 22px/1 var(--f-display); }
+.tminus { position: absolute; top: -8px; right: -10px; padding: 2px 5px; border-radius: 3px; background: #c8281a; color: #fff; font: 700 12px/1 var(--f-mono); opacity: 0; }
+.tcard .boom { position: absolute; left: 50%; top: 58%; width: 150px; height: 150px; margin: -75px 0 0 -75px; opacity: 0; pointer-events: none; }
+.tcard .smoke { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(rgba(40,40,40,.8), rgba(40,40,40,0) 70%); opacity: 0; pointer-events: none; }
+.tcard .smoke.s1 { left: 38%; top: 30%; } .tcard .smoke.s2 { left: 50%; top: 40%; } .tcard .smoke.s3 { left: 44%; top: 50%; }
+.tstamp { position: absolute; left: 50%; top: auto; bottom: 12px; transform: translate(-50%, 0) rotate(-6deg) scale(1.6); box-sizing: border-box; min-width: 168px; height: 40px; padding: 0 12px;
+  display: flex; align-items: center; justify-content: center; border: 3px solid var(--ink); color: var(--ink); background: rgba(230,226,211,.9);
+  font: 800 24px/1 var(--f-display); letter-spacing: .04em; opacity: 0; white-space: nowrap; }
+.tstamp.red { border-color: #c8281a; color: #c8281a; }
+.play .tcard { animation: hitShake .45s 1.15s; }
+.play .tcard .boom { animation: boom .9s 1.05s ease-out forwards; }
+.play .tcard .smoke { animation: smoke 1.6s 1.35s ease-out forwards; } .play .tcard .smoke.s2 { animation-delay: 1.5s; } .play .tcard .smoke.s3 { animation-delay: 1.65s; }
+.play .tbadge .sv0 { animation: fadeOut .3s 1.5s forwards; } .play .tbadge .sv1 { animation: fadeIn .3s 1.6s forwards; } .play .tminus { animation: fadeIn .25s 1.5s forwards; }
+.play .tcard.lost { animation: hitShake .45s 1.15s, sinkCard .8s 1.5s forwards; }
+.play .tstamp { animation: tstamp .35s 1.85s forwards; }
+.done .tbadge .sv0 { opacity: 0; } .done .tbadge .sv1, .done .tminus { opacity: 1; } .done .tstamp { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); }
+.done .tcard .smoke { opacity: .5; } .done .tcard.lost { filter: grayscale(.7) brightness(.8); }
+.strike .after { } .play.strike .after { animation: fadeIn .35s 2.3s forwards; }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes tstamp { to { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); } }
+@keyframes sinkCard { to { filter: grayscale(.7) brightness(.8); } }
 /* Attack Mission / Carrier Strike screens: the whole page takes the stage colour */
 .main.stg-airbase { --op: var(--op-airbase); --op-soft: var(--op-airbase-soft); }
 .main.stg-carrier { --op: var(--op-carrier); --op-soft: var(--op-carrier-soft); }
@@ -1623,6 +1670,14 @@ function goDamage(s) {
     if (!stat) return d.name;
     const pf = tk === 'airbase' && armedWith(s, m.uid) ? ' +4 Para-Frags' : '';
     return `${d.name} (${d[stat[0]] || 0} ${stat[1]}${mult > 1 && d[stat[0]] ? ' ×2' : ''}${pf})`; }).join(', ')}.`, 'dmg', { arrived: arriving.map((m) => m.uid) });
+  // For the bombing popup: what each aircraft over the target brings to it.
+  c.strikePlanes = arriving.map((m) => { const d = D(s, m.uid), tags = [];
+    let v = 0;
+    if (tk === 'airbase') { const from = findFac(s.players[c.att], m.fac), ak = c.stage === 'carrier' && from && has(D(s, from.f.uid), 'akagi');
+      v = (d.bomb || 0) * (ak ? 2 : 1); if (ak && d.bomb) tags.push('Akagi ×2'); if (armedWith(s, m.uid)) { v += 4; tags.push('Para-Frags +4'); } }
+    else if (stat) { v = (d[stat[0]] || 0) * mult; if (mult > 1 && v) tags.push('×2'); }
+    else v = Math.max(d.bomb || 0, (d.conv || 0) * mult);
+    return { uid: m.uid, stat: stat ? stat[1] : 'BMB/CNV', v, tags, escort: !v }; });
   // A crew that has flown 5 missions over the target is a Veteran: a callout only, no extra card.
   for (const u of vets) log(s, `${SIDE[c.att]} ${nm(s, u)} has flown ${VET_MISSIONS} missions over the target and is now a Veteran crew!`, 'ace', { side: c.att, vet: u });
   if (c.target.kind === 'resources') {
@@ -1705,17 +1760,20 @@ function facilityAttack(s, arriving) {
   if (isHomeProtected(s, f)) {
     const hit = dmg >= facDef(s, f);
     log(s, `The ${opName(c.stage)} hit the ${SIDE[c.def]} home airbase ${fd.name} ${forDmg} against a Defense of ${facDef(s, f)}. ${hit ? 'It cannot be destroyed, but the attack got through.' : 'It held.'}`, 'dmg',
-      { detail: notes.length ? notes.join(', ') + '.' : '' });
+      { detail: notes.length ? notes.join(', ') + '.' : '', strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: facDef(s, f), notes, stacks: stacks(s, f), home: true,
+        res: hit ? 'wiped' : 'held' }) });
     if (hit) { f.dmgTurn = 0; wipeFacility(s, c.def, f); }
     return;
   }
   if (has(fd, 'twoHits')) {
-    if (f.hits === 0) { if (dmg >= fd.def) { f.hits = 1; f.dmgTurn = 0; log(s, `The ${opName(c.stage)} hit ${fd.name} ${forDmg}. She is crippled but still afloat.`, 'dmg', { detail: 'A later attack of 4 or more will sink her.' }); return; } }
+    if (f.hits === 0) { if (dmg >= fd.def) { f.hits = 1; f.dmgTurn = 0; log(s, `The ${opName(c.stage)} hit ${fd.name} ${forDmg}. She is crippled but still afloat.`, 'dmg', { detail: 'A later attack of 4 or more will sink her.',
+      strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: fd.def, notes, stacks: stacks(s, f), res: 'crippled' }) }); return; } }
     else destroyed = dmg >= 4;
   } else destroyed = dmg >= facDef(s, f);
   const need = has(fd, 'twoHits') && f.hits ? 4 : facDef(s, f);
   log(s, `The ${opName(c.stage)} hit the ${SIDE[c.def]} ${kind} ${fd.name} ${forDmg} against a Defense of ${need}. ${destroyed ? (kind === 'carrier' ? 'She was sunk!' : 'The airbase was destroyed!') : 'It held.'}`, 'dmg',
-    { detail: notes.length ? notes.join(', ') + '.' : '' });
+    { detail: notes.length ? notes.join(', ') + '.' : '', strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: need, notes, stacks: stacks(s, f),
+      res: destroyed ? (kind === 'carrier' ? 'sunk' : 'destroyed') : 'held' }) });
   if (destroyed) {
     raidStat(s, c.att, kind).kills++;
     if (kind === 'carrier') { const st = stats(s, c.att); st.sinks = st.sinks || {};
@@ -1724,6 +1782,11 @@ function facilityAttack(s, arriving) {
   }
 }
 
+/* Summary of an attack for the bombing popup: the formation over the target and what it did. */
+function strikeInfo(s, o) {
+  const c = s.combat;
+  return Object.assign({ stage: c.stage, att: c.att, side: c.def, planes: c.strikePlanes || [], raidNo: s.raidNo }, o);
+}
 function destroyFacility(s, side, f, kind) {
   const p = s.players[side], list = facs(p, kind);
   list.splice(list.indexOf(f), 1);
@@ -1816,10 +1879,15 @@ function flush(s) {
     if (r.industry || r.aaaI) parts.push(`${r.industry} to Industry${r.aaaI ? ` (Heavy AAA −${r.aaaI})` : ''}`);
     if (r.convoy || r.aaaC) parts.push(`${r.convoy} to Convoy${r.aaaC ? ` (Heavy AAA −${r.aaaC})` : ''}`);
     const p = s.players[c.def], n = c.mission.filter((m) => m.alive).length;
+    const before = { industry: p.industry, convoy: p.convoy };
     const now = [];
     if (r.industry || r.aaaI) now.push(`Industry damage is now ${Math.min(industryMax(s), p.industry + r.industry)}/${industryMax(s)}`);
     if ((r.convoy || r.aaaC) && p.convoy + r.convoy < CONVOY_MAX) now.push(`Convoy damage is now ${p.convoy + r.convoy}/15`);
-    log(s, `${n} attacking aircraft reached the target. ${SIDE[c.def]} takes ${parts.join(' and ') || 'no damage'}.`, 'dmg', { detail: now.join('. ') + (now.length ? '.' : '') });
+    const tk = c.target.kind === 'resources' ? (r.convoy >= r.industry ? 'convoy' : 'industry') : c.target.kind;
+    const sMax = tk === 'convoy' ? CONVOY_MAX : industryMax(s), got = tk === 'convoy' ? r.convoy : r.industry, aaa = tk === 'convoy' ? r.aaaC : r.aaaI;
+    log(s, `${n} attacking aircraft reached the target. ${SIDE[c.def]} takes ${parts.join(' and ') || 'no damage'}.`, 'dmg', { detail: now.join('. ') + (now.length ? '.' : ''),
+      strike: strikeInfo(s, { kind: tk, raid: got, before: before[tk], after: Math.min(sMax, before[tk] + got), max: sMax, notes: aaa ? [`Heavy AAA −${aaa}`] : [],
+        res: tk === 'convoy' && before.convoy + got >= CONVOY_MAX ? 'sunk' : tk === 'industry' && before.industry + got >= sMax ? 'destroyed' : got ? 'hit' : 'held' }) });
     if (r.industry) raidStat(s, c.att, 'industry').dmg += r.industry;
     if (r.convoy) raidStat(s, c.att, 'convoy').dmg += r.convoy;
     damageIndustry(s, c.def, r.industry);
@@ -2951,7 +3019,7 @@ function cardHTML(uid, o) {
 /* ---------------------------------------------------------------- fight popup (Battle Cards) */
 function nextFight() {
   if (!S || !prefs.anim) return null;
-  for (let i = fightSeen; i < S.log.length; i++) if (S.log[i].duel) return { i, l: S.log[i] };
+  for (let i = fightSeen; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return { i, l: S.log[i] };
   return null;
 }
 /* Battle Card: top rail with flag, name and icons; the art; bottom rail with this fight's numbers and notes. */
@@ -2973,6 +3041,7 @@ function battleCardHTML(x, role, o) {
 /* Order: the enemy on top, yours below (pass and play: whoever holds the device). */
 const fightOrder = (a, b) => { const mine = me(); return a.side === mine ? [b, a] : [a, b]; };
 function fightHTML(f) {
+  if (f.l.strike) return strikeHTML(f);
   const d = f.l.duel, I = d.init, T = d.tgt;
   const role = (x) => (x === I ? (d.mode === 'intercept' ? 'Intercepting' : 'Striking') : (d.mode === 'intercept' ? 'Revealed' : 'Struck'));
   const [top, bot] = fightOrder(I, T);
@@ -2981,13 +3050,56 @@ function fightHTML(f) {
   const good = mineX ? !mineX.dead && (I.dead || T.dead) : null;
   const done = fightDone[fdKey(f.i)];
   if (!done) { const k = fdKey(f.i); setTimeout(() => { fightDone[k] = true; }, 2900); }
-  const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel) return true; return false; })();
+  const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return true; return false; })();
   return `<div class="fwrap"><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
     <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage)}</div>
     ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null })}
     <div class="fvs"><span class="tracer up"></span><span class="tracer up t2"></span><span class="tracer down t3"></span>${d.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(d.target))}</div>
     ${battleCardHTML(bot, role(bot), { lost: bot.dead, won: !bot.dead && top.dead ? top.uid : null })}
     <div class="after"><div class="ftext"><h4 style="${good === false ? 'color:var(--kill)' : good ? 'color:var(--ok)' : ''}">${esc(title)}</h4>${esc(pubMsg(f.l))}</div>
+      <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
+  </div></div>`;
+}
+/* Bombing popup: the formation that reached the target, bombs falling, then what it did to the target. */
+function strikeHTML(f) {
+  const k = f.l.strike, mine = me();
+  const done = fightDone[fdKey(f.i)];
+  if (!done) { const key = fdKey(f.i); setTimeout(() => { fightDone[key] = true; }, 2800); }
+  const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return true; return false; })();
+  const n = k.planes.length;
+  const mini = (p) => { const d = D(p.uid), id = S.cards[p.uid], a = ART[id] || ART[ART_SAME[id]];
+    return `<div class="mcard ${d.side}"><div class="mrail">${flag(natOf(p.uid), 15)}<span>${esc(shortNm(p.uid))}</span></div>
+      <div class="mart">${a ? `<img src="${a}" alt="">` : ico('planes', 26)}</div>
+      <div class="mval">${p.escort ? 'Escort' : `<b>${p.stat} ${p.v}</b>${p.tags.map((t) => ` <span>${esc(t)}</span>`).join('')}`}</div></div>`; };
+  // Bombs from each bomber (not the escorts), spread across the drop zone.
+  const bombers = k.planes.filter((p) => !p.escort);
+  const bombs = bombers.flatMap((p, i) => [0, 1].map((j) => { const x = ((i + 0.5) / bombers.length) * 100 + (j ? 4 : -4);
+    return `<span class="bombf" style="left:${x.toFixed(1)}%;animation-delay:${(0.15 + i * 0.12 + j * 0.18).toFixed(2)}s">${BOMB(18)}</span>`; })).join('');
+  const kindName = { airbase: 'Airbase', carrier: 'Carrier', convoy: 'Convoy', industry: 'Industry' }[k.kind] || 'Target';
+  const isFac = k.kind === 'airbase' || k.kind === 'carrier';
+  const tname = k.uid ? D(k.uid).name : `${SIDE[k.side]} ${kindName}`;
+  const shield = (v) => `<span class="tshield"><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1.5 2.5 5v8.2c0 6.6 4.1 11.1 9.5 13.3 5.4-2.2 9.5-6.7 9.5-13.3V5z"/></svg><b>${v}</b></span>`;
+  let badge;
+  if (isFac) { const b0 = Math.max(0, k.def - (k.prior || 0)), b1 = Math.max(0, k.def - k.total);
+    badge = `<div class="tbadge"><span class="sv0">${shield(b0)}</span><span class="sv1">${shield(b1)}</span>${k.raid ? `<span class="tminus">−${k.raid}</span>` : ''}<small>Defense</small></div>`; }
+  else badge = `<div class="tbadge track"><span class="sv0"><b>${k.before}</b>/${k.max}</span><span class="sv1"><b>${k.after}</b>/${k.max}</span>${k.raid ? `<span class="tminus plus">+${k.raid}</span>` : ''}<small>${k.kind === 'convoy' ? 'Convoy damage' : 'Industry damage'}</small></div>`;
+  const red = ['destroyed', 'sunk', 'crippled', 'wiped'].includes(k.res);
+  const stampTxt = { destroyed: 'DESTROYED', sunk: 'SUNK', crippled: 'CRIPPLED', wiped: 'WIPED OUT' }[k.res]
+    || (isFac ? (k.total ? `DAMAGED ${k.total}/${k.def}` : 'NO DAMAGE') : (k.raid ? `HIT ${k.after}/${k.max}` : 'NO DAMAGE'));
+  const title = { destroyed: `${tname} destroyed`, sunk: `${tname} sunk`, crippled: `${tname} crippled`, wiped: `${tname} wiped out`, hit: `${tname} hit for ${k.raid}` }[k.res] || `${tname} held`;
+  const good = k.att === mine ? red || k.res === 'hit' : !(red || k.res === 'hit');
+  const sub = [`${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
+  return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results">
+    <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage)}</div>
+    <div class="formation" style="--mw:${n <= 4 ? 140 : n <= 6 ? 108 : 82}px">${k.planes.map(mini).join('')}</div>
+    <div class="dropzone">${bombs}</div>
+    <div class="tcard ${red ? 'lost' : ''}"><div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' ? 'convoy' : k.kind === 'industry' ? 'industry' : 'airbase', 34)}</div>
+      <div class="tname"><b>${esc(tname)}</b><small>${esc(sub.join(' · '))}</small></div>${badge}
+      <svg class="boom" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>
+      <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span>
+      <span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span></div>
+    <div class="after"><div class="ftext"><h4 style="color:${good ? 'var(--ok)' : 'var(--kill)'}">${esc(title)}</h4>${esc(pubMsg(f.l))}${f.l.detail ? `<br><small style="color:var(--muted)">${esc(f.l.detail)}</small>` : ''}
+      ${isFac && k.stacks && k.res === 'held' && k.total ? '<br><small style="color:var(--muted)">Damage adds up until the end of this turn.</small>' : ''}</div>
       <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
   </div></div>`;
 }
