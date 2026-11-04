@@ -643,14 +643,15 @@ const SCENARIOS = {
     // Balanced by self-play: 48% Axis (4,000 games); the air war decides about a third of games, evenly split.
     // Re-tuned Oct 2026: 13-kill air war, one B-17 (by 1943 the Solomons heavy groups were moving to B-24s), Rabaul 13.
     // 51.5 / 52.4% Axis over 2 x 4,000 games.
-    turnLimit: 15, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 13 },
+    // 14 turns: the Allies' turn 14 is the last that matters (the Axis wins by holding, so a turn 15 would be a free Axis turn). 52.4 / 53.0% Axis.
+    turnLimit: 14, stackAirbaseDamage: 'all', defs: { guadalcanal: 10, rabaul: 13 },
     timeoutWinner: 'axis', timeoutText: 'The year is over. Rabaul still stands, and the Allies will have to go around it.',
     convoyEffects: {
       allied: { base: 'guadalcanal', fortDelta: -2, text: 'The Tokyo Express cut Guadalcanal\u2019s supplies.' },
       axis: { base: 'rabaul', fortDelta: -2, text: 'Like the Bismarck Sea convoy, Rabaul\u2019s supplies went to the bottom.' },
     },
     victory: { holdBase: { allied: 'guadalcanal', axis: 'rabaul' }, kills: 13 },
-    victoryText: 'The Allies win by destroying Rabaul (Defense 13); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 13 enemy aircraft. If Rabaul still stands after turn 15, the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
+    victoryText: 'The Allies win by destroying Rabaul (Defense 13); the Axis wins by destroying Guadalcanal (Defense 10). Either side wins the air war by shooting down 13 enemy aircraft. If Rabaul still stands after turn 14 (the last Allied turn), the Axis wins. Damage to a base or carrier from both stages of a turn adds up. A sunk convoy costs that side\u2019s objective 2 Defense. The scenario cards (Coastwatchers, Operation I-Go, VMF-214, 204th Kokutai) are shuffled into the decks.',
     sides: {
       allied: { home: null, inPlay: ['guadalcanal', 'moresby'], hand: ['f4u', 'f4f4', 'p38', 'sbd', 'b25'],
                 special: ['coastwatchers', 'blacksheep'], specialInDeck: ['coastwatchers', 'blacksheep'],
@@ -2780,7 +2781,7 @@ const BALANCE = {
   campaign: { surpriseAttack: true, axis: 1 },   // not balanced yet: same as Basic for now
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
-  guadalcanal: { surpriseAttack: false, axis: 0 }, // 52%: 13-kill air war, Rabaul Defense 13, one B-17
+  guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -3902,12 +3903,12 @@ function rulesPage(t) {
       <b style="color:var(--allied-text)">The Allies win:</b>${orList(W.allied)}<b style="color:var(--axis-text)">The Axis wins:</b>${orList(W.axis)}</div>`; }).join('');
   return `<section class="rules">
     <h3>Scenarios</h3>
-    <p>The main way to play: a short historical battle, about 15 turns. Each scenario sets the bases and carriers in play, a 5-card opening hand for each side (plus 2 drawn), the aircraft that were actually there, special scenario cards shuffled into the decks, and its own victory conditions and clock. There is no Industry track; the Convoy is the supply line.</p>
+    <p>The main way to play: a short historical battle of 14 or 15 turns. Each scenario sets the bases and carriers in play, a 5-card opening hand for each side (plus 2 drawn), the aircraft that were actually there, special scenario cards shuffled into the decks, and its own victory conditions and clock. There is no Industry track; the Convoy is the supply line.</p>
     ${scs}
     <h3>Campaign</h3>
     <p>The long war. Each side starts with its home airbase (Allied: Midway, Axis: Lae) and 5 set cards, secretly picks ${E.CAMPAIGN_BUY.picks} more from its deck for up to ${E.CAMPAIGN_BUY.budget} points, then draws ${E.CAMPAIGN_BUY.draws}. You win by inflicting <b>60 Industry damage</b> on the enemy; a sunk convoy also costs 4 Industry. The Campaign is still being balanced.</p>
     <h3>Scenario or Campaign?</h3>
-    <div class="tbl"><span class="k">Length</span><span>Scenario: up to 15 turns. Campaign: until one side's Industry breaks.</span>
+    <div class="tbl"><span class="k">Length</span><span>Scenario: 15 turns (Coral Sea) or 14 (Guadalcanal ’43). Campaign: until one side's Industry breaks.</span>
       <span class="k">Goal</span><span>Scenario: its own objectives. Campaign: 60 Industry damage.</span>
       <span class="k">Forces</span><span>Scenario: period aircraft and ships only. Campaign: the full deck.</span>
       <span class="k">Opening</span><span>Scenario: set hand + 2 draws. Campaign: home base, set hand, 2 picks, 2 draws.</span></div>
