@@ -609,7 +609,7 @@ Object.assign(CARD_DB, {
           text: 'On May 8 the Japanese carriers sailed under a front while the Americans were in clear skies. Instead of intercepting an Attack Mission or Carrier Strike on your carrier: it finds nothing and its aircraft land. That carrier cannot operate aircraft for one full round.' },
   // Guadalcanal '43
   blacksheep: F({ name: 'F4U-1 VMF-214 Black Sheep', side: 'allied', service: 'USMC', role: 'Fighter', elite: true, a2a: 6, def: 6, scenario: 'guadalcanal',
-              abilities: ['firstStrike'], text: 'First strike: fires first in every fight. If it shoots the enemy down, the enemy doesn\u2019t fire back. Boyington\u2019s squadron flew sweeps over Kahili and Rabaul.' }),
+              abilities: ['firstStrike'], text: 'First strike: when it starts a fight and hasn\u2019t been scouted, it fires first. If it shoots the enemy down, the enemy doesn\u2019t fire back. Boyington\u2019s squadron flew sweeps over Kahili and Rabaul.' }),
   k204: F({ name: 'A6M3 204th Kokutai', side: 'axis', service: 'JNAF', role: 'Fighter', elite: true, a2a: 5, def: 5, model: 'A6M', scenario: 'guadalcanal',
               abilities: ['bomberKiller'], text: 'Bomber killer: after it shoots down a bomber, it may fight once more in the same combat. Rabaul\u2019s veteran defenders; six of its Zeros escorted Admiral Yamamoto on 18 April 1943.' }),
   coastwatchers: { name: 'Coastwatchers', side: 'allied', kind: 'battle', special: 'hypo', scenario: 'guadalcanal',
@@ -1396,7 +1396,8 @@ function apply0(state, action, inPlace) {
         if (!tgt || !strikeable(s, tgt)) fail('That card cannot be struck.');
       } else fail('Unknown engagement.');
       const p = s.players[side];
-      c.eng = { mode: A_.mode, init: { side, uid: own.uid }, tgt: { side: other(side), uid: tgt.uid }, battles: {} };
+      // First strike only counts for an aircraft that starts the fight unseen (not already scouted).
+      c.eng = { mode: A_.mode, init: { side, uid: own.uid }, tgt: { side: other(side), uid: tgt.uid }, battles: {}, fsOK: !own.revealed };
       if (A_.battle) {
         if (!p.hand.includes(A_.battle) || !battleFits(s, A_.battle, own.uid)) fail(`That battle card can't be used on ${nm(s, own.uid)}.`);
         p.hand.splice(p.hand.indexOf(A_.battle), 1);
@@ -1578,8 +1579,9 @@ function engagementPreview(s, extra) {
   };
   const I = stat(e.init, false), T = stat(e.tgt, true);
   let killT = I.a2a >= 1 && I.a2a >= T.def, killI = T.a2a >= 1 && T.a2a >= I.def;
-  // First strike (Black Sheep): it fires first, so an enemy it shoots down never fires back.
-  const fsI = has(D(s, e.init.uid), 'firstStrike'), fsT = has(D(s, e.tgt.uid), 'firstStrike');
+  // First strike (Black Sheep): when it attacks, unscouted, it fires first, so an enemy it shoots down never fires back.
+  // Attacked, or already scouted, it fights like any other aircraft (otherwise nothing could shoot it down).
+  const fsI = has(D(s, e.init.uid), 'firstStrike') && e.fsOK !== false, fsT = false;
   if (fsI && !fsT && killT) killI = false;
   if (fsT && !fsI && killI) killT = false;
   I.fs = fsI; T.fs = fsT;
@@ -2477,12 +2479,19 @@ function duel(a, b) {
   if (b.fs && !a.fs && killA) killB = false;
   return { killB, killA };
 }
-function eff(s, uid, foeUid, battleUid, struck) {
+/* First strike only for the aircraft starting the fight, and only if it wasn't scouted before. */
+function firstStrikes(s, uid, isTarget) {
+  if (!E.has(D(s, uid), 'firstStrike') || isTarget) return false;
+  const c = s.combat; if (!c) return true;
+  if (c.eng && c.eng.init.uid === uid) return c.eng.fsOK !== false;
+  return ![...c.mission, ...c.intercept].some((e) => e.uid === uid && e.revealed);
+}
+function eff(s, uid, foeUid, battleUid, struck, isTarget) {
   const d = D(s, uid), b = battleUid ? (D(s, battleUid).mod || {}) : {};
   const foe = foeUid ? D(s, foeUid) : null;
   const icpt = d.interceptor && foe && foe.type === 'bomber' ? d.interceptor : 0;
   const am = E.aceMod(s, uid);
-  return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + E.abilityA2A(s, uid, d.side), def: d.def + (b.def || 0) + am.def - (struck ? 1 : 0), fs: E.has(d, 'firstStrike') };
+  return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + E.abilityA2A(s, uid, d.side), def: d.def + (b.def || 0) + am.def - (struck ? 1 : 0), fs: firstStrikes(s, uid, isTarget) };
 }
 
 function defenderMove(s, side, prof) {
@@ -2495,7 +2504,7 @@ function defenderMove(s, side, prof) {
   let best = null;
   for (const own of mine) for (const t of strikes) {
     for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
-      const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true));
+      const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
       if (!r.killB) continue;
       const score = 10 + (dmgCapable(D(s, t.uid)) ? 5 + Math.max(D(s, t.uid).bomb, D(s, t.uid).conv) : 0) - (r.killA ? 8 : 0) - (bc ? 2 : 0);
       if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
@@ -2536,7 +2545,7 @@ function waitingDefense(s, side, prof) {
   }
   let best = null;
   for (const own of mine) for (const t of strikes) for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
-    const td = D(s, t.uid), r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true));
+    const td = D(s, t.uid), r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
     if (!r.killB) continue;
     const big = dmgCapable(td) ? dmgOf(td) : 0;
     let score = 10 + (big ? 4 + big * 1.5 : td.a2a * 1.2) - (bc ? 2 : 0);
@@ -2561,7 +2570,7 @@ function attackerMove(s, side) {
   const targets = c.intercept.filter((e) => E.strikeable(s, e));
   let best = null;
   for (const own of mine) for (const t of targets) for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
-    const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true));
+    const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
     if (!r.killB || r.killA) continue;
     const score = 10 - (bc ? 2 : 0);
     if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
@@ -2576,14 +2585,14 @@ function respondMove(s, side) {
   const foeBattle = e.battles[E.other(side)] || null;
   const struckMe = e.mode === 'strike' && !meIsInit, struckFoe = e.mode === 'strike' && meIsInit;
   const outcome = (bc) => {
-    const me = eff(s, mineUid, foeUid, bc, struckMe), foe = eff(s, foeUid, mineUid, foeBattle, struckFoe);
+    const me = eff(s, mineUid, foeUid, bc, struckMe, !meIsInit), foe = eff(s, foeUid, mineUid, foeBattle, struckFoe, meIsInit);
     const r = duel(me, foe); return { iDie: r.killA, iKill: r.killB };
   };
   const base = outcome(null);
   // Long Range Fighters: swap a doomed bomber for a fighter that survives.
   const lo = E.lrfOptions(s);
   if (base.iDie && lo.cards.length) {
-    const sub = lo.subs.map((u) => ({ u, r: duel(eff(s, u, foeUid, null, struckMe), eff(s, foeUid, u, foeBattle, struckFoe)) }))
+    const sub = lo.subs.map((u) => ({ u, r: duel(eff(s, u, foeUid, null, struckMe, true), eff(s, foeUid, u, foeBattle, struckFoe, false)) }))
       .sort((a, b) => (a.r.killA - b.r.killA) || (b.r.killB - a.r.killB))[0];
     if (sub) return { type: 'respond', battle: lo.cards[0], sub: sub.u };
   }
@@ -3825,7 +3834,7 @@ function rulesPage(t) {
     <ul><li><b>Patrol:</b> may intercept from an airbase during the enemy's Carrier Stage.</li>
       <li><b>Interceptor +N:</b> extra A2A when attacking a bomber.</li>
       <li><b>Hit and Run</b> (Flying Tigers): can't be attacked once scouted.</li>
-      <li><b>First strike</b> (VMF-214 Black Sheep): fires first; an enemy it shoots down never fires back.</li>
+      <li><b>First strike</b> (VMF-214 Black Sheep): when it starts a fight and hasn't been scouted, it fires first; an enemy it shoots down never fires back. When it is attacked, or once it has been scouted, it fights normally.</li>
       <li><b>Bomber killer</b> (204th Kokutai): after shooting down a bomber it may fight once more in the same combat.</li>
       <li><b>Elite units</b> (Flying Tigers, Tainan Kokutai, VMF-214, 204th Kokutai) are unique: one copy each.</li></ul>
     <h3>Card markings</h3>
