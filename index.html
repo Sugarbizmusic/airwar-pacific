@@ -3604,7 +3604,10 @@ function planesPage(side) {
   if (over()) {
     // Game over: every aircraft that took part (drawn into play), surviving or destroyed. No in-air or landed status.
     const p = S.players[side];
-    const alive = [...p.hand, ...[...p.airbases, ...p.carriers].flatMap((f) => f.landed)].filter((u) => D(u).kind === 'aircraft');
+    // Include aircraft still in the air (or waiting to land) when the last attack ended the game.
+    const flying = [...(S.combat ? [...S.combat.mission, ...S.combat.intercept].filter((e) => e.alive).map((e) => e.uid) : []),
+      ...S.pending.filter((pc) => pc.kind === 'land').flatMap((pc) => pc.planes)].filter((u) => D(u).side === side);
+    const alive = [...new Set([...p.hand, ...[...p.airbases, ...p.carriers].flatMap((f) => f.landed), ...flying])].filter((u) => D(u).kind === 'aircraft' && !(S.downed || []).includes(u));
     const lost = p.discard.filter((u) => D(u).kind === 'aircraft' && !alive.includes(u));
     const ft = (u) => fateText(u, true);
     const sec = (type, title) => { const L = [...alive.map((u) => ({ u, dead: false })), ...lost.map((u) => ({ u, dead: true }))].filter((x) => D(x.u).type === type)
