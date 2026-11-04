@@ -38,6 +38,7 @@ button { font: 600 12.5px/1 var(--f-body); letter-spacing: .05em; text-transform
   border: 1px solid var(--line); background: var(--sea-3); padding: 11px 12px; border-radius: 4px; min-height: 40px; }
 button:disabled { opacity: .38; cursor: not-allowed; }
 button.go { background: var(--signal); color: var(--ink); border-color: var(--signal); }
+button.danger { background: var(--kill); color: #fff; border-color: var(--kill); }
 button.chip { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; padding: 8px 10px; min-height: 36px; text-align: left; }
 button.chip.on { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); color: var(--signal); }
 :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
@@ -173,6 +174,100 @@ p { margin: 0; }
 .card.sel { box-shadow: 0 0 0 3px var(--signal), 0 6px 14px rgba(0,0,0,.45); transform: translateY(-2px); }
 .card.dim { opacity: .4; filter: grayscale(.85); }
 .card.dead { filter: grayscale(1); opacity: .55; }
+.card[data-view] { cursor: zoom-in; }
+/* Expanded card (tap any aircraft) */
+.xwrap { position: absolute; inset: 0; z-index: 45; background: rgba(3,8,10,.78); overflow-y: auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+.xbox { max-width: 380px; margin: 0 auto; display: grid; gap: 8px; }
+.xclose { justify-self: end; width: 38px; height: 38px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--sea-3); border: 1.5px solid var(--fg); color: var(--fg); }
+.xbox .card { cursor: default; transform: none; }
+.xbox .card .cname { font-size: 21px; }
+.xart { aspect-ratio: 4 / 3; margin: 2px 10px 8px; border-radius: 3px; overflow: hidden; background: repeating-linear-gradient(135deg, #d9d4c3 0 8px, #d2cdbb 8px 16px); border: 1.5px solid var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 4px rgba(27,34,38,.35); display: grid; place-items: center; color: rgba(27,34,38,.32); }
+.xart img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.xart span { display: grid; justify-items: center; gap: 4px; font: 600 10px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; }
+.xsvc { margin: 12px 10px 0; padding: 14px 0 18px; border-top: 1px solid rgba(27,34,38,.18); color: var(--ink); display: grid; gap: 16px; }
+.xsvc .xlog-h { margin-bottom: -8px; }
+.xsum { display: grid; grid-template-columns: auto 1fr; gap: 9px 12px; align-items: center; font: 600 11px/1.2 var(--f-mono); }
+.xsum > span:nth-child(odd) { letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); font-size: 9.5px; }
+.xsum .marks { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.xres { font: 800 17px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+.xres.lost { color: #9b2c22; } .xres.ok { color: #3f6427; }
+.xres small { display: block; font: 500 11.5px/1.35 var(--f-body); text-transform: none; letter-spacing: 0; color: var(--ink-2); margin-top: 2px; }
+.xlog { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font: 500 12.5px/1.35 var(--f-body); }
+.xlog li { padding-left: 9px; border-left: 3px solid var(--line); }
+.xlog li.st-airbase { border-color: #6f8f3a; } .xlog li.st-carrier { border-color: #1f8f99; }
+.xlog b { font-weight: 600; } .xlog .lost { color: #9b2c22; font-weight: 600; }
+.xlog-h { font: 600 9.5px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+/* Fight popup: two Battle Cards, enemy on top, yours below */
+.fwrap { position: absolute; inset: 0; z-index: 46; background: rgba(3,8,10,.97); overflow-y: auto; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
+.fight { max-width: 380px; margin: 0 auto; display: grid; gap: 8px; }
+.fight-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fight-h h3 { margin: 0; font: 800 22px/1 var(--f-display); text-transform: uppercase; color: var(--fg); }
+.bcard { position: relative; width: 100%; max-width: 236px; margin: 0 auto; border-radius: 7px; overflow: hidden; background: var(--paper); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+.bcard .brail { display: flex; align-items: center; gap: 7px; padding: 6px 9px; color: #fff; font: 600 14px/1.1 var(--f-body); }
+.bcard.allied .brail.top { background: var(--allied); } .bcard.axis .brail.top { background: var(--axis); }
+.bcard .brail.top .bn { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bcard .brail.top .ic { flex: none; }
+.bcard .bart { position: relative; aspect-ratio: 4 / 3; margin: 6px 7px; border: 1.5px solid var(--ink); background: repeating-linear-gradient(135deg, #d9d4c3 0 8px, #d2cdbb 8px 16px); overflow: hidden; display: grid; place-items: center; color: rgba(27,34,38,.32); }
+.bcard .bart img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bcard .brail.bot { background: var(--ink); color: var(--paper); flex-wrap: wrap; gap: 4px 5px; font: 600 9.5px/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
+.bcard .brail.bot b { font-size: 13px; color: #fff; margin-right: 4px; }
+.bcard .brail.bot .nt { padding: 2px 5px; border-radius: 2px; background: #33403f; }
+.bcard .brail.bot .nt.up { background: #2f5a2a; } .bcard .brail.bot .nt.down { background: #7a2a22; }
+.fvs { text-align: center; font: 600 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); position: relative; height: 18px; }
+.fight .ftext { color: var(--fg); font: 500 14px/1.4 var(--f-body); background: var(--sea-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.fight .ftext h4 { margin: 0 0 4px; font: 800 19px/1.05 var(--f-display); text-transform: uppercase; color: var(--signal); }
+.fight .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fight .actions { position: static; padding: 0; background: none; display: flex; gap: 8px; }
+.fight .actions button { flex: 1; }
+.fight .predict { color: var(--muted); font: 500 12.5px/1.35 var(--f-mono); }
+.fight .predict .k { color: var(--kill); } .fight .predict .s { color: var(--ok); }
+/* the exchange: tracers, then the loser is hit */
+.tracer { position: absolute; left: 50%; width: 3px; height: 26px; margin-left: -1.5px; border-radius: 2px; background: linear-gradient(#fff6c2, #f0b23a); opacity: 0; box-shadow: 0 0 6px #f0b23a; }
+.tracer.up { top: -6px; } .tracer.down { top: -6px; }
+.play .tracer.up { animation: trUp .5s .15s 3 linear; } .play .tracer.down { animation: trDown .5s .3s 3 linear; }
+.tracer.t2 { margin-left: -14px; } .tracer.t3 { margin-left: 11px; }
+@keyframes trUp { 0% { transform: translateY(26px); opacity: 1; } 100% { transform: translateY(-60px); opacity: 0; } }
+@keyframes trDown { 0% { transform: translateY(-26px); opacity: 1; } 100% { transform: translateY(60px); opacity: 0; } }
+.bcard .boom { position: absolute; left: 50%; top: 50%; width: 140px; height: 140px; margin: -70px 0 0 -70px; opacity: 0; pointer-events: none; }
+.bcard .smoke { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(rgba(40,40,40,.85), rgba(40,40,40,0) 70%); opacity: 0; pointer-events: none; }
+.bcard .smoke.s1 { left: 42%; top: 40%; } .bcard .smoke.s2 { left: 52%; top: 46%; } .bcard .smoke.s3 { left: 47%; top: 52%; }
+.bcard .stamp, .bcard .vic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-11deg) scale(1.6); box-sizing: border-box; width: 168px; height: 40px;
+  display: flex; align-items: center; justify-content: center; gap: 8px; border: 3px solid #c8281a; color: #c8281a; background: rgba(230,226,211,.88);
+  font: 800 24px/1 var(--f-display); letter-spacing: .04em; opacity: 0; white-space: nowrap; }
+/* Victory: the winner gets the loser's flag painted on, like the kill markers */
+.bcard .vic { border-color: var(--ink); color: var(--ink); }
+.bcard .vic .flag { width: 33px; height: 22px; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+.play .bcard.won .vic { animation: stamp .35s 2.05s forwards; }
+.done .bcard.won .vic { opacity: 1; transform: translate(-50%, -50%) rotate(-11deg) scale(1); }
+.play .bcard.lost { animation: hitShake .45s 1.35s; }
+.play .bcard.lost .boom { animation: boom .9s 1.25s ease-out forwards; }
+.play .bcard.lost .smoke { animation: smoke 1.6s 1.6s ease-out forwards; } .play .bcard.lost .smoke.s2 { animation-delay: 1.75s; } .play .bcard.lost .smoke.s3 { animation-delay: 1.9s; }
+.play .bcard.lost .bart img { animation: downArt .9s 1.55s forwards; }
+.play .bcard.lost .stamp { animation: stamp .35s 2.05s forwards; }
+.fight .after { opacity: 0; visibility: hidden; } .play .after { animation: fadeIn .35s 2.5s forwards; }
+.done .bcard.lost .bart img { filter: grayscale(1) brightness(.55); transform: rotate(-6deg) scale(1.2); }
+.done .bcard.lost .stamp { opacity: 1; transform: translate(-50%, -50%) rotate(-11deg) scale(1); }
+.done .bcard.lost .smoke { opacity: .55; }
+.done .after { opacity: 1; visibility: visible; }
+@keyframes hitShake { 0%,100% { transform: none; } 20% { transform: translate(-5px, 2px); } 40% { transform: translate(5px, -2px); } 60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, 0); } }
+@keyframes boom { 0% { opacity: 0; transform: scale(.2); } 25% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes smoke { 0% { opacity: 0; transform: translateY(0) scale(.6); } 30% { opacity: .8; } 100% { opacity: .55; transform: translateY(-34px) scale(2.2); } }
+@keyframes downArt { to { filter: grayscale(1) brightness(.55); transform: rotate(-6deg) scale(1.2); } }
+@keyframes stamp { to { opacity: 1; transform: translate(-50%, -50%) rotate(-11deg) scale(1); } }
+@keyframes fadeIn { to { opacity: 1; visibility: visible; } }
+@media (prefers-reduced-motion: reduce) { .play .tracer, .play .bcard.lost, .play .bcard.lost .boom { animation: none !important; } }
+.sheet .optrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+/* Attack Mission / Carrier Strike screens: the whole page takes the stage colour */
+.main.stg-airbase { --op: var(--op-airbase); --op-soft: var(--op-airbase-soft); }
+.main.stg-carrier { --op: var(--op-carrier); --op-soft: var(--op-carrier-soft); }
+.main.stg { background: linear-gradient(180deg, color-mix(in srgb, var(--op) 13%, transparent) 0, transparent 300px), var(--sea); box-shadow: inset 4px 0 0 var(--op); }
+.main.stg .label { color: var(--op); }
+.main.stg .ord-head p b { color: var(--op); }
+.main.stg .trow.on { border-color: var(--op); box-shadow: inset 0 0 0 1px var(--op); background: var(--op-soft); }
+.main.stg .card.sel { box-shadow: 0 0 0 3px var(--op), 0 6px 14px rgba(0,0,0,.45); }
+.main.stg .actions button.go { background: var(--op); border-color: var(--op); color: var(--ink); }
+.main.stg .battle { border-color: var(--op); }
+.stg-rib { display: flex; justify-content: space-between; align-items: center; margin: -2px 0 12px; padding: 7px 10px; border-radius: 3px; background: var(--op-soft); color: var(--op); box-shadow: inset 0 0 0 1px var(--op); font: 600 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; }
 .card.dead::after { content: "DOWN"; position: absolute; inset: 42% 0 auto; text-align: center; font: 800 20px/1 var(--f-display); color: var(--kill); transform: rotate(-12deg); }
 .card .new { position: absolute; top: 0; right: 6px; font: 700 8.5px/1 var(--f-mono); letter-spacing: .1em; background: var(--signal); color: var(--ink); padding: 3px 5px; border-radius: 0 0 3px 3px; }
 /* hidden aircraft: small card backs */
@@ -388,9 +483,9 @@ const CARD_DB = {
   f2a:   F({ name: 'F2A-3 Buffalo', side: 'allied', service: 'USN/USMC', role: 'Fighter', basing: 'both', a2a: 1, def: 2, abilities: ['patrol'], text: PATROL }),
   p38:   F({ name: 'P-38F Lightning', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 5, bomb: 1, def: 6 }),
   p40b:  F({ name: 'P-40B Warhawk', side: 'allied', service: 'USAAF', role: 'Fighter', a2a: 4, def: 4 }),
-  p39:   F({ name: 'P-39D Airacobra', side: 'allied', service: 'RAAF', role: 'Fighter-Bomber', a2a: 3, bomb: 1, def: 3, interceptor: 2,
+  p39:   F({ name: 'P-39D Airacobra', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 3, bomb: 1, def: 3, interceptor: 2,
               text: 'Interceptor: +2 Air to Air when attacking a bomber.' }),
-  p400:  F({ name: 'P-400 Airacobra', side: 'allied', service: 'USAAF', role: 'Fighter', a2a: 4, def: 3, abilities: ['patrol'], text: PATROL }),
+  p400:  F({ name: 'P-400 Airacobra', side: 'allied', service: 'RAAF', role: 'Fighter', a2a: 4, def: 3, abilities: ['patrol'], text: PATROL }),
   p40ft: F({ name: 'P-40B Flying Tigers', side: 'allied', service: 'AVG', role: 'Fighter', elite: true, a2a: 5, def: 4,
               abilities: ['untouchable'], text: 'Hit and Run: cannot be attacked once scouted.' }),
   b26:   B({ name: 'B-26D Marauder', side: 'allied', service: 'USAAF', role: 'Level-Bomber', bomb: 4, car: 1, conv: 3, def: 6, abilities: ['paraFragBomber'] }),
@@ -658,6 +753,13 @@ function log(s, msg, cls, o) {
     side: o.side || o.actor || (c ? c.att : s.active), raid: c ? s.raidNo : undefined, stage: c ? c.stage : s.stage }, o));
 }
 const RES = { industry: 'Industry', convoy: 'Convoy (shipping)', resources: 'Industry and Convoy' };
+/* Service record per aircraft (s.rec[uid]): every sortie it flew and how its war ended.
+   sortie: { t, raid, stage, role: 'attack'|'escort'|'sweep'|'defend', target: {kind, uid, side}, from, claims: [uid],
+             dropped: n, reached, shot, squall, seen } ; fate: { t, how: 'shot'|'ground'|'discard', where, role } */
+const recOf = (s, uid) => { s.rec = s.rec || {}; return (s.rec[uid] = s.rec[uid] || { sorties: [] }); };
+const curSortie = (s, uid) => { const r = s.rec && s.rec[uid]; const x = r && r.sorties[r.sorties.length - 1]; return x && x.raid === s.raidNo ? x : null; };
+const dropsOn = (d, kind) => (kind === 'airbase' || kind === 'industry' ? d.bomb > 0 : kind === 'carrier' ? d.car > 0 : kind === 'convoy' ? d.conv > 0 : d.bomb + d.conv > 0);
+function setFate(s, uid, how, where, role) { const r = recOf(s, uid); if (!r.fate) r.fate = { t: s.turnNo, how, where, role }; }
 /* What an attack is called: Airbase Stage attacks are Attack Missions, Carrier Stage attacks are Carrier Strikes. */
 const opName = (stage) => (stage === 'carrier' ? 'Carrier Strike' : 'Attack Mission');
 const opArticle = (stage) => (stage === 'carrier' ? 'a Carrier Strike' : 'an Attack Mission');
@@ -1140,6 +1242,12 @@ function apply0(state, action, inPlace) {
         cards = [...cards].sort((a, b) => (D(s, b).bomb || 0) - (D(s, a).bomb || 0));
       }
       const mission = cards.map((u, i) => ({ uid: u, fac: slots[i], fromKind: kind, revealed: false, alive: true }));
+      {
+        const anyDrop = cards.some((u) => dropsOn(D(s, u), t.kind));
+        for (const m of mission) { const d = D(s, m.uid);
+          recOf(s, m.uid).sorties.push({ t: s.turnNo, raid: (s.raidNo || 0) + 1, stage: s.stage, role: dropsOn(d, t.kind) ? 'attack' : anyDrop ? 'escort' : 'sweep',
+            target: { kind: t.kind, uid: t.uid || null, side: other(actor) }, from: m.fac || null, claims: [] }); }
+      }
       shuffle(s, mission);
       s.combat = { att: actor, def: other(actor), stage: s.stage, target: { kind: t.kind, uid: t.uid }, mission, intercept: [], turn: 'def', eng: null, last: null, responder: null, history: [], boost };
       if (boost) { p.hand.splice(p.hand.indexOf(boost.uid), 1); p.discard.push(boost.uid); (s.publicUsed = s.publicUsed || []).push(boost.uid); }
@@ -1175,6 +1283,8 @@ function apply0(state, action, inPlace) {
       if (!plan) fail('Not enough available capacity for those fighters.');
       for (const u of cards) p.hand.splice(p.hand.indexOf(u), 1);
       c.intercept = cards.map((u) => ({ uid: u, fac: plan[u], fromKind: findFac(p, plan[u]).kind, revealed: false, alive: true }));
+      for (const e of c.intercept) recOf(s, e.uid).sorties.push({ t: s.turnNo, raid: s.raidNo, stage: c.stage, role: 'defend',
+        target: { kind: c.target.kind, uid: c.target.uid || null, side: c.def }, from: e.fac, claims: [] });
       log(s, `The ${SIDE[c.def]} player scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'} to intercept the ${SIDE[c.att]} ${opName(c.stage)}.`, 'def', { actor: c.def, kind: 'response', short: `${SIDE[c.def]} scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'}` });
       c.turn = 'def'; s.phase = 'combat';
       normalize(s);
@@ -1217,7 +1327,7 @@ function apply0(state, action, inPlace) {
       f.squall = s.turnNo + 2;
       log(s, `The ${SIDE[c.def]} player played ${nm(s, A_.uid)}. ${nm(s, f.uid)} vanished into the weather, the ${opName(c.stage)} found nothing, and its aircraft landed.`, 'def',
         { actor: c.def, kind: 'response', short: `${SIDE[c.def]} hid ${nm(s, f.uid)} with ${nm(s, A_.uid)}; no damage`, detail: `${nm(s, f.uid)} cannot launch or intercept for one full round.` });
-      for (const m of c.mission) { m.revealed = true; markSeen(s, m.uid); }
+      for (const m of c.mission) { m.revealed = true; markSeen(s, m.uid); const so = curSortie(s, m.uid); if (so) so.squall = true; }
       s.after = 'land'; flush(s);
       return s;
     }
@@ -1271,7 +1381,7 @@ function apply0(state, action, inPlace) {
         bomber.safe = true; sub.revealed = true;
         log(s, `The ${SIDE[actor]} player played Long Range Fighters: ${nm(s, sub.uid)} took ${nm(s, bomber.uid)}'s place in the fight.`, 'att',
           { actor, detail: `${nm(s, bomber.uid)} flies on to the target and can't be attacked again.` });
-        c.eng.tgt.uid = sub.uid;
+        c.eng.tgt.uid = sub.uid; c.eng.lrf = bomber.uid;
       } else if (A_.battle) {
         if (!p.hand.includes(A_.battle) || !battleFits(s, A_.battle, mineUid)) fail(`That battle card can't be used on ${nm(s, mineUid)}.`);
         p.hand.splice(p.hand.indexOf(A_.battle), 1);
@@ -1356,6 +1466,7 @@ function apply0(state, action, inPlace) {
         const isWar = (x) => D(s, x).kind === 'war';
         for (const x of [...u.filter(isWar), ...u.filter((x) => !isWar(x))]) removeAnywhere(s, pc.player, x);
         p.discard.push(...u);
+        for (const x of u) if (D(s, x).kind === 'aircraft') setFate(s, x, 'discard', null);
         // Cards from hand stay secret; a mobilized base or landed aircraft was on the table, so it's named.
         const parts = seen.concat(fromHand.length ? [`${fromHand.length} card${fromHand.length === 1 ? '' : 's'} from hand`] : []);
         log(s, `The ${SIDE[pc.player]} player discarded ${parts.join(' and ')} for the lost convoy.`, 'dmg', { side: pc.player, actor: pc.player });
@@ -1432,11 +1543,13 @@ function resolveEngagement(s) {
   const c = s.combat, e = c.eng;
   const { init: I, tgt: T, killT, killI } = engagementPreview(s);
   const entry = (who) => (who.side === c.def ? c.intercept : c.mission).find((x) => x.uid === who.uid);
-  const kill = (who) => { entry(who).alive = false; s.players[who.side].discard.push(who.uid); (s.downed = s.downed || []).push(who.uid); };
+  const kill = (who) => { entry(who).alive = false; s.players[who.side].discard.push(who.uid); (s.downed = s.downed || []).push(who.uid);
+    const so = curSortie(s, who.uid); if (so) so.shot = true; setFate(s, who.uid, 'shot', Object.assign({ side: c.def }, c.target), so ? so.role : null); };
   entry(e.init).spent = true; entry(e.tgt).spent = true;
   // Kills per aircraft, and which aircraft each one shot down (kill markers; 5 makes an Ace).
   const scored = (who, victim) => { const st = stats(s, who.side), k = st.kills; k[who.uid] = (k[who.uid] || 0) + 1;
     st.victims = st.victims || {}; (st.victims[who.uid] = st.victims[who.uid] || []).push(victim.uid);
+    { const so = curSortie(s, who.uid); if (so) so.claims.push(victim.uid); }
     if (k[who.uid] === ACE_KILLS) aces.push(who); };
   const aces = [];
   if (killT) { kill(e.tgt); scored(e.init, e.tgt); stats(s, e.tgt.side).lost.push(e.tgt.uid); }
@@ -1464,7 +1577,9 @@ function resolveEngagement(s) {
   const lost = [];
   if (killI) lost.push({ side: e.init.side, name: nm(s, e.init.uid) });
   if (killT) lost.push({ side: e.tgt.side, name: nm(s, e.tgt.uid) });
-  log(s, msg, 'fight', { side: e.init.side, lost });
+  // Full details of the exchange, for the fight popup: who fought whom, effective numbers, modifiers, result.
+  const dx = (x, st, dead) => ({ side: x.side, uid: x.uid, a2a: st.a2a, def: st.def, icpt: st.icpt || 0, ace: !!st.ace, fs: !!st.fs, struck: !!st.struck, dead, battle: e.battles[x.side] || null });
+  log(s, msg, 'fight', { side: e.init.side, lost, duel: { mode: e.mode, stage: c.stage, target: Object.assign({ side: c.def }, c.target), raid: s.raidNo, init: dx(e.init, I, killI), tgt: Object.assign(dx(e.tgt, T, killT), e.lrf ? { lrfFor: e.lrf } : {}) } });
   // Bomber killer (204th Kokutai): after shooting down a bomber it may fight once more this combat.
   for (const [who, foe, foeDead, selfDead] of [[e.init, e.tgt, killT, killI], [e.tgt, e.init, killI, killT]]) {
     const me = entry(who);
@@ -1502,6 +1617,8 @@ function goDamage(s) {
   const drops = (d) => (stat ? (d[stat[0]] || 0) > 0 : (d.bomb || 0) + (d.conv || 0) > 0); // resources: Industry or Convoy
   const vets = [];
   for (const m of arriving) if (drops(D(s, m.uid))) { st.missions[m.uid] = (st.missions[m.uid] || 0) + 1; if (st.missions[m.uid] === VET_MISSIONS) vets.push(m.uid); }
+  for (const m of arriving) { const so = curSortie(s, m.uid); if (!so) continue; so.reached = true; const d = D(s, m.uid);
+    if (drops(d)) so.dropped = stat ? (d[stat[0]] || 0) * mult + (tk === 'airbase' && armedWith(s, m.uid) ? 4 : 0) : (d.bomb || 0) + (d.conv || 0); }
   log(s, `Over the target: ${arriving.map((m) => { const d = D(s, m.uid);
     if (!stat) return d.name;
     const pf = tk === 'airbase' && armedWith(s, m.uid) ? ' +4 Para-Frags' : '';
@@ -1628,6 +1745,7 @@ function destroyFacility(s, side, f, kind) {
   // House rule (replaces the addendum's "lose 1, the rest return to hand"): everything landed there is lost.
   if (f.landed.length) {
     p.discard.push(...f.landed); (s.downed = s.downed || []).push(...f.landed);
+    for (const u of f.landed) setFate(s, u, 'ground', { kind, uid: f.uid, side });
     log(s, `Lost with ${nm(s, f.uid)}: ${f.landed.map((u) => nm(s, u)).join(', ')}.`, 'dmg', { lost: f.landed.map((u) => ({ side, name: nm(s, u) })) });
   }
 }
@@ -1636,6 +1754,7 @@ function destroyFacility(s, side, f, kind) {
 function wipeFacility(s, side, f) {
   const p = s.players[side], gone = [...f.landed, ...f.war];
   stats(s, side).lost.push(...f.landed);
+  for (const u of f.landed) setFate(s, u, 'ground', { kind: p.carriers.includes(f) ? 'carrier' : 'airbase', uid: f.uid, side });
   if (!gone.length) return log(s, `${nm(s, f.uid)} cannot be destroyed, and nothing was on it.`, 'dmg');
   p.discard.push(...gone); (s.downed = s.downed || []).push(...f.landed);
   log(s, `${nm(s, f.uid)} survives, but everything on it was destroyed: ${gone.map((u) => nm(s, u)).join(', ')}.`, 'dmg', { lost: f.landed.map((u) => ({ side, name: nm(s, u) })) });
@@ -1772,6 +1891,7 @@ function landingReport(s, side, where, back) {
 }
 function endRaid(s) {
   const c = s.combat;
+  for (const e of [...c.mission, ...c.intercept]) { const so = curSortie(s, e.uid); if (so && e.revealed) so.seen = true; }
   s.lastBattle = { att: c.att, def: c.def, stage: c.stage, target: c.target, history: c.history };
   s.combat = null;
   endStage(s);
@@ -1819,7 +1939,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -2565,6 +2685,16 @@ let seen = { axis: 0, allied: 0 }; // how far into the log each player has read 
 // What each player knows about enemy aircraft: when it was last seen face up, and where it landed when that can be deduced.
 let intel = { axis: {}, allied: {} };
 let tab = 'orders', sub = { strategy: 'sit', bases: null, planes: null, reports: 'aar' }, lastKey = '';
+let viewCard = null, scrollKey = '';
+/* Fight popups: log index up to which fights have been shown on this device; animation finished per log index. */
+let fightSeen = 0; const fightDone = {};
+const fdKey = (i) => `${S.gid || S.rng}|${i}`; // per game: log positions repeat from one game to the next
+const PKEY = 'awp-prefs';
+let prefs = (() => { try { return Object.assign({ anim: true }, JSON.parse(localStorage.getItem(PKEY)) || {}); } catch (e) { return { anim: true }; } })();
+const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify(prefs)); } catch (e) {} }; // expanded aircraft card; Orders stage key (scroll to top when it changes)
+/* Artwork for the expanded card, by card id (e.g. ART.f4f3 = 'data:image/jpeg;base64,...'). Empty until the art is in. */
+const ART = {"a20":"art/a20.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","claude":"art/claude.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","hamp":"art/hamp.jpg","k204":"art/k204.jpg","kate":"art/kate.jpg","lily":"art/lily.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","peggy":"art/peggy.jpg","sally":"art/sally.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","val":"art/val.jpg","zero":"art/zero.jpg"};
+const ART_SAME = { blacksheep: 'f4u', k204: 'hamp' }; // elite units without their own art use their base model's
 let newOpts = { ai: null, indestructibleHome: true, singleMobilization: false, expansion1942: true, mode: 'scenario', scenario: 'coralsea', drawKeep: true, convoyDiscards: 2 };
 /* Balance defaults per mode, from computer self-play (Axis win rate in brackets). Every option can still be changed. */
 const BALANCE = {
@@ -2597,22 +2727,23 @@ const styleName = (id) => (STYLES.find((x) => x[0] === id) || [id, id])[1];
 const OLD_MODES = { basic: 'Basic rules', pointbuy: 'Point buy', classic: 'Original rules' };
 
 function fresh() { return { sel: [], target: null, own: null, slot: null, strike: null, battle: null, sub: null, split: {}, special: null }; }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, shownFor, seen, intel })); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, shownFor, seen, intel, fightSeen })); } catch (e) {} }
 function load() {
   try { const v = JSON.parse(localStorage.getItem(KEY));
     if (v && v.S && v.S.v === 1 && Object.values(v.S.cards).every((id) => E.CARD_DB[id])) {
-      S = v.S; shownFor = v.shownFor; seen = v.seen || { axis: S.log.length, allied: S.log.length }; intel = v.intel || { axis: {}, allied: {} }; return true; } } catch (e) {}
+      S = v.S; shownFor = v.shownFor; seen = v.seen || { axis: S.log.length, allied: S.log.length }; intel = v.intel || { axis: {}, allied: {} }; fightSeen = v.fightSeen != null ? v.fightSeen : S.log.length; return true; } } catch (e) {}
   return false;
 }
 function start(data) {
   const valid = (st) => st && st.cards && Object.values(st.cards).every((id) => E.CARD_DB[id]);
-  if (data && valid(data.S)) { S = data.S; hist = data.hist || []; shownFor = data.shownFor; seen = data.seen || { axis: S.log.length, allied: S.log.length }; intel = data.intel || { axis: {}, allied: {} }; if (data.tab) tab = data.tab; if (data.startScreen === false) startScreen = false; }
+  if (data && valid(data.S)) { S = data.S; hist = data.hist || []; shownFor = data.shownFor; seen = data.seen || { axis: S.log.length, allied: S.log.length }; intel = data.intel || { axis: {}, allied: {} }; fightSeen = data.fightSeen != null ? data.fightSeen : S.log.length; if (data.tab) tab = data.tab; if (data.startScreen === false) startScreen = false; }
   else if (!load()) newGame();
+  if (S && !S.gid) S.gid = Date.now(); // games saved before ids existed
   fit(); render();
 }
 function newGame() {
   if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
-  S = E.newGame({ options: JSON.parse(JSON.stringify(newOpts)) }); S.gid = Date.now(); hist = []; ui = fresh(); shownFor = null; err = ''; showNew = false; menu = false;
+  S = E.newGame({ options: JSON.parse(JSON.stringify(newOpts)) }); S.gid = Date.now(); hist = []; ui = fresh(); shownFor = null; err = ''; showNew = false; menu = false; fightSeen = 0;
   seen = { axis: 0, allied: 0 }; intel = { axis: {}, allied: {} }; tab = 'orders'; sub = { strategy: 'sit', bases: null, planes: null, reports: 'aar' }; lastKey = ''; save();
 }
 
@@ -2632,7 +2763,7 @@ addEventListener('resize', fit);
 /* ---------------------------------------------------------------- moves */
 let aiTimer = null;
 function scheduleAI() {
-  if (aiTimer || showNew || !S || !aiTurn()) return;
+  if (aiTimer || showNew || !S || !aiTurn() || nextFight()) return;
   aiTimer = setTimeout(() => {
     aiTimer = null;
     if (showNew || !aiTurn()) return;
@@ -2797,7 +2928,8 @@ function cardHTML(uid, o) {
   o = o || {};
   const d = D(uid), sm = o.size !== 'lg';
   const cls = ['card', d.side, sm ? 'sm' : 'lg', d.kind === 'aircraft' && (killsOf(uid).length >= E.ACE_KILLS || missionsOf(uid) >= E.VET_MISSIONS) ? 'is-ace' : '', o.sel ? 'sel' : '', o.pick ? 'pick' : '', o.dim ? 'dim' : '', o.dead ? 'dead' : '', o.landed ? 'landed' : '', d.elite ? 'elite' : ''].join(' ');
-  const attrs = o.pick ? ` data-card="${uid}" data-zone="${o.zone || ''}" tabindex="0" role="button" aria-pressed="${o.sel ? 'true' : 'false'}"` : '';
+  const attrs = o.pick ? ` data-card="${uid}" data-zone="${o.zone || ''}" tabindex="0" role="button" aria-pressed="${o.sel ? 'true' : 'false'}"`
+    : d.kind === 'aircraft' && !o.noView ? ` data-view="${uid}" tabindex="0" role="button" aria-label="Open ${esc(d.name)}"` : '';
   const role = d.kind === 'aircraft' ? (d.elite ? 'Elite' : d.type) : d.kind === 'war' ? 'War card' : d.kind === 'battle' ? 'Battle card' : d.kind;
   let body = '';
   if (d.kind === 'aircraft') {
@@ -2814,7 +2946,131 @@ function cardHTML(uid, o) {
   const foot = o.foot ? `<div class="cfoot ${o.footCls ? 'f-' + o.footCls : ''}">${esc(o.foot)}</div>` : '';
   return `<div class="${cls}"${attrs}>${o.fresh ? '<span class="new">NEW</span>' : ''}<div class="band"><span>${flag(natOf(uid), sm ? 14 : 17)}${esc(role)}</span><span>${o.tag ? esc(o.tag) : o.cost != null ? o.cost + ' PT' : ''}</span></div>
     <div class="cname"><span>${esc(d.name)}</span>${d.kind === 'aircraft' && E.armedWith(S, uid) ? `<span class="cmark pf" title="Armed with Para-Frags: +4 against airbases">${ico('parafrag', sm ? 14 : 18)}</span>`
-      : d.kind === 'aircraft' && E.carrierCapable(d) ? `<span class="cmark" title="Carrier capable">${ico('anchor', sm ? 13 : 17)}</span>` : ''}</div>${killsHTML(uid, sm)}${body}${foot}</div>`;
+      : d.kind === 'aircraft' && E.carrierCapable(d) ? `<span class="cmark" title="Carrier capable">${ico('anchor', sm ? 13 : 17)}</span>` : ''}</div>${o.art ? artHTML(uid) : ''}${o.noKills ? '' : killsHTML(uid, sm)}${body}${o.extra || ''}${foot}</div>`;
+}
+/* ---------------------------------------------------------------- fight popup (Battle Cards) */
+function nextFight() {
+  if (!S || !prefs.anim) return null;
+  for (let i = fightSeen; i < S.log.length; i++) if (S.log[i].duel) return { i, l: S.log[i] };
+  return null;
+}
+/* Battle Card: top rail with flag, name and icons; the art; bottom rail with this fight's numbers and notes. */
+function battleCardHTML(x, role, o) {
+  o = o || {};
+  const d = D(x.uid), id = S.cards[x.uid], a = ART[id] || ART[ART_SAME[id]];
+  const icons = (E.carrierCapable(d) ? ico('anchor', 17) : '') + (E.armedWith(S, x.uid) ? ico('parafrag', 17) : '');
+  const nt = (t, c) => `<span class="nt ${c || ''}">${esc(t)}</span>`;
+  const notes = [role ? nt(role) : '', x.struck ? nt('Scouted −1 DEF', 'down') : '', x.icpt ? nt(`Interceptor +${x.icpt}`, 'up') : '', x.ace ? nt('Ace', 'up') : '',
+    x.fs ? nt('First strike', 'up') : '', x.battle ? nt(D(x.battle).name, 'up') : '', x.lrfFor ? nt(`Long Range Fighters: took the ${shortNm(x.lrfFor)}'s place`, 'up') : ''].join('');
+  return `<div class="bcard ${d.side} ${o.lost ? 'lost' : ''} ${o.won ? 'won' : ''}">
+    <div class="brail top">${flag(natOf(x.uid), 22)}<span class="bn">${esc(d.name)}</span>${icons}</div>
+    <div class="bart">${a ? `<img src="${a}" alt="">` : ico('planes', 40)}
+      <svg class="boom" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>
+      <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span><span class="stamp">SHOT DOWN</span>
+      ${o.won ? `<span class="vic">VICTORY${flag(natOf(o.won), 33)}</span>` : ''}</div>
+    <div class="brail bot"><b>${x.a2a} ATT | ${x.def} DEF</b>${notes}</div></div>`;
+}
+/* Order: the enemy on top, yours below (pass and play: whoever holds the device). */
+const fightOrder = (a, b) => { const mine = me(); return a.side === mine ? [b, a] : [a, b]; };
+function fightHTML(f) {
+  const d = f.l.duel, I = d.init, T = d.tgt;
+  const role = (x) => (x === I ? (d.mode === 'intercept' ? 'Intercepting' : 'Striking') : (d.mode === 'intercept' ? 'Revealed' : 'Struck'));
+  const [top, bot] = fightOrder(I, T);
+  const mine = me(), mineX = [I, T].find((x) => x.side === mine);
+  const title = I.dead && T.dead ? 'Both shot down' : I.dead || T.dead ? `${shortNm((I.dead ? I : T).uid)} shot down` : 'No kill';
+  const good = mineX ? !mineX.dead && (I.dead || T.dead) : null;
+  const done = fightDone[fdKey(f.i)];
+  if (!done) { const k = fdKey(f.i); setTimeout(() => { fightDone[k] = true; }, 2900); }
+  const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel) return true; return false; })();
+  return `<div class="fwrap"><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
+    <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage)}</div>
+    ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null })}
+    <div class="fvs"><span class="tracer up"></span><span class="tracer up t2"></span><span class="tracer down t3"></span>${d.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(d.target))}</div>
+    ${battleCardHTML(bot, role(bot), { lost: bot.dead, won: !bot.dead && top.dead ? top.uid : null })}
+    <div class="after"><div class="ftext"><h4 style="${good === false ? 'color:var(--kill)' : good ? 'color:var(--ok)' : ''}">${esc(title)}</h4>${esc(pubMsg(f.l))}</div>
+      <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
+  </div></div>`;
+}
+/* Before the fight: you may play a battle card. The choice is made on the popup, with a live prediction. */
+function preFightHTML() {
+  const c = S.combat, v = viewer(), e = c.eng;
+  const mine = e.init.side === v ? e.init.uid : e.tgt.uid;
+  const opts = E.battleOptions(S, v, mine);
+  const pv = E.engagementPreview(S, ui.battle && opts.includes(ui.battle) ? { side: v, uid: ui.battle } : null);
+  const meInit = e.init.side === v;
+  const X = (who, st, dead) => ({ side: who.side, uid: who.uid, a2a: st.a2a, def: st.def, icpt: st.icpt, ace: st.ace, fs: st.fs, struck: st.struck,
+    battle: e.battles[who.side] || (who.side === v && ui.battle && opts.includes(ui.battle) ? ui.battle : null), dead });
+  const I = X(e.init, pv.init, pv.killI), T = X(e.tgt, pv.tgt, pv.killT);
+  const role = (x) => (x === I ? (e.mode === 'intercept' ? 'Intercepting' : 'Striking') : (e.mode === 'intercept' ? 'Revealed' : 'Struck'));
+  const [top, bot] = fightOrder(I, T);
+  const fate = (r) => { const mDies = meInit ? r.killI : r.killT, tDies = meInit ? r.killT : r.killI;
+    return `yours ${mDies ? '<span class="k">goes down</span>' : '<span class="s">survives</span>'}, theirs ${tDies ? '<span class="s">goes down</span>' : 'survives'}`; };
+  const base = E.engagementPreview(S, null);
+  return `<div class="fwrap"><div class="fight done" role="dialog" aria-label="Battle card">
+    <div class="fight-h"><h3>${e.mode === 'intercept' && meInit ? 'Attacker revealed' : 'Engagement'}</h3>${opTag(c.stage)}</div>
+    ${battleCardHTML(top, role(top))}
+    <div class="fvs">${e.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(Object.assign({ side: c.def }, c.target)))}</div>
+    ${battleCardHTML(bot, role(bot))}
+    <div class="ftext"><div class="predict">As it stands: ${fate(base)}.${opts.map((u) => `<br>With ${nm(u)}: ${fate(E.engagementPreview(S, { side: v, uid: u }))}.`).join('')}</div></div>
+    ${opts.length ? `<div class="chips">${opts.map((u) => `<button class="chip ${ui.battle === u ? 'on' : ''}" data-btn="pfPick" data-arg="${u}">${esc(nm(u))} · ${esc(D(u).text.replace(/^Combat: /, ''))}</button>`).join('')}</div>` : ''}
+    <div class="actions">${btn('noRespond', opts.length ? 'No card' : 'Fight', { cls: opts.length ? '' : 'go' })}${opts.length ? btn('respond', 'Play ' + (ui.battle ? nm(ui.battle) : 'card'), { cls: 'go', dis: !ui.battle }) : ''}</div>
+  </div></div>`;
+}
+
+/* ---------------------------------------------------------------- expanded card and service record */
+const artHTML = (uid) => { const id = S.cards[uid], a = ART[id] || ART[ART_SAME[id]];
+  return `<div class="xart">${a ? `<img src="${a}" width="960" height="720" alt="${esc(D(uid).name)}" decoding="async">` : `<span>${ico('planes', 46)}Artwork</span>`}</div>`; };
+const shortNm = (u) => { const d = D(u), w = d.name.split(' '); if (d.elite) return d.name; return /\d/.test(w[0]) || /^[A-Z]{2,}$/.test(w[0]) ? w[0] : w[w.length - 1]; };
+/* A place in the service record: a base or carrier by name, or a side's Convoy / Industry. */
+const placeNm = (t) => !t ? '' : t.uid ? D(t.uid).name : t.kind === 'convoy' ? `the ${SIDE[t.side]} convoy` : t.kind === 'industry' ? `${SIDE[t.side]} Industry` : `${SIDE[t.side]} Industry and Convoy`;
+function sortieText(so) {
+  const tgt = placeNm(so.target), from = so.from ? D(so.from).name : '';
+  const verb = so.role === 'defend' ? `Defended ${tgt}${from ? ` from ${from}` : ''}`
+    : so.role === 'escort' ? `Escorted bombers to ${tgt}`
+    : so.role === 'sweep' ? `Fighter sweep over ${tgt}`
+    : `${so.target.kind === 'airbase' || so.target.kind === 'industry' ? 'Bombed' : 'Attacked'} ${tgt}${from ? ` from ${from}` : ''}`;
+  const out = [];
+  if (so.squall) out.push('found nothing in the weather');
+  if (so.claims && so.claims.length) out.push(`claimed ${so.claims.map(shortNm).join(', ')}`);
+  if (so.dropped) out.push(`hit the target for ${so.dropped}`);
+  if (so.shot) out.push(`<span class="lost">${so.role === 'defend' ? `shot down defending ${tgt}` : `shot down over ${tgt}`}</span>`);
+  if (!out.length) out.push(so.reached ? 'reached the target' : 'returned');
+  const cap = (x) => x.replace(/^(<span class="lost">)?(\w)/, (m, a, c) => (a || '') + c.toUpperCase());
+  return `<b>Turn ${so.t}:</b> ${esc(verb)} – ${cap(out.join(', '))}`;
+}
+function fateText(uid, full) {
+  const r = (S.rec || {})[uid], downed = (S.downed || []).includes(uid), f = r && r.fate;
+  const where = f && f.where ? placeNm(f.where) : '';
+  if (f && (full || f.how !== 'discard')) {
+    const how = f.how === 'shot' ? (f.role === 'defend' ? `Shot down defending ${where}` : `Shot down over ${where}`)
+      : f.how === 'ground' ? `Lost on the ground at ${where}` : 'Discarded when the convoy was sunk';
+    return { lost: true, title: `Destroyed on Turn ${f.t}`, sub: how };
+  }
+  if (downed) return { lost: true, title: 'Destroyed', sub: '' };
+  if (over()) return { lost: false, title: `Survived the ${scen() ? 'scenario' : 'campaign'}`, sub: '' };
+  return { lost: false, title: 'In service', sub: '' };
+}
+function viewHTML() {
+  if (!viewCard || !S || !S.cards[viewCard]) return '';
+  const u = viewCard, d = D(u), r = (S.rec || {})[u] || { sorties: [] };
+  const full = over() || d.side === me();
+  const sorties = full ? r.sorties : r.sorties.filter((x) => x.seen);
+  const k = killsOf(u), b = missionsOf(u), sk = sinksOf(u);
+  const fate = fateText(u, full);
+  const marks = (html, none) => `<span class="marks">${html || `<span style="color:var(--ink-2)">${none}</span>`}</span>`;
+  const sunk = Array(sk).fill(`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2a2f2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS.sunk.replace(/#7fb3e6/g, '#2a2f2c')}</svg>`).join('');
+  const extra = `<div class="xsvc">
+      <div class="xsum"><span>Sorties</span><span>${sorties.length}${full ? '' : ' seen'}</span>
+        ${d.type === 'fighter' ? `<span>Kills</span>${marks(k.map((n) => flag(n, 16)).join('') + (k.length >= E.ACE_KILLS ? ' <span class="ace">ACE</span>' : ''), 'None')}` : ''}
+        ${d.bomb || d.car || d.conv ? `<span>Ordnance</span>${marks(sunk + Array(Math.max(0, b - sk)).fill(BOMB(16)).join('') + (b >= E.VET_MISSIONS ? ' <span class="ace">VET</span>' : ''), 'None dropped')}` : ''}</div>
+      <div class="xres ${fate.lost ? 'lost' : 'ok'}">${esc(fate.title)}${fate.sub ? `<small>${esc(fate.sub)}</small>` : ''}</div>
+      ${sorties.length ? `<div class="xlog-h">Service record</div><ul class="xlog">${sorties.map((so) => `<li class="st-${so.stage === 'carrier' ? 'carrier' : 'airbase'}">${sortieText(so)}</li>`).join('')}</ul>`
+        : `<p class="note" style="color:var(--ink-2);margin:0">${full ? 'No sorties yet.' : 'No sorties seen.'}</p>`}
+      ${full ? '' : '<p class="note" style="color:var(--ink-2);margin:0">Enemy aircraft: only what you have seen. The full record shows when the game ends.</p>'}
+    </div>`;
+  return `<div class="xwrap" data-btn="closeView"><div class="xbox" role="dialog" aria-label="${esc(d.name)}">
+    <button class="xclose" data-btn="closeView" aria-label="Close">${ico('close', 20)}</button>
+    ${cardHTML(u, { size: 'lg', noView: true, art: true, noKills: true, extra, dead: false })}</div></div>`;
 }
 const backHTML = (i, o) => { o = o || {};
   const attrs = o.pick ? ` data-slot="${i}" tabindex="0" role="button"` : '';
@@ -3345,7 +3601,18 @@ function basesPage(side) {
 /* ---------------------------------------------------------------- planes */
 function planesPage(side) {
   const v = me();
-  if (side === v || over()) {
+  if (over()) {
+    // Game over: every aircraft that took part (drawn into play), surviving or destroyed. No in-air or landed status.
+    const p = S.players[side];
+    const alive = [...p.hand, ...[...p.airbases, ...p.carriers].flatMap((f) => f.landed)].filter((u) => D(u).kind === 'aircraft');
+    const lost = p.discard.filter((u) => D(u).kind === 'aircraft' && !alive.includes(u));
+    const ft = (u) => fateText(u, true);
+    const sec = (type, title) => { const L = [...alive.map((u) => ({ u, dead: false })), ...lost.map((u) => ({ u, dead: true }))].filter((x) => D(x.u).type === type)
+        .sort((a, b) => a.dead - b.dead || D(a.u).name.localeCompare(D(b.u).name));
+      return `<div class="sec-h">${title}:</div>${L.length ? `<div class="cgrid">${L.map((x) => cardHTML(x.u, { size: 'lg', dead: x.dead, foot: x.dead ? ft(x.u).title : 'Survived', footCls: x.dead ? 'enemy' : 'hand' })).join('')}</div>` : '<p class="empty">None.</p>'}`; };
+    return `<p class="note">Every ${SIDE[side]} aircraft that took part: ${alive.length} survived, ${lost.length} destroyed. Tap a card for its service record.</p>${sec('fighter', 'Fighters')}${sec('bomber', 'Bombers')}`;
+  }
+  if (side === v) {
     const p = S.players[side], list = [];
     for (const u of p.hand) if (D(u).kind === 'aircraft') list.push({ u, foot: 'In hand', landed: false, fc: 'hand' });
     for (const k of ['airbase', 'carrier']) for (const f of E.facs(p, k)) for (const u of f.landed) list.push({ u, foot: 'Landed · ' + D(f.uid).name, landed: true });
@@ -3354,7 +3621,7 @@ function planesPage(side) {
     const sec = (type, title) => { const L = list.filter((x) => D(x.u).type === type).sort((a, b) => a.landed - b.landed || D(a.u).name.localeCompare(D(b.u).name));
       return `<div class="sec-h">${title}:</div>${L.length ? `<div class="cgrid">${L.map((x) => cardHTML(x.u, { size: 'lg', landed: x.landed, foot: x.foot, footCls: x.fc })).join('')}</div>` : '<p class="empty">None.</p>'}`; };
     const lost = ((S.stats || {})[side] || {}).lost || [];
-    return `${over() && side !== v ? '' : '<p class="note">Bright: in hand, ready. Faded: landed until your next turn.</p>'}${sec('fighter', 'Fighters')}${sec('bomber', 'Bombers')}
+    return `<p class="note">Bright: in hand, ready. Faded: landed until your next turn. Tap a card for its service record.</p>${sec('fighter', 'Fighters')}${sec('bomber', 'Bombers')}
       <p class="note">${S.players[side].deck.length} cards still in the deck · ${lost.filter((u) => D(u).kind === 'aircraft').length} aircraft lost</p>`;
   }
   // Enemy: only aircraft seen face up during the last round.
@@ -3578,7 +3845,7 @@ function frame(title, segs, body, o) {
         ${o.noMenu ? '<span></span>' : `<button class="iconbtn" data-btn="menu" aria-label="Menu">${ico('more', 22)}</button>`}</div>
       <div class="hdr-top"><span class="status">${o.noStatus ? `${esc(modeName())}` : statusHTML()}</span></div>
       <h1 class="ptitle">${title}</h1></header>
-    ${segH}<main class="main" id="main">${body}</main>${nav}${o.overlay || ''}</div>`;
+    ${segH}<main class="main${o.stage ? ` stg stg-${o.stage === 'carrier' ? 'carrier' : 'airbase'}` : ''}" id="main">${o.stage ? `<div class="stg-rib"><span>${o.stage === 'carrier' ? 'Carrier Stage' : 'Airbase Stage'}</span><span>Stage ${o.stage === 'carrier' ? 2 : 1} of 2</span></div>` : ''}${body}</main>${nav}${o.overlay || ''}</div>`;
 }
 /* ---------------------------------------------------------------- export: a plain-text game report */
 const HKEY = 'awp-history';
@@ -3617,8 +3884,15 @@ function archive() {
   if (!over()) return;
   const gid = S.gid || `g${S.rng}-${S.log.length}`; // games started before ids existed
   const h = loadHist(); if (h.some((x) => x.gid === gid)) return;
+  try { if ((JSON.parse(localStorage.getItem(HKEY + '-cleared')) || []).includes(gid)) return; } catch (e) {} // cleared by the player
   h.push({ gid, text: reportText() }); while (h.length > 30) h.shift();
   try { localStorage.setItem(HKEY, JSON.stringify(h)); } catch (e) {}
+}
+let clearAsk = false; // first tap on "Clear saved game reports" asks for a second tap
+function clearHistory() {
+  // Remember what was cleared, so a finished game still on screen isn't saved again straight away.
+  const gone = loadHist().map((x) => x.gid).concat(S && over() ? [S.gid || `g${S.rng}-${S.log.length}`] : []);
+  try { const old = JSON.parse(localStorage.getItem(HKEY + '-cleared')) || []; localStorage.setItem(HKEY + '-cleared', JSON.stringify(old.concat(gone).slice(-60))); localStorage.removeItem(HKEY); } catch (e) {}
 }
 let exportBox = null; // { text, filename, msg } shown in a sheet when saving isn't available
 function exportText(text, filename) {
@@ -3655,7 +3929,10 @@ function menuHTML() {
   if (!menu) return '';
   return `<div class="sheet-wrap" data-btn="closeMenu"><div class="sheet" role="dialog" aria-label="Menu"><h3>${esc(modeName())}</h3>
     <p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer` : 'Pass and play'} · turn ${S.turnNo}</p>
-    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) : ''}${btn('toStart', 'Main menu')}${btn('openNew', 'New game')}${btn('closeMenu', 'Close', { cls: 'go' })}</div></div>`;
+    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${btn('toStart', 'Main menu')}${btn('openNew', 'New game')}
+    <div class="label" style="margin-top:6px">Game options</div>
+    ${btn('animToggle', `<span class="optrow"><span>Battle animations</span><span>${prefs.anim ? 'On' : 'Off'}</span></span>`)}
+    ${btn('closeMenu', 'Close', { cls: 'go' })}</div></div>`;
 }
 function render() {
   repInline = false;
@@ -3665,11 +3942,17 @@ function render() {
     { noNav: true, noMenu: true, noStatus: !S || startScreen, seg: rulesTab, segBtn: 'rtab' }); const mn = document.getElementById('main'); if (mn) mn.scrollTop = 0; return; }
   if (startScreen) { app.innerHTML = startHTML(); return; }
   if (showNew) { app.innerHTML = frame('New game', null, newHTML(), { noNav: true, noMenu: true, noStatus: true }); return; }
+  if (!prefs.anim && S) fightSeen = S.log.length;
+  // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
+  const pf = nextFight();
+  if (pf) { app.innerHTML = frame('Orders', null, '', { overlay: fightHTML(pf) }); app.dataset.tab = 'fight'; return; }
   const v = viewer();
   if (human()) shownFor = human();
   // Reports for whoever last held the device (vs computer: wait while it acts, except your own turn's results).
   const ownTurnOver = aiTurn() && S.active === aiSide();
-  const reps = !over() && shownFor && (!aiTurn() || ownTurnOver) ? unseen(shownFor).filter((r) => !aiTurn() || r.summary !== undefined || r.who === human()) : [];
+  // In the middle of an air battle the fight popups already told the story: hold the reports until the battle is over.
+  const midBattle = prefs.anim && S.combat && ['intercept', 'combat', 'respond'].includes(S.phase);
+  const reps = !over() && shownFor && !midBattle && (!aiTurn() || ownTurnOver) ? unseen(shownFor).filter((r) => !aiTurn() || r.summary !== undefined || r.who === human()) : [];
   // Pass and play: the previous player finishes reading their reports before handing over.
   if (reps.length && shownFor !== v) {
     const now = reps.filter((r) => r.summary === undefined);
@@ -3698,7 +3981,13 @@ function render() {
   const badges = { orders: reps.length || mustAct ? true : 0, reports: !over() && unreadN && tab !== 'orders' ? unreadN : 0 };
   let html;
   archive();
-  const o = { badges, overlay: menuHTML() + exportHTML() };
+  const o = { badges, overlay: menuHTML() + exportHTML() + viewHTML() };
+  // Your battle-card decision is made on the fight popup (Long Range Fighters keeps the full Orders screen).
+  if (prefs.anim && S.phase === 'respond' && !over() && !aiTurn() && E.actorOf(S) === v && !(S.combat.eng.tgt.side === v && E.lrfOptions(S).cards.length))
+    o.overlay += preFightHTML();
+  // Attack Mission / Carrier Strike screens take the stage colour.
+  const stgPh = ['attack', 'intercept', 'combat', 'respond', 'allocate'].includes(S.phase) && !over() && !reps.length;
+  if (tab === 'orders' && stgPh) o.stage = S.combat ? S.combat.stage : S.stage;
   if (tab === 'orders') html = frame('Orders', null, ordersPage(reps), o);
   else if (tab === 'strategy') html = frame('Strategy', [['sit', 'Situation report'], ['vc', 'Victory conditions']],
     sub.strategy === 'sit' ? clockHTML() + sitRep(m) + sitRep(E.other(m)) : victoryHTML(), Object.assign(o, { seg: sub.strategy }));
@@ -3708,7 +3997,11 @@ function render() {
   app.innerHTML = html;
   app.dataset.tab = tab + '|' + (sub[tab] || '');
   const mn = document.getElementById('main');
-  if (mn && prevTab === app.dataset.tab) mn.scrollTop = top;
+  // Each new stage or step of the turn starts at the top of the page; otherwise keep the reader's place.
+  const grp = { respond: 'combat' }[S.phase] || S.phase;
+  const sk = tab + '|' + S.turnNo + '|' + S.stage + '|' + grp + '|' + (S.raidNo || 0) + '|' + (S.pending[0] ? S.pending[0].kind : '') + '|' + reps.length;
+  if (mn && prevTab === app.dataset.tab && sk === scrollKey) mn.scrollTop = top;
+  scrollKey = sk;
 }
 
 /* ---------------------------------------------------------------- input */
@@ -3717,7 +4010,8 @@ function onBtn(id, arg) {
   switch (id) {
     case 'tab': tab = arg; menu = false; break;
     case 'sub': sub[tab] = arg; break;
-    case 'menu': menu = true; break;
+    case 'menu': menu = true; clearAsk = false; break;
+    case 'clearHist': if (clearAsk) { clearHistory(); clearAsk = false; } else clearAsk = true; break;
     case 'rules': rules = !rules; menu = false; break;
     case 'startContinue': startScreen = false; break;
     case 'startNewGame': startScreen = false; showNew = true; break;
@@ -3725,12 +4019,16 @@ function onBtn(id, arg) {
     case 'toStart': startScreen = true; menu = false; showNew = false; break;
     case 'rtab': rulesTab = arg; break;
     case 'closeMenu': menu = false; break;
+    case 'closeView': viewCard = null; break;
+    case 'fightNext': { const f = nextFight(); if (f) { fightSeen = f.i + 1; fightDone[fdKey(f.i)] = true; } save(); break; }
+    case 'pfPick': ui.battle = ui.battle === arg ? null : arg; break;
+    case 'animToggle': prefs.anim = !prefs.anim; savePrefs(); if (!prefs.anim && S) fightSeen = S.log.length; break;
     case 'exportGame': { const nmf = modeName().replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, ''); exportText(reportText(), `airwar-${nmf}-turn${S.turnNo}.txt`); return; }
     case 'exportAll': exportText(loadHist().map((x) => x.text).join('\n' + '='.repeat(60) + '\n\n'), `airwar-games-${loadHist().length}.txt`); return;
     case 'closeExport': exportBox = null; break;
     case 'fullscreen': toggleFullscreen(); return;
     case 'reveal': shownFor = viewer(); save(); break;
-    case 'undo': menu = false; if (hist.length) { S = hist.pop(); while (hist.length && aiTurn()) S = hist.pop(); if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } ui = fresh(); err = ''; shownFor = viewer(); for (const k in seen) seen[k] = Math.min(seen[k], S.log.length); seen[shownFor] = S.log.length; save(); } break;
+    case 'undo': menu = false; if (hist.length) { S = hist.pop(); while (hist.length && aiTurn()) S = hist.pop(); if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } ui = fresh(); err = ''; shownFor = viewer(); for (const k in seen) seen[k] = Math.min(seen[k], S.log.length); seen[shownFor] = S.log.length; fightSeen = S.log.length; save(); } break;
     case 'repSkip': seen[shownFor] = S.log.length; save(); break;
     case 'openNew': showNew = true; menu = false; break;
     case 'cancelNew': showNew = false; if (!inProgress()) startScreen = true; break;
@@ -3796,10 +4094,23 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-btn]');
   if (b && b.classList.contains('sheet-wrap') && e.target !== b) { /* clicks inside the sheet fall through to its buttons */ }
   if (b && !b.disabled && !(b.classList.contains('sheet-wrap') && e.target !== b)) return onBtn(b.dataset.btn, b.dataset.arg);
+  if (longPressed) { longPressed = false; return; }
+  const v = e.target.closest('[data-view]'); if (v) { viewCard = v.dataset.view; return render(); }
   const c = e.target.closest('[data-card],[data-slot]'); if (c) onPick(c);
 });
+/* Press and hold a card you pick on the Orders screens to open its expanded view. */
+let pressTimer = null, longPressed = false;
+document.addEventListener('pointerdown', (e) => {
+  const c = e.target.closest('[data-card]'); if (!c || !S || !S.cards[c.dataset.card] || D(c.dataset.card).kind !== 'aircraft') return;
+  clearTimeout(pressTimer);
+  pressTimer = setTimeout(() => { longPressed = true; viewCard = c.dataset.card; render(); }, 480);
+});
+for (const ev of ['pointerup', 'pointercancel', 'pointermove']) document.addEventListener(ev, (e) => { if (ev !== 'pointermove' || Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(pressTimer); });
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-card]')) e.preventDefault(); });
 document.addEventListener('keydown', (e) => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-card],[data-slot]')) { e.preventDefault(); onPick(e.target); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-view]')) { e.preventDefault(); viewCard = e.target.dataset.view; render(); }
+  if (e.key === 'Escape' && viewCard) { viewCard = null; render(); }
   if (e.key === 'Escape' && menu) { menu = false; render(); }
 });
 document.addEventListener('change', (e) => {
