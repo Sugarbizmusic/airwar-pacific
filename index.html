@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Airwar Pacific">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0e1a21">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -24,7 +24,7 @@
   --fg: #dbe4e4; --muted: #8fa3a8; --dim: #5f7479; --paper: #e6e2d3; --paper-2: #d4cfbd; --ink: #1b2226; --ink-2: #55615f;
   --allied: #3f82dc; --allied-soft: #24486f; --allied-panel: #11273a; --allied-text: #9cc2f2;
   --axis: #e1483b; --axis-soft: #6d2a25; --axis-panel: #331816; --axis-text: #f2a39b;
-  --op-airbase: #9cc25a; --op-airbase-soft: #2c3b1c; --op-carrier: #34c3cf; --op-carrier-soft: #133c42;
+  --op-airbase: #9cc25a; --op-airbase-soft: #2c3b1c; --op-carrier: #34c3cf; --op-carrier-soft: #133c42; --op-pm: #f2a046; --op-pm-soft: #3f2a12;
   --signal: #f0b23a; --kill-ink: #c8281a; --ok: #6cc28a; --kill: #ff6f5f;
   --f-display: "Big Shoulders Stencil Display", "Arial Narrow", Impact, sans-serif;
   --f-body: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
@@ -76,7 +76,7 @@ html:not(.mobile) .hdr { padding-top: 26px; }
 .status { font: 600 10.5px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); min-width: 0; }
 .status b { color: var(--fg); font-weight: 600; }
 .status .s-allied { color: var(--allied-text); } .status .s-axis { color: var(--axis-text); }
-.status .st-airbase { color: var(--op-airbase); } .status .st-carrier { color: var(--op-carrier); }
+.status .st-airbase { color: var(--op-airbase); } .status .st-carrier { color: var(--op-carrier); } .status .st-pm { color: var(--op-pm); }
 .more { width: 44px; height: 32px; min-height: 0; padding: 0; display: grid; place-items: center; background: none; border: 0; color: var(--fg); }
 .ptitle { margin: 0; font: 800 31px/.95 var(--f-display); text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
 
@@ -93,7 +93,7 @@ html:not(.mobile) .hdr { padding-top: 26px; }
 .main > * { flex: none; }
 
 .nav { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--nav); border-top: 1px solid var(--line);
-  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+  padding: 0 env(safe-area-inset-right, 0px) max(4px, calc(env(safe-area-inset-bottom, 0px) - 20px)) env(safe-area-inset-left, 0px); }
 html:not(.mobile) .nav { padding-bottom: 18px; }
 .nav button { position: relative; background: none; border: 0; border-radius: 0; min-height: 58px; padding: 9px 0 7px; display: grid; justify-items: center; gap: 4px;
   color: var(--dim); font: 600 9px/1 var(--f-mono); letter-spacing: .1em; }
@@ -116,6 +116,7 @@ p { margin: 0; }
 .op { display: inline-flex; align-items: center; gap: 5px; font: 600 10.5px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 7px; border-radius: 3px; }
 .op-airbase { background: var(--op-airbase-soft); color: var(--op-airbase); box-shadow: inset 0 0 0 1px var(--op-airbase); }
 .op-carrier { background: var(--op-carrier-soft); color: var(--op-carrier); box-shadow: inset 0 0 0 1px var(--op-carrier); }
+.op-pm { background: var(--op-pm-soft); color: var(--op-pm); box-shadow: inset 0 0 0 1px var(--op-pm); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { font: 600 10px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 6px; border-radius: 3px; background: var(--sea-3); color: var(--fg); }
@@ -194,12 +195,13 @@ p { margin: 0; }
 .xres small { display: block; font: 500 11.5px/1.35 var(--f-body); text-transform: none; letter-spacing: 0; color: var(--ink-2); margin-top: 2px; }
 .xlog { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font: 500 12.5px/1.35 var(--f-body); }
 .xlog li { padding-left: 9px; border-left: 3px solid var(--line); }
-.xlog li.st-airbase { border-color: #6f8f3a; } .xlog li.st-carrier { border-color: #1f8f99; }
+.xlog li.st-airbase { border-color: #6f8f3a; } .xlog li.st-carrier { border-color: #1f8f99; } .xlog li.st-pm { border-color: #c47a22; }
 .xlog b { font-weight: 600; } .xlog .lost { color: #9b2c22; font-weight: 600; }
 .xlog-h { font: 600 9.5px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
 /* Fight popup: two Battle Cards, enemy on top, yours below */
-.fwrap { position: absolute; inset: 0; z-index: 46; background: rgba(3,8,10,.97); overflow-y: auto; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
-.fight { max-width: 380px; margin: 0 auto; display: grid; gap: 8px; }
+.fwrap { position: absolute; inset: 0; z-index: 46; background: rgba(3,8,10,.97); overflow-y: auto; display: flex; flex-direction: column; padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+.fight { width: 100%; max-width: 380px; margin: auto; display: grid; gap: 12px; }
+.fight-h { padding-bottom: 4px; }
 .fight-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .fight-h h3 { margin: 0; font: 800 22px/1 var(--f-display); text-transform: uppercase; color: var(--fg); }
 .bcard { position: relative; width: 100%; max-width: 236px; margin: 0 auto; border-radius: 7px; overflow: hidden; background: var(--paper); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.5); }
@@ -307,6 +309,7 @@ p { margin: 0; }
 /* Attack Mission / Carrier Strike screens: the whole page takes the stage colour */
 .main.stg-airbase { --op: var(--op-airbase); --op-soft: var(--op-airbase-soft); }
 .main.stg-carrier { --op: var(--op-carrier); --op-soft: var(--op-carrier-soft); }
+.main.stg-pm { --op: var(--op-pm); --op-soft: var(--op-pm-soft); }
 .main.stg { background: linear-gradient(180deg, color-mix(in srgb, var(--op) 13%, transparent) 0, transparent 300px), var(--sea); box-shadow: inset 4px 0 0 var(--op); }
 .main.stg .label { color: var(--op); }
 .main.stg .ord-head p b { color: var(--op); }
@@ -330,7 +333,7 @@ p { margin: 0; }
 /* ---------------- orders */
 .ord-head { display: grid; gap: 7px; }
 .ord-head h2 { margin: 0; font: 800 23px/1.02 var(--f-display); text-transform: uppercase; letter-spacing: .02em; text-wrap: balance; }
-.ord-head h2.c-airbase { color: var(--op-airbase); } .ord-head h2.c-carrier { color: var(--op-carrier); } .ord-head h2.c-sig { color: var(--signal); }
+.ord-head h2.c-airbase { color: var(--op-airbase); } .ord-head h2.c-carrier { color: var(--op-carrier); } .ord-head h2.c-pm { color: var(--op-pm); } .ord-head h2.c-sig { color: var(--signal); }
 .ord-head p { font-size: 14px; }
 .est { font: 500 12px/1.45 var(--f-mono); background: var(--sea-2); padding: 8px 10px; border-radius: 4px; }
 .est b { color: var(--signal); }
@@ -406,6 +409,10 @@ p { margin: 0; }
 .killf { display: grid; grid-template-columns: repeat(4, 18px); gap: 3px; justify-content: center; align-content: center; }
 .objv { position: relative; display: block; width: 50px; height: 50px; color: var(--fg); }
 .met .objv .ic { width: 50px; height: 50px; color: var(--muted); }
+.flds { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; justify-items: center; }
+.flds .fld .ic { width: 17px; height: 17px; }
+.flds .fld { display: grid; justify-items: center; color: var(--fg); } .flds .fld small { font: 600 8px/1.1 var(--f-mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+.flds .fld.gone { color: var(--kill); } .flds .fld.gone small { color: var(--kill); text-decoration: line-through; }
 .objv .shield { position: absolute; top: -12px; right: -18px; width: 30px; height: 35px; display: grid; place-items: center; }
 .objv .shield svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--paper); stroke: #0b1218; stroke-width: 1.5; }
 .objv .shield b { position: relative; font: 800 17px/1 var(--f-display); color: var(--ink); margin-top: -3px; }
@@ -456,7 +463,7 @@ p { margin: 0; }
 
 /* ---------------- menu, covers, new game */
 .sheet-wrap { position: absolute; inset: 0; z-index: 40; background: rgba(3,8,10,.66); display: grid; align-items: end; }
-.sheet { background: var(--sea-2); border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; padding: 16px var(--gut-r) calc(20px + env(safe-area-inset-bottom, 0px)) var(--gut-l); display: grid; gap: 8px; }
+.sheet { max-height: 88%; overflow-y: auto; background: var(--sea-2); border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; padding: 16px var(--gut-r) calc(20px + env(safe-area-inset-bottom, 0px)) var(--gut-l); display: grid; gap: 8px; }
 .sheet h3 { margin: 0 0 4px; font: 800 22px/1 var(--f-display); text-transform: uppercase; }
 .sheet button { width: 100%; text-align: left; }
 .cover { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px var(--gut-r) 24px var(--gut-l);
@@ -473,6 +480,17 @@ p { margin: 0; }
 .opt-name { font: 800 19px/1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
 .opt.on .opt-name { color: var(--signal); }
 .opt-text { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.pick2 { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.pick2 button { min-height: 44px; text-align: center; }
+.pick2 button.on { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); color: var(--signal); }
+.ng-card { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--sea-2); }
+.ng-card h4 { margin: 0; font: 800 21px/1 var(--f-display); text-transform: uppercase; color: var(--signal); }
+.ng-card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.ng-pick { position: relative; display: block; }
+.ng-pick select { appearance: none; -webkit-appearance: none; width: 100%; padding: 8px 34px 8px 10px; border: 1px solid var(--signal); border-radius: 4px; background: var(--sea);
+  color: var(--signal); font: 800 18px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; cursor: pointer; text-overflow: ellipsis; }
+.ng-pick svg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--signal); pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .opt-date { font: 600 10.5px/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 label.tog { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; }
 label.tog input { margin-top: 3px; accent-color: var(--signal); width: 18px; height: 18px; flex: none; }
@@ -528,7 +546,7 @@ const CARD_DB = {
   f4f4:  F({ name: 'F4F-4 Wildcat', side: 'allied', service: 'USN/USMC', role: 'Fighter', basing: 'both', a2a: 4, def: 4, model: 'F4F' }),
   f4f3:  F({ name: 'F4F-3 Wildcat', side: 'allied', service: 'USN/USMC', role: 'Fighter', basing: 'both', a2a: 3, def: 4, model: 'F4F' }),
   f2a:   F({ name: 'F2A-3 Buffalo', side: 'allied', service: 'USN/USMC', role: 'Fighter', basing: 'both', a2a: 1, def: 2, abilities: ['patrol'], text: PATROL }),
-  p38:   F({ name: 'P-38F Lightning', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 5, bomb: 1, def: 6 }),
+  p38:   F({ name: 'P-38F Lightning', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 5, bomb: 1, def: 6, model: 'P-38' }),
   p40b:  F({ name: 'P-40B Warhawk', side: 'allied', service: 'USAAF', role: 'Fighter', a2a: 4, def: 4 }),
   p39:   F({ name: 'P-39D Airacobra', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 3, bomb: 1, def: 3, interceptor: 2,
               text: 'Interceptor: +2 Air to Air when attacking a bomber.' }),
@@ -589,7 +607,7 @@ const CARD_DB = {
             text: 'Combat: a fighter in your mission takes the place of a bomber being attacked. The bomber reaches the target unharmed and cannot be attacked again.' },
   nishizawa: { name: 'Ace: Nishizawa', side: 'axis', kind: 'battle', mod: { a2a: 1 }, req: 'A6M', text: 'Combat: +1 to any A6M2 or A6M3 Air to Air.' },
   // ================= Axis — 1942 expansion
-  tony:   F({ name: 'Ki-61 Tony', side: 'axis', service: 'JAAF', role: 'Fighter', a2a: 6, def: 6, set: '1942' }),
+  tony:   F({ name: 'Ki-61 Tony', side: 'axis', service: 'JAAF', role: 'Fighter', a2a: 6, def: 6, set: '1942', model: 'Ki-61' }),
   oscar:  F({ name: 'Ki-43 Oscar', side: 'axis', service: 'JAAF', role: 'Fighter-Bomber', a2a: 4, bomb: 1, def: 4, set: '1942' }),
   frances: B({ name: 'P1Y Frances', side: 'axis', service: 'JNAF', role: 'Level-Bomber', bomb: 4, car: 2, conv: 5, def: 4, set: '1942' }),
   peggy:  B({ name: 'Ki-67 Peggy', side: 'axis', service: 'JAAF', role: 'Level-Bomber', bomb: 5, car: 2, conv: 5, def: 6, set: '1942' }),
@@ -616,6 +634,38 @@ Object.assign(CARD_DB, {
           text: 'Watchers in the hills of the Solomons radio a warning. Play in your Intercept Phase before scrambling: every aircraft in the incoming Attack Mission or Carrier Strike is revealed (scouted).' },
   igo: { name: 'Operation I-Go', side: 'axis', kind: 'battle', special: 'opmo', scenario: 'guadalcanal', boost: 4, boostPerAircraft: true,
           text: 'Yamamoto\u2019s air offensive of April 1943. Play as you launch an Attack Mission or Carrier Strike on an Allied airbase: +1 to that attack for each aircraft that reaches the target, up to +4.' },
+  // Wewak '43 (Fifth Air Force against the 4th Air Army; land war, two Attack Missions a day)
+  p47: F({ name: 'P-47D Thunderbolt', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', a2a: 5, bomb: 2, def: 5, scenario: 'wewak',
+          text: 'Rugged and fast in a dive; arrived in New Guinea in mid-1943.' }),
+  p47x: F({ name: 'P-47D 348th Fighter Group', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', elite: true, a2a: 6, bomb: 3, def: 6, scenario: 'wewak',
+          abilities: ['strafe'], text: 'Strafing: when it reaches an airbase it attacks, every aircraft parked there is destroyed, whether or not the airbase falls. Neel Kearby\u2019s group; on 11 October 1943 he shot down six aircraft over Wewak in one sweep.' }),
+  k68: F({ name: 'Ki-61 68th Sentai', side: 'axis', service: 'JAAF', role: 'Fighter', elite: true, a2a: 6, def: 6, model: 'Ki-61', scenario: 'wewak',
+          abilities: ['pressOn'], text: 'Press on: when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again at once. The Tony group that defended Wewak against the Fifth Air Force in 1943.' }),
+  bong: { name: 'Ace: Richard Bong', side: 'allied', kind: 'battle', mod: { a2a: 1 }, req: 'P-38', scenario: 'wewak',
+          text: 'Combat: +1 to a P-38F Lightning\u2019s Air to Air. The top American ace of the war flew P-38s from Dobodura with the 9th Fighter Squadron.' },
+  takeuchi: { name: 'Ace: Shogo Takeuchi', side: 'axis', kind: 'battle', mod: { a2a: 1 }, req: 'Ki-61', scenario: 'wewak',
+          text: 'Combat: +1 to a Ki-61\u2019s Air to Air (Tony or 68th Sentai). The 68th Sentai\u2019s leading ace over Wewak, killed in December 1943.' },
+  dobodura: { name: 'Dobodura', side: 'allied', kind: 'airbase', cap: 3, def: 7, scenario: 'wewak', text: 'The big Allied airfield complex near Buna.' },
+  tsili:    { name: 'Tsili Tsili', side: 'allied', kind: 'airbase', cap: 2, def: 5, scenario: 'wewak', abilities: ['secret'],
+              text: 'Secret airfield: it cannot be attacked until aircraft fly from it. Built in secret in the summer of 1943 to bring Wewak within fighter range.' },
+  nadzab:   { name: 'Nadzab', side: 'allied', kind: 'airbase', cap: 4, def: 7, scenario: 'wewak', text: 'Taken by the first Allied parachute drop in the Pacific, September 1943.' },
+  boram:    { name: 'Boram', side: 'axis', kind: 'airbase', cap: 2, def: 6, scenario: 'wewak', text: 'One of the four Wewak airfields.' },
+  but:      { name: 'But', side: 'axis', kind: 'airbase', cap: 2, def: 6, scenario: 'wewak', text: 'One of the four Wewak airfields.' },
+  dagua:    { name: 'Dagua', side: 'axis', kind: 'airbase', cap: 2, def: 6, scenario: 'wewak', text: 'One of the four Wewak airfields.' },
+  radarAl: { name: 'Radar', side: 'allied', kind: 'war', attach: 'ownAirbase', abilities: ['radar'], scenario: 'wewak',
+              text: 'Mobilization: attach to an airbase. Whenever the enemy attacks any of your bases, 2 of the incoming aircraft are revealed (scouted) before you scramble. Lost if that airbase is destroyed.' },
+  radarAx: { name: 'Radar', side: 'axis', kind: 'war', attach: 'ownAirbase', abilities: ['radar'], scenario: 'wewak',
+              text: 'Mobilization: attach to an airbase. Whenever the enemy attacks any of your bases, 2 of the incoming aircraft are revealed (scouted) before you scramble. Lost if that airbase is destroyed.' },
+  laaaAl: { name: 'Light AAA', side: 'allied', kind: 'battle', special: 'lightAAA', scenario: 'wewak',
+              text: 'Play when an enemy attack reaches one of your airbases: shoot down one fighter or fighter-bomber over the target before the damage counts. It counts toward your air war.' },
+  laaaAx: { name: 'Light AAA', side: 'axis', kind: 'battle', special: 'lightAAA', scenario: 'wewak',
+              text: 'Play when an enemy attack reaches one of your airbases: shoot down one fighter or fighter-bomber over the target before the damage counts. It counts toward your air war.' },
+  engAl: { name: 'Airfield Engineers', side: 'allied', kind: 'battle', special: 'engineers', scenario: 'wewak',
+              text: 'Play in your Mobilization: rebuild one of your destroyed airbases. It returns to play empty, at its starting Defense.' },
+  engAx: { name: 'Airfield Engineers', side: 'axis', kind: 'battle', special: 'engineers', scenario: 'wewak',
+              text: 'Play in your Mobilization: rebuild one of your destroyed airbases. It returns to play empty, at its starting Defense. The Japanese repaired the Wewak strips again and again.' },
+  dispersal: { name: 'Dispersal', side: 'axis', kind: 'war', attach: 'ownAirbase', abilities: ['dispersal'], scenario: 'wewak',
+              text: 'Mobilization: attach to an airbase. If that airbase is destroyed, the aircraft landed there escape to your hand instead of being lost (then this card is discarded).' },
   shoho: { name: 'Shoho', side: 'axis', kind: 'carrier', cap: 2, def: 6, scenario: 'coralsea',
           text: 'Light carrier escorting the invasion convoy. Sunk on May 7: "Scratch one flattop!"' },
 });
@@ -631,10 +681,36 @@ const BASIC = {
    hand: 5 cards taken from the deck. special: scenario-only cards added to the opening hand.
    victory.sinkCarriers: a side that loses this many carriers loses the game (60 Industry still applies). */
 const SCENARIOS = {
+  wewak: {
+    name: "Wewak '43", date: 'August–December 1943', needs1942: true, first: 'allied',
+    blurb: 'Japan\u2019s 4th Air Army has packed the four Wewak airfields with aircraft to stop the Allied advance up New Guinea. General Kenney\u2019s Fifth Air Force answers from Port Moresby, Dobodura and a secret strip at Tsili Tsili, with B-25 strafers, P-38s and the new P-47 Thunderbolts of the 348th Fighter Group. No carriers: two Attack Missions a day, and planes that land after the morning can be caught on the ground in the afternoon.',
+    twoMissions: true, noCarriers: true, resourceTargets: ['convoy'], noIndustry: true,
+    exclude: ['lexington', 'saratoga', 'yorktown', 'akagi', 'shokaku', 'zuikaku', 'f2a', 'f4f3', 'f4f4', 'f4u', 'sbd', 'tbd', 'tbf', 'sb2u', 'p40ft', 'p40b', 'b17', 'b26',
+      'claude', 'zero', 'tainan', 'kate', 'val', 'nell', 'betty', 'frances', 'nate', 'tojo', 'peggy', 'squallAl', 'squallAx', 'nishizawa', 'foss',
+      'guadalcanal', 'darwin', 'leyte', 'rabaul', 'kavieng'],
+    // Afternoon bonus: +1 per aircraft over an airbase target (tested against doubled bombs, too strong at 70% Axis
+    // and 6-turn games, and +1 per parked aircraft, which barely changed play). With it, about 30% of missions fly in the afternoon.
+    // Radar, Light AAA and Airfield Engineers lengthen the game (9.6 -> 10.5 turns at balance).
+    // Balanced by self-play: Wewak fields Defense 8, Port Moresby 13, Dobodura 11, 3 fields to win,
+    // 14-kill air war with ground kills at 1/2; Axis 68th Sentai, Ace Takeuchi, 1 Engineers and 1 Light AAA (53.6 / 51.5%, 10.4 turns); 348th BMB 3 with strafing; Allies Ace Bong, 1 Engineers and 2 Light AAA.
+    pmBonus: 'each',
+    turnLimit: 14, stackAirbaseDamage: 'all', defs: { wewak: 8, boram: 8, but: 8, dagua: 8, moresby: 13, dobodura: 11 },
+    timeoutWinner: 'axis', timeoutText: 'The year is over and the Wewak airfields are still operating.',
+    convoyEffects: { allied: { base: 'moresby', fortDelta: -2, text: 'Supplies for Port Moresby went down with the convoy.' },
+                     axis: { bases: ['wewak', 'boram', 'but', 'dagua'], fortDelta: -1, text: 'The Wewak fields lost their fuel and spares with the convoy.' } },
+    victory: { holdBase: { allied: 'moresby' }, destroyBases: { axis: { list: ['wewak', 'boram', 'but', 'dagua'], n: 3 } }, kills: 14, groundKill: 0.5 },
+    victoryText: 'The Allies win by destroying three of the four Wewak airfields (Wewak, Boram, But and Dagua, Defense 8 each). The Axis wins by destroying Port Moresby (Defense 13). Either side wins the air war at 14 enemy aircraft destroyed; an aircraft destroyed on the ground counts ½. If the Wewak fields still hold after turn 14, the Axis wins. Each turn has a Morning and an Afternoon Attack Mission; an Afternoon Attack Mission on an airbase gets +1 for each aircraft that reaches it. Damage to a base adds up over the day. No carriers.',
+    sides: {
+      allied: { home: null, inPlay: ['moresby', 'dobodura', 'tsili'], hand: ['p38', 'p47', 'p40e', 'b25', 'a20'],
+        special: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'laaaAl', 'engAl'], specialInDeck: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'engAl'], extra: { p47: 2, p38: 1, b25: 2, a20: 1, p40e: 1, p39: 1 } },
+      axis: { home: null, inPlay: ['wewak', 'boram', 'but', 'dagua'], hand: ['oscar', 'oscar', 'tony', 'lily', 'sally'],
+        special: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx', 'engAx'], specialInDeck: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx', 'engAx'], extra: { oscar: 4, tony: 2, lily: 2, sally: 1, nick: 1 } },
+    },
+  },
   guadalcanal: {
     name: "Guadalcanal '43", date: 'April–December 1943', needs1942: true, first: 'axis',
     blurb: 'Guadalcanal is lost to Japan, but Henderson Field is now the springboard for the Allied push up the Solomons toward Rabaul. Yamamoto answers with Operation I-Go. Corsairs, Lightnings and Flying Fortresses meet Tonys, Tojos and veteran Zero units in a year-long battle for the air.',
-    // Two objectives, no carriers in play. Alternate path: win the air war by shooting down 12 enemy aircraft.
+    // Two objectives, no carriers in play. Alternate path: win the air war by shooting down 14 enemy aircraft.
     // If neither objective falls before the clock runs out, Rabaul has held (it was never taken) and the Axis wins.
     resourceTargets: ['convoy'], noIndustry: true,
     // 1943 rosters. Out: aircraft retired from the front by 1943 (F2A, F4F-3, TBD, SB2U, P-40B, A5M, Ki-27),
@@ -798,7 +874,7 @@ function log(s, msg, cls, o) {
   o = o || {};
   const c = s.combat;
   s.log.push(Object.assign({ t: s.turnNo, who: s.active, msg, cls: cls || '', ctx: context(s),
-    side: o.side || o.actor || (c ? c.att : s.active), raid: c ? s.raidNo : undefined, stage: c ? c.stage : s.stage }, o));
+    side: o.side || o.actor || (c ? c.att : s.active), raid: c ? s.raidNo : undefined, stage: c ? c.stage : s.stage, half: s.half && twoMissions(s) ? halfOf(s) : undefined }, o));
 }
 const RES = { industry: 'Industry', convoy: 'Convoy (shipping)', resources: 'Industry and Convoy' };
 /* Service record per aircraft (s.rec[uid]): every sortie it flew and how its war ended.
@@ -809,14 +885,17 @@ const curSortie = (s, uid) => { const r = s.rec && s.rec[uid]; const x = r && r.
 const dropsOn = (d, kind) => (kind === 'airbase' || kind === 'industry' ? d.bomb > 0 : kind === 'carrier' ? d.car > 0 : kind === 'convoy' ? d.conv > 0 : d.bomb + d.conv > 0);
 function setFate(s, uid, how, where, role) { const r = recOf(s, uid); if (!r.fate) r.fate = { t: s.turnNo, how, where, role }; }
 /* What an attack is called: Airbase Stage attacks are Attack Missions, Carrier Stage attacks are Carrier Strikes. */
-const opName = (stage) => (stage === 'carrier' ? 'Carrier Strike' : 'Attack Mission');
-const opArticle = (stage) => (stage === 'carrier' ? 'a Carrier Strike' : 'an Attack Mission');
+/* Wewak-style scenarios: two Attack Missions a day (morning, afternoon) and no Carrier Stage. */
+const twoMissions = (s) => { const sc = scenarioOf(s); return !!(sc && sc.twoMissions); };
+const halfOf = (s) => (s.combat && s.combat.half) || s.half || 'am';
+const opName = (stage, s) => (stage === 'carrier' ? 'Carrier Strike' : s && twoMissions(s) ? (halfOf(s) === 'pm' ? 'Afternoon Attack Mission' : 'Morning Attack Mission') : 'Attack Mission');
+const opArticle = (stage, s) => (stage === 'carrier' ? 'a Carrier Strike' : 'a' + (/^[AEIOU]/.test(opName(stage, s)) ? 'n ' : ' ') + opName(stage, s));
 /* Where in the game an event happened, so a report read later still makes sense. */
 function context(s) {
   const c = s.combat, turn = `Turn ${s.turnNo} (${SIDE[s.active]})`;
   if (c) {
     const t = RES[c.target.kind] || `${c.target.kind} ${nm(s, c.target.uid)}`;
-    return `${turn} · ${SIDE[c.att]} ${opName(c.stage)} on ${SIDE[c.def]} ${t}`;
+    return `${turn} · ${SIDE[c.att]} ${opName(c.stage, s)} on ${SIDE[c.def]} ${t}`;
   }
   return `${turn} · ${s.stage === 'mobilize' ? 'Mobilization' : s.stage === 'carrier' ? 'Carrier Stage' : 'Airbase Stage'}`;
 }
@@ -852,7 +931,8 @@ function newGame(opts) {
       fail(`Setup needs a ${CARD_DB[id] ? CARD_DB[id].name : id} that isn't in the ${SIDE[side]} deck.`);
     };
     const homeId = sc ? sc.sides[side].home : deck.home;
-    for (const id of sc ? sc.sides[side].inPlay : [deck.home]) facs(p, CARD_DB[id].kind).push({ uid: take(id), landed: [], war: [], hits: 0, home: id === homeId, fort: (sc && sc.fortify && sc.fortify[id]) || 0 });
+    for (const id of sc ? sc.sides[side].inPlay : [deck.home]) facs(p, CARD_DB[id].kind).push({ uid: take(id), landed: [], war: [], hits: 0, home: id === homeId, fort: (sc && sc.fortify && sc.fortify[id]) || 0,
+      secret: CARD_DB[id].abilities && CARD_DB[id].abilities.includes('secret') || undefined });
     if (mode === 'basic' || mode === 'campaign') p.hand.push(...BASIC[side].map(take));
     if (sc) {
       // Scenario cards start in hand, unless listed in specialInDeck: those are shuffled into the deck to be drawn.
@@ -915,7 +995,7 @@ function endMobilization(s) {
     log(s, `First turn: the ${SIDE[s.active]} player mobilizes only and cannot attack.`, 'minor');
     s.stage = 'carrier'; endStage(s); return;
   }
-  s.stage = 'airbase'; s.phase = 'attack';
+  s.stage = 'airbase'; s.phase = 'attack'; s.half = 'am';
 }
 
 /* ------------------------------------------------------------------ queries used by UI + engine */
@@ -938,6 +1018,7 @@ function canMobilize(s, uid) {
   if (s.options.singleMobilization && s.mobilized >= 1) return false;
   if (d.kind === 'airbase' || d.kind === 'carrier') return true;
   if (d.kind === 'war' && d.attach === 'ownBomber') return warTargets(s, uid).length > 0;
+  if (d.special === 'engineers') return warTargets(s, uid).length > 0;
   if (d.kind === 'war') return !d.reactive && (d.attach === 'resource' || p.airbases.length > 0);
   return false;
 }
@@ -954,6 +1035,7 @@ function warTargets(s, uid) {
   if (d.attach === 'resource') return ['industry', 'convoy'];
   if (d.attach === 'ownAirbase') return p.airbases.map((f) => f.uid);
   if (d.attach === 'ownBomber') { const pw = p.planeWar || {}; return p.hand.filter((u) => has(D(s, u), 'paraFragBomber') && !pw[u]); }
+  if (d.special === 'engineers') return p.discard.filter((u) => D(s, u).kind === 'airbase'); // destroyed airbases
   return [];
 }
 
@@ -973,7 +1055,7 @@ function attackTargets(s) {
   // A scenario objective may be off limits for the opening turns (objectiveFrom: first turn it can be attacked).
   const from = s.options.objectiveFrom != null ? s.options.objectiveFrom : (sc && sc.objectiveFrom) || 1;
   const objId = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[other(s.active)];
-  for (const f of opp.airbases) if (!(objId && s.cards[f.uid] === objId && s.turnNo < from)) t.push({ kind: 'airbase', uid: f.uid }); // a protected home can be raided; it just can't be destroyed
+  for (const f of opp.airbases) if (!(objId && s.cards[f.uid] === objId && s.turnNo < from) && !f.secret) t.push({ kind: 'airbase', uid: f.uid }); // a protected home can be raided; it just can't be destroyed
   // A carrier hidden by Rain Squall / Weather Front can't be found for the rest of that round (designer's ruling).
   for (const f of opp.carriers) if (usable(s, f)) t.push({ kind: 'carrier', uid: f.uid });
   return t;
@@ -992,7 +1074,7 @@ function planIntercept(s, uids) {
   const airOK = c.stage === 'airbase' || c.target.kind === 'airbase';
   const carOK = c.stage === 'carrier' || c.target.kind === 'carrier';
   const slots = { airbase: [], carrier: [] };
-  for (const kind of ['airbase', 'carrier']) for (const f of facs(p, kind)) if (usable(s, f)) for (let i = 0; i < free(s, f); i++) slots[kind].push(f.uid);
+  for (const kind of ['airbase', 'carrier']) for (const f of [...facs(p, kind)].sort((a, b) => !!a.secret - !!b.secret)) if (usable(s, f)) for (let i = 0; i < free(s, f); i++) slots[kind].push(f.uid);
   const out = {}, flex = [];
   for (const uid of uids) {
     const d = D(s, uid);
@@ -1061,6 +1143,7 @@ function choiceOptions(s) {
   if (pc.kind === 'discardOne') return pc.held;
   if (pc.kind === 'playWar' || pc.kind === 'keepTwo') return pc.options;
   if (pc.kind === 'land') return pc.planes;
+  if (pc.kind === 'lightAAA') return pc.options;
   return convoyOptions(s, pc.player);
 }
 
@@ -1167,12 +1250,14 @@ function apply(state, action, inPlace) {
 }
 
 /* Air superiority (scenario victory.kills): the first side to shoot down this many enemy aircraft wins. */
-const killCount = (s, side) => Object.values(((s.stats || {})[side] || {}).kills || {}).reduce((x, y) => x + y, 0);
+/* Air-war count: aircraft shot down, plus (where the scenario says) a share for each aircraft destroyed on the ground. */
+const killCount = (s, side) => { const st = (s.stats || {})[side] || {}, sc = scenarioOf(s), g = (sc && sc.victory && sc.victory.groundKill) || 0;
+  return Object.values(st.kills || {}).reduce((x, y) => x + y, 0) + (st.flak || 0) + g * (st.ground || 0); };
 function checkKillVictory(s) {
   const sc = scenarioOf(s), n = sc && sc.victory && sc.victory.kills;
   if (!n) return;
   for (const side of [s.active, other(s.active)]) if (killCount(s, side) >= n) {
-    endGame(s, `The ${SIDE[side]} side has shot down ${killCount(s, side)} enemy aircraft and won control of the air.`, side); return;
+    endGame(s, `The ${SIDE[side]} side has ${(scenarioOf(s) || {}).victory && scenarioOf(s).victory.groundKill ? 'destroyed' : 'shot down'} ${killCount(s, side)} enemy aircraft and won control of the air.`, side); return;
   }
 }
 /* Can this side still mount a raid with what it has? Counts aircraft in deck, hand and landed,
@@ -1218,7 +1303,17 @@ function apply0(state, action, inPlace) {
       if (s.phase !== 'mobilize') fail('Not the Mobilization Stage.');
       if (!canMobilize(s, A_.uid)) fail('That card cannot be mobilized now.');
       const p = s.players[actor], d = D(s, A_.uid);
-      if (d.kind === 'airbase' || d.kind === 'carrier') facs(p, d.kind).push({ uid: A_.uid, landed: [], war: [], hits: 0 });
+      if (d.special === 'engineers') {
+        const t = warTargets(s, A_.uid), b = A_.attach || (t.length === 1 ? t[0] : null);
+        if (!t.includes(b)) fail('Choose one of your destroyed airbases to rebuild.');
+        p.discard.splice(p.discard.indexOf(b), 1); p.airbases.push({ uid: b, landed: [], war: [], hits: 0 });
+        if (s.razed && s.razed[actor]) { const i = s.razed[actor].indexOf(s.cards[b]); if (i >= 0) s.razed[actor].splice(i, 1); }
+        p.hand.splice(p.hand.indexOf(A_.uid), 1); p.discard.push(A_.uid); (s.publicUsed = s.publicUsed || []).push(A_.uid);
+        s.mobilized++;
+        log(s, `The ${SIDE[actor]} player played ${d.name}: ${nm(s, b)} is rebuilt and back in action.`, 'mob', { actor, detail: d.text });
+        return s;
+      }
+      if (d.kind === 'airbase' || d.kind === 'carrier') facs(p, d.kind).push({ uid: A_.uid, landed: [], war: [], hits: 0, secret: has(d, 'secret') || undefined });
       else if (d.kind === 'war') {
         if (d.attach === 'resource') {
           if (!['industry', 'convoy'].includes(A_.attach)) fail('Choose Industry or Convoy.');
@@ -1274,7 +1369,7 @@ function apply0(state, action, inPlace) {
       const t = A_.target || {};
       if (!attackTargets(s).some((x) => x.kind === t.kind && x.uid === t.uid)) fail('Invalid target.');
       const slots = [];
-      for (const f of facs(p, kind)) if (usable(s, f)) for (let i = 0; i < free(s, f); i++) slots.push(f.uid);
+      for (const f of [...facs(p, kind)].sort((a, b) => !!a.secret - !!b.secret)) if (usable(s, f)) for (let i = 0; i < free(s, f); i++) slots.push(f.uid);
       for (const u of cards) p.hand.splice(p.hand.indexOf(u), 1);
       let boost = null;
       if (A_.special) {
@@ -1290,6 +1385,7 @@ function apply0(state, action, inPlace) {
         cards = [...cards].sort((a, b) => (D(s, b).bomb || 0) - (D(s, a).bomb || 0));
       }
       const mission = cards.map((u, i) => ({ uid: u, fac: slots[i], fromKind: kind, revealed: false, alive: true }));
+      revealSecret(s, p, mission.map((m) => m.fac));
       {
         const anyDrop = cards.some((u) => dropsOn(D(s, u), t.kind));
         for (const m of mission) { const d = D(s, m.uid);
@@ -1297,15 +1393,23 @@ function apply0(state, action, inPlace) {
             target: { kind: t.kind, uid: t.uid || null, side: other(actor) }, from: m.fac || null, claims: [] }); }
       }
       shuffle(s, mission);
-      s.combat = { att: actor, def: other(actor), stage: s.stage, target: { kind: t.kind, uid: t.uid }, mission, intercept: [], turn: 'def', eng: null, last: null, responder: null, history: [], boost };
+      s.combat = { att: actor, def: other(actor), stage: s.stage, half: twoMissions(s) ? s.half || 'am' : undefined, target: { kind: t.kind, uid: t.uid }, mission, intercept: [], turn: 'def', eng: null, last: null, responder: null, history: [], boost };
       if (boost) { p.hand.splice(p.hand.indexOf(boost.uid), 1); p.discard.push(boost.uid); (s.publicUsed = s.publicUsed || []).push(boost.uid); }
+      // Radar: the defender sees 2 of the incoming aircraft when its bases are attacked.
+      { const dp = s.players[other(actor)], rf = [...dp.airbases, ...dp.carriers].find((f) => f.war.some((w) => has(D(s, w), 'radar')));
+        if (rf && (t.kind === 'airbase' || t.kind === 'carrier')) {
+          const pick = shuffle(s, [...mission]).slice(0, 2);
+          for (const m of pick) { m.revealed = true; markSeen(s, m.uid); }
+          s.radarNote = `Radar at ${nm(s, rf.uid)} picked up ${pick.map((m) => nm(s, m.uid)).join(' and ')}.`;
+        } }
       const tName = RES[t.kind] || `${t.kind} ${nm(s, t.uid)}`;
       s.raidNo = (s.raidNo || 0) + 1;
       { const rs = raidStat(s, actor, t.kind); rs.n++; rs[kind] = (rs[kind] || 0) + 1; } // kind = launching stage
-      log(s, `The ${SIDE[actor]} player launched ${opArticle(kind)} of ${cards.length} aircraft from their ${kind === 'carrier' ? 'carriers' : 'airbases'} against the ${SIDE[other(actor)]} ${tName}.`, 'att', { actor, raid: s.raidNo, kind: 'raid',
-        short: `${SIDE[actor]} ${opName(kind)} on ${SIDE[other(actor)]} ${tName} with ${cards.length} aircraft${boost ? ` and ${nm(s, boost.uid)}` : ''}`,
+      log(s, `The ${SIDE[actor]} player launched ${opArticle(kind, s)} of ${cards.length} aircraft from their ${kind === 'carrier' ? 'carriers' : 'airbases'} against the ${SIDE[other(actor)]} ${tName}.`, 'att', { actor, raid: s.raidNo, kind: 'raid',
+        short: `${SIDE[actor]} ${opName(kind, s)} on ${SIDE[other(actor)]} ${tName} with ${cards.length} aircraft${boost ? ` and ${nm(s, boost.uid)}` : ''}`,
         detail: boost ? `${nm(s, boost.uid)} was played: ${boost.perAircraft ? `+1 per aircraft that reaches ${nm(s, t.uid)}, up to +${boost.amount}` : `+${boost.amount} to the attack on ${nm(s, t.uid)}`}.` : '' });
       s.phase = 'intercept';
+      if (s.radarNote) { log(s, s.radarNote, 'def', { actor: other(actor), side: other(actor), detail: 'Radar-spotted aircraft are scouted: they can be struck at −1 Defense.' }); delete s.radarNote; }
       void opp;
       // Surprise attack (Pearl Harbor): on turn 1 the defender is caught on the ground and cannot intercept.
       if (s.turnNo === 1 && s.options.surpriseAttack) {
@@ -1319,7 +1423,7 @@ function apply0(state, action, inPlace) {
       const c = s.combat, p = s.players[c.def];
       const cards = A_.cards || [];
       if (!cards.length) {
-        log(s, `The ${SIDE[c.def]} player did not intercept the ${SIDE[c.att]} ${opName(c.stage)}. It flies on to the target.`, '', { actor: c.def, kind: 'response', short: `${SIDE[c.def]} did not intercept` });
+        log(s, `The ${SIDE[c.def]} player did not intercept the ${SIDE[c.att]} ${opName(c.stage, s)}. It flies on to the target.`, '', { actor: c.def, kind: 'response', short: `${SIDE[c.def]} did not intercept` });
         goDamage(s); return s;
       }
       if (new Set(cards).size !== cards.length) fail('Duplicate card.');
@@ -1331,9 +1435,10 @@ function apply0(state, action, inPlace) {
       if (!plan) fail('Not enough available capacity for those fighters.');
       for (const u of cards) p.hand.splice(p.hand.indexOf(u), 1);
       c.intercept = cards.map((u) => ({ uid: u, fac: plan[u], fromKind: findFac(p, plan[u]).kind, revealed: false, alive: true }));
+      revealSecret(s, p, c.intercept.map((e) => e.fac));
       for (const e of c.intercept) recOf(s, e.uid).sorties.push({ t: s.turnNo, raid: s.raidNo, stage: c.stage, role: 'defend',
         target: { kind: c.target.kind, uid: c.target.uid || null, side: c.def }, from: e.fac, claims: [] });
-      log(s, `The ${SIDE[c.def]} player scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'} to intercept the ${SIDE[c.att]} ${opName(c.stage)}.`, 'def', { actor: c.def, kind: 'response', short: `${SIDE[c.def]} scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'}` });
+      log(s, `The ${SIDE[c.def]} player scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'} to intercept the ${SIDE[c.att]} ${opName(c.stage, s)}.`, 'def', { actor: c.def, kind: 'response', short: `${SIDE[c.def]} scrambled ${cards.length} fighter${cards.length === 1 ? '' : 's'}` });
       c.turn = 'def'; s.phase = 'combat';
       normalize(s);
       return s;
@@ -1362,7 +1467,7 @@ function apply0(state, action, inPlace) {
       const c = s.combat;
       p.hand.splice(p.hand.indexOf(A_.uid), 1); p.discard.push(A_.uid); (s.publicUsed = s.publicUsed || []).push(A_.uid);
       for (const m of c.mission) { m.revealed = true; markSeen(s, m.uid); }
-      log(s, `The ${SIDE[actor]} player played ${nm(s, A_.uid)}. The whole ${SIDE[c.att]} ${opName(c.stage)} was revealed: ${c.mission.map((m) => nm(s, m.uid)).join(', ')}.`, 'def',
+      log(s, `The ${SIDE[actor]} player played ${nm(s, A_.uid)}. The whole ${SIDE[c.att]} ${opName(c.stage, s)} was revealed: ${c.mission.map((m) => nm(s, m.uid)).join(', ')}.`, 'def',
         { actor, detail: 'Revealed aircraft can be struck at −1 Defense.' });
       return s;
     }
@@ -1373,7 +1478,7 @@ function apply0(state, action, inPlace) {
       p.hand.splice(p.hand.indexOf(A_.uid), 1); p.discard.push(A_.uid); (s.publicUsed = s.publicUsed || []).push(A_.uid);
       const f = findFac(p, c.target.uid).f;
       f.squall = s.turnNo + 2;
-      log(s, `The ${SIDE[c.def]} player played ${nm(s, A_.uid)}. ${nm(s, f.uid)} vanished into the weather, the ${opName(c.stage)} found nothing, and its aircraft landed.`, 'def',
+      log(s, `The ${SIDE[c.def]} player played ${nm(s, A_.uid)}. ${nm(s, f.uid)} vanished into the weather, the ${opName(c.stage, s)} found nothing, and its aircraft landed.`, 'def',
         { actor: c.def, kind: 'response', short: `${SIDE[c.def]} hid ${nm(s, f.uid)} with ${nm(s, A_.uid)}; no damage`, detail: `${nm(s, f.uid)} cannot launch or intercept for one full round.` });
       for (const m of c.mission) { m.revealed = true; markSeen(s, m.uid); const so = curSortie(s, m.uid); if (so) so.squall = true; }
       s.after = 'land'; flush(s);
@@ -1386,6 +1491,7 @@ function apply0(state, action, inPlace) {
       const own = mine.find((e) => e.uid === A_.own && e.alive);
       if (!own) fail('Choose one of your aircraft in this battle.');
       if (own.spent) fail(`${nm(s, own.uid)} has already fought this combat.`);
+      if (c.mustGo && isDef && own.uid !== c.mustGo) fail(`${nm(s, c.mustGo)} must attack again first.`);
       if (D(s, own.uid).type !== 'fighter' || D(s, own.uid).a2a < 1) fail(`${nm(s, own.uid)} is not a fighter and can't start a fight.`);
       let tgt;
       if (A_.mode === 'intercept') {
@@ -1397,6 +1503,7 @@ function apply0(state, action, inPlace) {
         if (!tgt || !strikeable(s, tgt)) fail('That card cannot be struck.');
       } else fail('Unknown engagement.');
       const p = s.players[side];
+      c.mustGo = null;
       // First strike only counts for an aircraft that starts the fight unseen (not already scouted).
       c.eng = { mode: A_.mode, init: { side, uid: own.uid }, tgt: { side: other(side), uid: tgt.uid }, battles: {}, fsOK: !own.revealed };
       if (A_.battle) {
@@ -1456,7 +1563,8 @@ function apply0(state, action, inPlace) {
     }
     case 'endCombat': {
       if (s.phase !== 'combat' || actor !== s.combat.def) fail('Not your decision.');
-      log(s, `The ${SIDE[actor]} player broke off. The rest of the ${opName(s.combat.stage)} gets through.`, '', { actor });
+      if (s.combat.mustGo) fail(`${nm(s, s.combat.mustGo)} must attack again first.`);
+      log(s, `The ${SIDE[actor]} player broke off. The rest of the ${opName(s.combat.stage, s)} gets through.`, '', { actor });
       goDamage(s);
       return s;
     }
@@ -1505,6 +1613,17 @@ function apply0(state, action, inPlace) {
           else findFac(p, u[0]).f.war.push(pc.card);
           if (pc.cover) (s.aaaCover = s.aaaCover || {})[pc.card] = pc.cover; // older saves
           log(s, `The ${SIDE[pc.player]} player played ${nm(s, pc.card)} on ${u[0] === 'industry' ? 'their Industry' : u[0] === 'convoy' ? 'their Convoy' : nm(s, u[0])}${pc.cover ? `, covering their ${pc.cover === 'industry' ? 'Industry' : 'Convoy'}` : ''}.`, pc.player === s.active ? 'att' : 'def', { actor: pc.player, detail: D(s, pc.card).text });
+        }
+      } else if (pc.kind === 'lightAAA') {
+        if (u.length) {
+          if (!pc.card) fail('You have no Light AAA in hand.');
+          const c = s.combat, m = c.mission.find((x) => x.uid === u[0] && x.alive);
+          p.hand.splice(p.hand.indexOf(pc.card), 1); p.discard.push(pc.card); (s.publicUsed = s.publicUsed || []).push(pc.card);
+          m.alive = false; s.players[c.att].discard.push(m.uid); (s.downed = s.downed || []).push(m.uid);
+          stats(s, c.att).lost.push(m.uid); const st = stats(s, c.def); st.flak = (st.flak || 0) + 1;
+          { const so = curSortie(s, m.uid); if (so) so.shot = true; } setFate(s, m.uid, 'shot', Object.assign({ side: c.def }, c.target), 'attack');
+          log(s, `The ${SIDE[pc.player]} player played Light AAA over ${nm(s, c.target.uid)}: ${nm(s, m.uid)} was shot down before it could attack.`, 'fight',
+            { actor: pc.player, side: pc.player, lost: [{ side: c.att, name: nm(s, m.uid) }] });
         }
       } else if (pc.kind === 'discardOne') {
         for (const x of pc.held) (u.includes(x) ? p.discard : p.hand).push(x);
@@ -1629,13 +1748,20 @@ function resolveEngagement(s) {
   if (killT) lost.push({ side: e.tgt.side, name: nm(s, e.tgt.uid) });
   // Full details of the exchange, for the fight popup: who fought whom, effective numbers, modifiers, result.
   const dx = (x, st, dead) => ({ side: x.side, uid: x.uid, a2a: st.a2a, def: st.def, icpt: st.icpt || 0, ace: !!st.ace, fs: !!st.fs, struck: !!st.struck, dead, battle: e.battles[x.side] || null });
-  log(s, msg, 'fight', { side: e.init.side, lost, duel: { mode: e.mode, stage: c.stage, target: Object.assign({ side: c.def }, c.target), raid: s.raidNo, init: dx(e.init, I, killI), tgt: Object.assign(dx(e.tgt, T, killT), e.lrf ? { lrfFor: e.lrf } : {}) } });
+  log(s, msg, 'fight', { side: e.init.side, lost, duel: { mode: e.mode, stage: c.stage, half: c.half, target: Object.assign({ side: c.def }, c.target), raid: s.raidNo, init: dx(e.init, I, killI), tgt: Object.assign(dx(e.tgt, T, killT), e.lrf ? { lrfFor: e.lrf } : {}) } });
   // Bomber killer (204th Kokutai): after shooting down a bomber it may fight once more this combat.
   for (const [who, foe, foeDead, selfDead] of [[e.init, e.tgt, killT, killI], [e.tgt, e.init, killI, killT]]) {
     const me = entry(who);
     if (foeDead && !selfDead && has(D(s, who.uid), 'bomberKiller') && D(s, foe.uid).type === 'bomber' && !me.again) {
       me.again = true; me.spent = false;
       log(s, `${nm(s, who.uid)} shot down a bomber and can fight once more in this combat.`, 'fight', { side: who.side });
+    }
+    // Press on (68th Sentai): intercepting a mission with bombers, it shoots down an escorting fighter and must attack again at once.
+    if (foeDead && !selfDead && has(D(s, who.uid), 'pressOn') && who.side === c.def && D(s, foe.uid).type === 'fighter'
+        && c.mission.some((m) => D(s, m.uid).type === 'bomber') && !me.again
+        && (c.mission.some((m) => m.alive && !m.revealed && !m.safe) || c.mission.some((m) => strikeable(s, m)))) {
+      me.again = true; me.spent = false; c.mustGo = who.uid;
+      log(s, `${nm(s, who.uid)} shot down an escort and presses on: it attacks again at once.`, 'fight', { side: who.side });
     }
   }
   // An Ace's side draws 1 card (options.aceDraw, on unless set to false).
@@ -1650,6 +1776,7 @@ function resolveEngagement(s) {
   if (e.init.side === c.def && !killI) c.turn = 'att';
   else if (killI !== killT) { const loser = killI ? e.init.side : e.tgt.side; c.turn = loser === c.def ? 'def' : 'att'; }
   else c.turn = 'def';
+  if (c.mustGo) c.turn = 'def';
   normalize(s);
 }
 
@@ -1658,6 +1785,15 @@ function goDamage(s) {
   const arriving = c.mission.filter((m) => m.alive);
   for (const m of arriving) { m.revealed = true; markSeen(s, m.uid); }
   if (!arriving.length) { log(s, 'Every attacker was shot down. Nothing reached the target.', 'dmg'); s.after = 'land'; flush(s); return; }
+  // Light AAA: the defender may shoot down one fighter or fighter-bomber over an airbase before the damage counts.
+  if (c.target.kind === 'airbase' && !c.aaaAsked) {
+    c.aaaAsked = true;
+    const fighters = arriving.filter((m) => D(s, m.uid).type === 'fighter').map((m) => m.uid);
+    const offer = fighters.length && specialOffer(s, c.def, 'lightAAA');
+    if (offer) { s.pending.push({ player: c.def, kind: 'lightAAA', card: offer.card, cardName: 'Light AAA', options: fighters, count: 1, optional: true,
+      reason: 'The attack reached your airbase. Play Light AAA to shoot down one fighter or fighter-bomber over the target before the damage counts?' });
+      s.after = 'damage'; flush(s); return; }
+  }
   // Public: the cards that reached the target are turned face up to count the damage, as at the table.
   // An aircraft scores a mission (a bomb marker) only if it actually drops something on this target:
   // a P-38 on a convoy attack (CNV 0) is flying escort, not bombing.
@@ -1677,7 +1813,8 @@ function goDamage(s) {
   c.strikePlanes = arriving.map((m) => { const d = D(s, m.uid), tags = [];
     let v = 0;
     if (tk === 'airbase') { const from = findFac(s.players[c.att], m.fac), ak = c.stage === 'carrier' && from && has(D(s, from.f.uid), 'akagi');
-      v = (d.bomb || 0) * (ak ? 2 : 1); if (ak && d.bomb) tags.push('Akagi ×2'); if (armedWith(s, m.uid)) { v += 4; tags.push('Para-Frags +4'); } }
+      v = (d.bomb || 0) * (ak ? 2 : 1); if (ak && d.bomb) tags.push('Akagi ×2'); if (armedWith(s, m.uid)) { v += 4; tags.push('Para-Frags +4'); }
+      if (has(d, 'strafe')) tags.push('Strafing'); }
     else if (stat) { v = (d[stat[0]] || 0) * mult; if (mult > 1 && v) tags.push('×2'); }
     else v = Math.max(d.bomb || 0, (d.conv || 0) * mult);
     return { uid: m.uid, stat: stat ? stat[1] : 'BMB/CNV', v, tags, escort: !v }; });
@@ -1705,6 +1842,16 @@ function goDamage(s) {
 /* A reactive war card (Heavy AAA, Para-Frags) that this side owns in this game and hasn't put in play yet.
    Whether that's true is public knowledge (the decks are known), so prompting on it reveals nothing.
    Returns { card } with card = the uid in hand, or null if it's somewhere else (deck or discard). */
+/* A battle card with this special that the side could still hold (public knowledge: decks are known). Against the
+   computer only when it's really in hand; in pass and play also when it might be, so the prompt gives nothing away. */
+function specialOffer(s, side, special) {
+  const used = s.publicUsed || [], p = s.players[side];
+  const owned = Object.keys(s.cards).filter((u) => CARD_DB[s.cards[u]].side === side && D(s, u).special === special && !used.includes(u));
+  if (!owned.length) return null;
+  const card = p.hand.find((u) => owned.includes(u)) || null;
+  if (openInfo(s) && !card) return null;
+  return { card };
+}
 function reactiveOffer(s, side, ability) {
   const p = s.players[side];
   const inPlay = new Set([...p.resWar.industry, ...p.resWar.convoy, ...p.airbases.flatMap((f) => f.war), ...p.carriers.flatMap((f) => f.war)]);
@@ -1746,6 +1893,7 @@ function facilityAttack(s, arriving) {
       if (akagi) notes.push(`Akagi doubles ${d.name}`);
     }
     for (const m of arriving) if (armedWith(s, m.uid)) { dmg += 4; notes.push(`Para-Frags +4 (${nm(s, m.uid)})`); }
+    { const pb = pmBonus(s, f, arriving); if (pb.n) { dmg += pb.n; notes.push(pb.note); } }
     if (c.boost) { const b = c.boost.perAircraft ? Math.min(c.boost.amount, arriving.length) : c.boost.amount; dmg += b; notes.push(`${nm(s, c.boost.uid)} +${b}${c.boost.perAircraft ? ` (${arriving.length} aircraft reached the target)` : ''}`); }
     const guns = 2 * aaaOnBase(s, f);
     if (guns && dmg) { const cut = Math.min(guns, dmg); dmg -= cut; notes.push(`Heavy AAA −${cut}`); }
@@ -1756,25 +1904,28 @@ function facilityAttack(s, arriving) {
   }
   let destroyed = false;
   raidStat(s, c.att, kind).dmg += dmg;
+  // Strafing (348th Fighter Group): everything parked on the airbase is destroyed first, whether or not it falls.
+  const strafer = kind === 'airbase' && arriving.find((m) => has(D(s, m.uid), 'strafe'));
+  if (strafer) strafeField(s, c.def, f, strafer.uid);
   // Scenario rule: damage to an airbase adds up over the attacker's turn (Airbase Stage + Carrier Stage).
   const prior = turnDamage(s, f), raidDmg = dmg;
   if (stacks(s, f)) { dmg += prior; f.dmgKey = s.turnNo; f.dmgTurn = dmg; }
   const forDmg = prior ? `for ${raidDmg} damage (${dmg} in total this turn)` : `for ${dmg} damage`;
   if (isHomeProtected(s, f)) {
     const hit = dmg >= facDef(s, f);
-    log(s, `The ${opName(c.stage)} hit the ${SIDE[c.def]} home airbase ${fd.name} ${forDmg} against a Defense of ${facDef(s, f)}. ${hit ? 'It cannot be destroyed, but the attack got through.' : 'It held.'}`, 'dmg',
+    log(s, `The ${opName(c.stage, s)} hit the ${SIDE[c.def]} home airbase ${fd.name} ${forDmg} against a Defense of ${facDef(s, f)}. ${hit ? 'It cannot be destroyed, but the attack got through.' : 'It held.'}`, 'dmg',
       { detail: notes.length ? notes.join(', ') + '.' : '', strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: facDef(s, f), notes, stacks: stacks(s, f), home: true,
         res: hit ? 'wiped' : 'held' }) });
     if (hit) { f.dmgTurn = 0; wipeFacility(s, c.def, f); }
     return;
   }
   if (has(fd, 'twoHits')) {
-    if (f.hits === 0) { if (dmg >= fd.def) { f.hits = 1; f.dmgTurn = 0; log(s, `The ${opName(c.stage)} hit ${fd.name} ${forDmg}. She is crippled but still afloat.`, 'dmg', { detail: 'A later attack of 4 or more will sink her.',
+    if (f.hits === 0) { if (dmg >= fd.def) { f.hits = 1; f.dmgTurn = 0; log(s, `The ${opName(c.stage, s)} hit ${fd.name} ${forDmg}. She is crippled but still afloat.`, 'dmg', { detail: 'A later attack of 4 or more will sink her.',
       strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: fd.def, notes, stacks: stacks(s, f), res: 'crippled' }) }); return; } }
     else destroyed = dmg >= 4;
   } else destroyed = dmg >= facDef(s, f);
   const need = has(fd, 'twoHits') && f.hits ? 4 : facDef(s, f);
-  log(s, `The ${opName(c.stage)} hit the ${SIDE[c.def]} ${kind} ${fd.name} ${forDmg} against a Defense of ${need}. ${destroyed ? (kind === 'carrier' ? 'She was sunk!' : 'The airbase was destroyed!') : 'It held.'}`, 'dmg',
+  log(s, `The ${opName(c.stage, s)} hit the ${SIDE[c.def]} ${kind} ${fd.name} ${forDmg} against a Defense of ${need}. ${destroyed ? (kind === 'carrier' ? 'She was sunk!' : 'The airbase was destroyed!') : 'It held.'}`, 'dmg',
     { detail: notes.length ? notes.join(', ') + '.' : '', strike: strikeInfo(s, { kind, uid: f.uid, raid: raidDmg, prior, total: dmg, def: need, notes, stacks: stacks(s, f),
       res: destroyed ? (kind === 'carrier' ? 'sunk' : 'destroyed') : 'held' }) });
   if (destroyed) {
@@ -1785,10 +1936,24 @@ function facilityAttack(s, arriving) {
   }
 }
 
+/* Afternoon Attack Mission bonus on an airbase (scenario pmBonus): 'double' bombs, 'landed' (+1 per aircraft parked there),
+   'each' (+1 per aircraft over the target). */
+function pmBonus(s, f, arriving) {
+  const sc = scenarioOf(s), c = s.combat, kind = (s.options.pmBonus || (sc && sc.pmBonus));
+  if (!kind || !c || c.half !== 'pm') return { n: 0 };
+  if (kind === 'double') { const n = arriving.reduce((x, m) => x + (D(s, m.uid).bomb || 0), 0); return { n, note: `Afternoon: bombs doubled +${n}` }; }
+  if (kind === 'landed') { const n = f.landed.length; return { n, note: `Afternoon: ${n} aircraft caught refuelling +${n}` }; }
+  if (kind === 'each') { const n = arriving.length; return { n, note: `Afternoon follow-up +${n}` }; }
+  return { n: 0 };
+}
+/* A secret airfield is found once aircraft take off from it. */
+function revealSecret(s, p, facUids) {
+  for (const f of p.airbases) if (f.secret && facUids.includes(f.uid)) { f.secret = false; log(s, `${nm(s, f.uid)} is no longer secret: aircraft were seen taking off from it.`, 'mob', { side: D(s, f.uid).side }); }
+}
 /* Summary of an attack for the bombing popup: the formation over the target and what it did. */
 function strikeInfo(s, o) {
   const c = s.combat;
-  return Object.assign({ stage: c.stage, att: c.att, side: c.def, planes: c.strikePlanes || [], raidNo: s.raidNo }, o);
+  return Object.assign({ stage: c.stage, half: c.half, att: c.att, side: c.def, planes: c.strikePlanes || [], raidNo: s.raidNo }, o);
 }
 function destroyFacility(s, side, f, kind) {
   const p = s.players[side], list = facs(p, kind);
@@ -1808,18 +1973,41 @@ function destroyFacility(s, side, f, kind) {
       endGame(s, `${CARD_DB[obj].name} has fallen. The ${SIDE[other(side)]} objective is taken.`, other(side));
   }
   p.discard.push(f.uid, ...f.war);
+  // Dispersal: the aircraft parked there scatter to other strips and survive (back to hand).
+  if (f.landed.length && f.war.some((w) => has(D(s, w), 'dispersal'))) {
+    p.hand.push(...f.landed);
+    log(s, `Dispersal: ${f.landed.length} aircraft at ${nm(s, f.uid)} escaped to other strips.`, 'dmg', { side });
+    f.landed = [];
+  }
+  // Wewak: a scenario can need several of the enemy's bases destroyed.
+  { const sc = scenarioOf(s), db = sc && sc.victory && sc.victory.destroyBases && sc.victory.destroyBases[side];
+    if (db && db.list.includes(s.cards[f.uid])) { s.razed = s.razed || {}; (s.razed[side] = s.razed[side] || []).push(s.cards[f.uid]);
+      if (s.razed[side].length >= db.n && s.phase !== 'gameover') endGame(s, `${db.n} of the ${SIDE[side]} airfields are destroyed. The ${SIDE[other(side)]} objective is achieved.`, other(side)); } }
   // House rule (replaces the addendum's "lose 1, the rest return to hand"): everything landed there is lost.
   if (f.landed.length) {
+    stats(s, other(side)).ground = (stats(s, other(side)).ground || 0) + f.landed.length;
     p.discard.push(...f.landed); (s.downed = s.downed || []).push(...f.landed);
     for (const u of f.landed) setFate(s, u, 'ground', { kind, uid: f.uid, side });
     log(s, `Lost with ${nm(s, f.uid)}: ${f.landed.map((u) => nm(s, u)).join(', ')}.`, 'dmg', { lost: f.landed.map((u) => ({ side, name: nm(s, u) })) });
   }
 }
 
+function strafeField(s, side, f, by) {
+  const p = s.players[side], gone = f.landed.splice(0);
+  if (!gone.length) return log(s, `${nm(s, by)} strafed ${nm(s, f.uid)}, but no aircraft were parked there.`, 'dmg', { detail: 'Strafing' });
+  stats(s, side).lost.push(...gone);
+  stats(s, other(side)).ground = (stats(s, other(side)).ground || 0) + gone.length;
+  p.discard.push(...gone); (s.downed = s.downed || []).push(...gone);
+  for (const u of gone) setFate(s, u, 'ground', { kind: 'airbase', uid: f.uid, side });
+  log(s, `${nm(s, by)} strafed ${nm(s, f.uid)} and destroyed every aircraft parked there: ${gone.map((u) => nm(s, u)).join(', ')}.`, 'dmg',
+    { lost: gone.map((u) => ({ side, name: nm(s, u) })), detail: 'Strafing: aircraft on the ground count ½ toward the air war.' });
+}
+
 /* A hit on an indestructible home base that would have destroyed it wipes out what is on it instead. */
 function wipeFacility(s, side, f) {
   const p = s.players[side], gone = [...f.landed, ...f.war];
   stats(s, side).lost.push(...f.landed);
+  stats(s, other(side)).ground = (stats(s, other(side)).ground || 0) + f.landed.length;
   for (const u of f.landed) setFate(s, u, 'ground', { kind: p.carriers.includes(f) ? 'carrier' : 'airbase', uid: f.uid, side });
   if (!gone.length) return log(s, `${nm(s, f.uid)} cannot be destroyed, and nothing was on it.`, 'dmg');
   p.discard.push(...gone); (s.downed = s.downed || []).push(...f.landed);
@@ -1850,8 +2038,9 @@ function damageConvoy(s, side, n) {
     if (fx) {
       // Scenario effects of a lost convoy, e.g. Port Moresby losing supplies, or the invasion transports being hit.
       if (fx.fortDelta) {
-        const f = facs(p, 'airbase').find((x) => s.cards[x.uid] === fx.base);
-        if (f) { f.fort = (f.fort || 0) + fx.fortDelta; log(s, `${fx.text} ${nm(s, f.uid)} is now Defense ${facDef(s, f)}.`, 'dmg'); }
+        const fs = facs(p, 'airbase').filter((x) => (fx.bases || [fx.base]).includes(s.cards[x.uid]));
+        for (const f of fs) f.fort = (f.fort || 0) + fx.fortDelta;
+        if (fs.length) log(s, `${fx.text} ${fs.map((f) => `${nm(s, f.uid)} is now Defense ${facDef(s, f)}`).join(', ')}.`, 'dmg');
       }
       if (fx.clock) { s.clockAdjust = (s.clockAdjust || 0) + fx.clock; log(s, `${fx.text} The battle now ends after turn ${clockLimit(s)}.`, 'dmg'); }
     }
@@ -1875,6 +2064,7 @@ function flush(s) {
   if (a === 'land') land(s);
   else if (a === 'endRaid') endRaid(s);
   else if (a === 'mobilize') enterMobilize(s);
+  else if (a === 'damage') goDamage(s);
   else if (a === 'facility') { facilityAttack(s, s.combat.mission.filter((m) => m.alive)); s.after = 'land'; flush(s); }
   else if (a === 'resources') {
     const c = s.combat, r = resourcePreview(s, c.split);
@@ -1953,7 +2143,8 @@ function land(s) {
 }
 /* Public landing report: how many aircraft went to each base (never which ones), and how many had no room. */
 function landingReport(s, side, where, back) {
-  const parts = Object.entries(where).map(([u, n]) => `${n} at ${nm(s, u)}`);
+  const sec = (u) => { const ff = findFac(s.players[side], u); return ff && ff.f.secret; };
+  const parts = Object.entries(where).map(([u, n]) => `${n} at ${sec(u) ? 'an undisclosed airfield' : nm(s, u)}`);
   const total = Object.values(where).reduce((a, b) => a + b, 0);
   if (!total && !back) return;
   let msg = `The ${SIDE[side]} player landed ${total} aircraft${parts.length ? ': ' + parts.join(', ') : ''}.`;
@@ -1969,7 +2160,15 @@ function endRaid(s) {
 }
 
 function endStage(s) {
-  if (s.stage === 'airbase') {
+  if (s.stage === 'airbase' && twoMissions(s) && s.half !== 'pm') {
+    // The afternoon: a second Attack Mission with aircraft that haven't flown today (morning planes are landed).
+    s.half = 'pm';
+    const p = s.players[s.active];
+    if (availCap(s, p, 'airbase') > 0 && p.hand.some((u) => launchEligible(s, u))) { s.phase = 'attack'; return; }
+    log(s, `${SIDE[s.active]} has no Afternoon Attack Mission available.`, 'minor');
+  }
+  if (s.stage === 'airbase' && (scenarioOf(s) || {}).noCarriers) s.stage = 'carrier'; // no Carrier Stage in this scenario
+  else if (s.stage === 'airbase') {
     s.stage = 'carrier';
     const p = s.players[s.active];
     const any = p.carriers.length && availCap(s, p, 'carrier') > 0 && p.hand.some((u) => launchEligible(s, u));
@@ -1988,7 +2187,7 @@ function endStage(s) {
       endGame(s, sc.timeoutText || `Turn ${clockLimit(s)} is over.`, sc.timeoutWinner); return;
     }
   }
-  s.active = other(s.active); s.turnNo++; s.stage = 'mobilize'; s.phase = 'mobilize'; s.mobilized = 0;
+  s.active = other(s.active); s.turnNo++; s.stage = 'mobilize'; s.phase = 'mobilize'; s.mobilized = 0; s.half = 'am';
   beginTurn(s, false);
   if (s.pending.length) { s.phase = 'choice'; s.after = 'mobilize'; }
   else enterMobilize(s);
@@ -2010,7 +2209,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -2177,6 +2376,11 @@ function mobilize(s, side, prof) {
     .sort((a, b) => order(b) - order(a))[0];
   if (!pick) return { type: 'endMobilization' };
   const d = D(s, pick);
+  if (d.special === 'engineers') {
+    // Rebuild the field that matters most: one the enemy needs for victory, then the biggest.
+    const t = E.warTargets(s, pick), goal = (u) => (baseGoal(s, side, u) ? 10 : 0) + (D(s, u).cap || 0);
+    return { type: 'mobilize', uid: pick, attach: [...t].sort((a, b) => goal(b) - goal(a))[0] };
+  }
   if (d.kind === 'war') {
     const t = E.warTargets(s, pick);
     const best = d.attach === 'ownBomber' ? t.slice().sort((a, b) => D(s, b).bomb - D(s, a).bomb || D(s, b).def - D(s, a).def)[0]
@@ -2192,6 +2396,13 @@ function mobilize(s, side, prof) {
   return { type: 'mobilize', uid: pick };
 }
 
+/* Scenarios that need several enemy bases destroyed (Wewak): is this base one of them, and would it be the last needed? */
+function baseGoal(s, side, uid) {
+  const sc = E.scenarioOf(s), db = sc && sc.victory && sc.victory.destroyBases && sc.victory.destroyBases[side];
+  if (!db || !db.list.includes(s.cards[uid])) return null;
+  const done = ((s.razed || {})[side] || []).length;
+  return { last: done >= db.n - 1, left: db.n - done };
+}
 /* ------------------------------------------------------------------ attack planning */
 /* Last stand: one more lost carrier loses the game, and the enemy has shown a carrier strike (public info:
    seen carrier bombers not shot down, x2 from carriers, up to its carrier capacity) big enough to finish
@@ -2221,7 +2432,10 @@ function allIn(s, side, prof) {
   const early = prof && prof.waiting && s.players[side].convoy >= 8 ? 2 : 1;
   if (!clock || !sc || sc.timeoutWinner === side || s.turnNo < clock - early) return null;
   const objId = sc.victory && sc.victory.holdBase && sc.victory.holdBase[E.other(side)];
-  const t = objId && E.attackTargets(s).find((x) => x.kind === 'airbase' && s.cards[x.uid] === objId);
+  let t = objId && E.attackTargets(s).find((x) => x.kind === 'airbase' && s.cards[x.uid] === objId);
+  if (!t) { const op = s.players[E.other(side)];
+    t = E.attackTargets(s).filter((x) => x.kind === 'airbase' && baseGoal(s, E.other(side), x.uid))
+      .sort((a, b) => E.damageNeeded(s, E.findFac(op, a.uid).f) - E.damageNeeded(s, E.findFac(op, b.uid).f))[0]; }
   if (!t) return null;
   const p = s.players[side], cap = E.availCap(s, p, E.launchKind(s));
   let elig = p.hand.filter((u) => E.launchEligible(s, u));
@@ -2239,7 +2453,12 @@ function allIn(s, side, prof) {
 }
 function planRaid(s, side, prof) {
   const p = s.players[side], opp = s.players[E.other(side)];
-  const kind = E.launchKind(s), cap = E.availCap(s, p, kind);
+  const kind = E.launchKind(s), fullCap = E.availCap(s, p, kind);
+  // Two Attack Missions a day: the morning raid leaves room for an afternoon one (morning planes land in those slots),
+  // which can then catch the defenders' fighters on the ground. The clock's last turn holds nothing back.
+  const lastDay = E.clockLimit(s) && s.turnNo >= E.clockLimit(s) - 1;
+  // Self-play: holding back made the computer's attacks weaker (Axis 52 -> 62% at half), so by default it doesn't (amShare 1).
+  const cap = E.twoMissions(s) && E.halfOf(s) !== 'pm' && !lastDay ? Math.max(1, Math.ceil(fullCap * (prof.amShare ?? 1))) : fullCap;
   const elig = p.hand.filter((u) => E.launchEligible(s, u));
   if (!cap || !elig.length) return null;
   const mult = s.stage === 'carrier' ? 2 : 1;
@@ -2317,11 +2536,22 @@ function planRaid(s, side, prof) {
       // Para-Frags: +4 for each armed bomber that gets through to an airbase.
       const pfN = t.kind === 'airbase' ? cards.filter((u) => E.armedWith(s, u)).length : 0;
       if (pfN) o.delivered += 4 * pfN * Math.max(0, 1 - o.lost / cards.length);
+      // Strafing (348th): every aircraft parked on the field is destroyed if the strafer gets through.
+      const stN = t.kind === 'airbase' ? cards.filter((u) => E.has(D(s, u), 'strafe')).length : 0;
+      const strafeVal = stN && f.landed.length ? f.landed.length * 4 * Math.max(0, 1 - o.lost / cards.length) : 0;
+      // Afternoon bonus (two-mission scenarios), as the engine will count it.
+      if (t.kind === 'airbase' && E.twoMissions(s) && E.halfOf(s) === 'pm') {
+        const pk = s.options.pmBonus || (sc && sc.pmBonus), surv = Math.max(0, 1 - o.lost / cards.length);
+        if (pk === 'double') o.delivered += cards.reduce((x, u) => x + (D(s, u).bomb || 0), 0) * surv;
+        else if (pk === 'landed') o.delivered += f.landed.length;
+        else if (pk === 'each') o.delivered += cards.length * surv;
+      }
       // Taking the enemy's objective base, or sinking the carrier that completes the carrier victory, wins outright.
       const oppSide = E.other(side), sinkN = sc && sc.victory && sc.victory.sinkCarriers;
+      const goal = t.kind === 'airbase' ? baseGoal(s, oppSide, t.uid) : null;
       const wins = !safeHome && ((t.kind === 'airbase' && sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[oppSide] === s.cards[t.uid])
-        || (t.kind === 'carrier' && sinkN && ((s.sunk || {})[oppSide] || 0) >= sinkN - 1));
-      const kill = wins ? WIN_VALUE : safeHome ? 0 : (t.kind === 'carrier' ? (prof.carrierKill || 14) : 10);
+        || (goal && goal.last) || (t.kind === 'carrier' && sinkN && ((s.sunk || {})[oppSide] || 0) >= sinkN - 1));
+      const kill = wins ? WIN_VALUE : safeHome ? 0 : goal ? 30 / goal.left : (t.kind === 'carrier' ? (prof.carrierKill || 14) : 10);
       // Operation MO: +1 per aircraft that gets through (up to +4), or a flat bonus.
       const moD = moCard && t.kind === 'airbase' ? D(s, moCard) : null;
       const moBonus = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, Math.max(0, cards.length - Math.round(o.lost))) : (moD.boost || 4)) : 0;
@@ -2341,10 +2571,12 @@ function planRaid(s, side, prof) {
       // Our last turn on the clock: a winning raid that only works if it slips past the fighters is still the best shot.
       else if (wins && (lastChance || E.turnDamage(s, f) > 0 || (prof.winGamble != null && (o.delivered + moBonus) / need >= prof.winGamble)) && raw + (moD ? Math.min(moD.boost || 4, cards.length) : 0) >= need)
         options.push({ target: t, cards, lost: o.lost, value: kill * Math.max(0.2, (o.delivered + moBonus) / need), mo: !!moD, stand: true });
-      else if (s.stage === 'airbase' && t.kind === 'airbase' && !safeHome && E.stacks(s, f)) {
+      else if (strafeVal >= 6) options.push({ target: t, cards, lost: o.lost, value: strafeVal - o.lost * lossW, sure: o.lost <= (prof.sureLoss ?? 1.5) });
+      else if (s.stage === 'airbase' && t.kind === 'airbase' && !safeHome && E.stacks(s, f) && (!E.twoMissions(s) || E.halfOf(s) !== 'pm')) {
         // Damage adds up over the turn: soften the base now if the Carrier Stage strike (plus MO) can finish it.
-        const followCards = p.hand.filter((u) => !cards.includes(u) && D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && (D(s, u).bomb || 0) > 0)
-          .sort((x, y) => (D(s, y).bomb || 0) - (D(s, x).bomb || 0)).slice(0, E.availCap(s, p, 'carrier'));
+        const pm = E.twoMissions(s) && E.halfOf(s) !== 'pm';
+        const followCards = p.hand.filter((u) => !cards.includes(u) && D(s, u).kind === 'aircraft' && (pm || E.carrierCapable(D(s, u))) && (D(s, u).bomb || 0) > 0)
+          .sort((x, y) => (D(s, y).bomb || 0) - (D(s, x).bomb || 0)).slice(0, pm ? Math.max(0, cap - cards.length) : E.availCap(s, p, 'carrier'));
         const fo = outlook(followCards, (d) => d.bomb, 'airbase');
         const later = (prof.softenOutlook === false ? followCards.reduce((x, u) => x + (D(s, u).bomb || 0), 0) : fo.delivered)
           + (moD ? Math.min(moD.boost || 4, Math.max(0, followCards.length - Math.round(fo.lost))) : 0);
@@ -2496,6 +2728,7 @@ function eff(s, uid, foeUid, battleUid, struck, isTarget) {
 }
 
 function defenderMove(s, side, prof) {
+  if (s.combat.mustGo) return pressOnMove(s, side);
   if (prof && (prof.waiting || prof.waitDefense) && prof.waitDefense !== false) return waitingDefense(s, side, prof);
   const c = s.combat, p = s.players[side];
   const mine = c.intercept.filter((e) => E.canInitiate(s, e)).sort((a, b) => D(s, b.uid).a2a - D(s, a.uid).a2a);
@@ -2522,6 +2755,23 @@ function defenderMove(s, side, prof) {
   }
   if (best) return best.action;
   return { type: 'endCombat' };
+}
+
+/* Press on (68th Sentai): it must attack again at once. Best known kill, otherwise a blind interception,
+   otherwise strike whatever is scouted. */
+function pressOnMove(s, side) {
+  const c = s.combat, own = c.mustGo;
+  const strikes = c.mission.filter((m) => E.strikeable(s, m));
+  const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
+  let best = null;
+  for (const t of strikes) for (const bc of [null, ...E.battleOptions(s, side, own)]) {
+    const r = duel(eff(s, own, t.uid, bc, false), eff(s, t.uid, own, null, true, true));
+    const score = (r.killB ? 10 : 0) + (dmgCapable(D(s, t.uid)) ? 5 : 0) - (r.killA ? 8 : 0) - (bc ? 2 : 0);
+    if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own, target: t.uid, battle: bc || undefined } };
+  }
+  if (best && best.score >= 10) return best.action;
+  if (hidden.length) return { type: 'engage', mode: 'intercept', own, slot: hidden[Math.floor(rnd() * hidden.length)] };
+  return best.action;
 }
 
 /* Waiting defense: break off a raid that has shown itself to be a fighter sweep, lead blind interceptions with
@@ -2654,6 +2904,7 @@ function interceptMove(s, side, prof) {
   const objId = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
   const tf = c.target.kind === 'airbase' && E.findFac(p, c.target.uid);
   let mustStop = objId && tf && s.cards[c.target.uid] === objId ? objectiveDefenders(s, side, tf.f) : 0;
+  if (!mustStop && tf && baseGoal(s, side, c.target.uid)) mustStop = objectiveDefenders(s, side, tf.f);
   // A raid that could sink the convoy is sized the same way (decisively when it would end the game).
   if (c.target.kind === 'convoy' && sc) mustStop = objectiveDefenders(s, side, null);
   // Raids on a carrier: size the defense to the danger. A raid too small to sink her (maybe a fighter sweep)
@@ -2721,6 +2972,12 @@ function choice(s, side) {
       return { type: 'land', assign };
     }
     case 'discardOne': return { type: 'choose', uids: [...opts].sort((a, b) => value(s, a) - value(s, b)).slice(0, 1) };
+    case 'lightAAA': {
+      // Shoot down the fighter that would do the most damage (strafers first).
+      if (!pc.card) return { type: 'choose', uids: [] };
+      const w = (u) => { const d = D(s, u); return (E.has(d, 'strafe') ? 10 : 0) + (d.bomb || 0) * 3 + (E.armedWith(s, u) ? 12 : 0) + d.a2a; };
+      return { type: 'choose', uids: [[...opts].sort((a, b) => w(b) - w(a))[0]] };
+    }
     default: {
       // Convoy discard: give up the least useful hand cards; protect bases and carriers on the table.
       const p = s.players[side];
@@ -2771,7 +3028,7 @@ const PKEY = 'awp-prefs';
 let prefs = (() => { try { return Object.assign({ anim: true }, JSON.parse(localStorage.getItem(PKEY)) || {}); } catch (e) { return { anim: true }; } })();
 const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify(prefs)); } catch (e) {} }; // expanded aircraft card; Orders stage key (scroll to top when it changes)
 /* Artwork for the expanded card, by card id (e.g. ART.f4f3 = 'data:image/jpeg;base64,...'). Empty until the art is in. */
-const ART = {"a20":"art/a20.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","claude":"art/claude.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","hamp":"art/hamp.jpg","k204":"art/k204.jpg","kate":"art/kate.jpg","lily":"art/lily.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","peggy":"art/peggy.jpg","sally":"art/sally.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","val":"art/val.jpg","zero":"art/zero.jpg"};
+const ART = {"a20":"art/a20.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","claude":"art/claude.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","hamp":"art/hamp.jpg","k204":"art/k204.jpg","k68":"art/k68.jpg","kate":"art/kate.jpg","lily":"art/lily.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","p47":"art/p47.jpg","p47x":"art/p47x.jpg","peggy":"art/peggy.jpg","sally":"art/sally.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","val":"art/val.jpg","zero":"art/zero.jpg"};
 const ART_SAME = { blacksheep: 'f4u', k204: 'hamp' }; // elite units without their own art use their base model's
 let newOpts = { ai: null, indestructibleHome: true, singleMobilization: false, expansion1942: true, mode: 'scenario', scenario: 'coralsea', drawKeep: true, convoyDiscards: 2 };
 /* Balance defaults per mode, from computer self-play (Axis win rate in brackets). Every option can still be changed. */
@@ -2782,6 +3039,7 @@ const BALANCE = {
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
   guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
+  wewak: { surpriseAttack: false, axis: 0 },       // 53.6 / 51.5%, 10.4 turns: fields Defense 8, Moresby 13, 3 fields, 14-kill air war (ground ½), afternoon +1; Radar, Light AAA, Engineers, 68th Sentai, aces Bong and Takeuchi
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -2902,8 +3160,11 @@ const aiTurn = () => !!aiSide() && S.phase !== 'gameover' && E.actorOf(S) === ai
 const viewer = () => (S.phase === 'gameover' ? null : human() || E.actorOf(S));
 const over = () => S.phase === 'gameover';
 const me = () => viewer() || human() || shownFor || 'allied';
-const opName = (stage) => (stage === 'carrier' ? 'Carrier Strike' : 'Attack Mission');
-const opTag = (stage) => `<span class="op op-${stage === 'carrier' ? 'carrier' : 'airbase'}">${ico(stage === 'carrier' ? 'carrier' : 'airbase', 13)}${opName(stage)}</span>`;
+/* Stage key: 'airbase' | 'pm' (an Afternoon Attack Mission, Wewak-style scenarios) | 'carrier'. */
+const two = () => !!(S && scen() && scen().twoMissions);
+const stk = (stage, half) => (stage === 'carrier' ? 'carrier' : half === 'pm' ? 'pm' : 'airbase');
+const opName = (stage, half) => (stage === 'carrier' ? 'Carrier Strike' : two() ? (half === 'pm' ? 'Afternoon Attack Mission' : 'Morning Attack Mission') : 'Attack Mission');
+const opTag = (stage, half) => `<span class="op op-${stk(stage, half)}">${ico(stage === 'carrier' ? 'carrier' : 'airbase', 13)}${opName(stage, half)}</span>`;
 const scen = () => (S.options.mode === 'scenario' ? E.SCENARIOS[S.options.scenario] : null);
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const RES_NAMES = { industry: 'Industry', convoy: 'Convoy', resources: 'Industry + Convoy' };
@@ -2913,6 +3174,7 @@ const defLabel = (f) => (E.has(D(f.uid), 'twoHits') ? (f.hits ? '4' : '9/4') : d
 
 /* ---------------------------------------------------------------- vector icons and flags */
 const ICONS = {
+  chev: '<path d="m6 9 6 6 6-6"/>',
   orders: '<rect x="7.5" y="3" width="12" height="15.5" rx="1.5"/><path d="M4.5 6.5v13A1.5 1.5 0 0 0 6 21h10"/><path d="M10.5 8h6M10.5 11h6M10.5 14h3.5"/>',
   strategy: '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/>',
   bases: '<path d="M2.5 21h19"/><path d="M9 21v-9h6v9"/><path d="M6.5 12h11l-1.6-4.5H8.1z"/><path d="M12 7.5V4"/><path d="M10 4h4"/>',
@@ -3062,7 +3324,7 @@ function fightHTML(f) {
   if (!done) { const k = fdKey(f.i); setTimeout(() => { fightDone[k] = true; }, 2900); }
   const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return true; return false; })();
   return `<div class="fwrap"><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
-    <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage)}</div>
+    <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage, d.half)}</div>
     ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null })}
     <div class="fvs"><span class="tracer up"></span><span class="tracer up t2"></span><span class="tracer down t3"></span>${d.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(d.target))}</div>
     ${battleCardHTML(bot, role(bot), { lost: bot.dead, won: !bot.dead && top.dead ? top.uid : null })}
@@ -3100,7 +3362,7 @@ function strikeHTML(f) {
   const good = k.att === mine ? red || k.res === 'hit' : !(red || k.res === 'hit');
   const sub = [`${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
   return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results">
-    <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage)}</div>
+    <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage, k.half)}</div>
     <div class="formation" style="--mw:${n <= 4 ? 140 : n <= 6 ? 108 : 82}px">${k.planes.map(mini).join('')}</div>
     <div class="dropzone">${bombs}</div>
     <div class="tcard ${red ? 'lost' : ''}"><div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' ? 'convoy' : k.kind === 'industry' ? 'industry' : 'airbase', 34)}</div>
@@ -3129,7 +3391,7 @@ function preFightHTML() {
     return `yours ${mDies ? '<span class="k">goes down</span>' : '<span class="s">survives</span>'}, theirs ${tDies ? '<span class="s">goes down</span>' : 'survives'}`; };
   const base = E.engagementPreview(S, null);
   return `<div class="fwrap"><div class="fight done" role="dialog" aria-label="Battle card">
-    <div class="fight-h"><h3>${e.mode === 'intercept' && meInit ? 'Attacker revealed' : 'Engagement'}</h3>${opTag(c.stage)}</div>
+    <div class="fight-h"><h3>${e.mode === 'intercept' && meInit ? 'Attacker revealed' : 'Engagement'}</h3>${opTag(c.stage, c.half)}</div>
     ${battleCardHTML(top, role(top))}
     <div class="fvs">${e.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(Object.assign({ side: c.def }, c.target)))}</div>
     ${battleCardHTML(bot, role(bot))}
@@ -3186,7 +3448,7 @@ function viewHTML() {
         ${d.type === 'fighter' ? `<span>Kills</span>${marks(k.map((n) => flag(n, 16)).join('') + (k.length >= E.ACE_KILLS ? ' <span class="ace">ACE</span>' : ''), 'None')}` : ''}
         ${d.bomb || d.car || d.conv ? `<span>Ordnance</span>${marks(sunk + Array(Math.max(0, b - sk)).fill(BOMB(16)).join('') + (b >= E.VET_MISSIONS ? ' <span class="ace">VET</span>' : ''), 'None dropped')}` : ''}</div>
       <div class="xres ${fate.lost ? 'lost' : 'ok'}">${esc(fate.title)}${fate.sub ? `<small>${esc(fate.sub)}</small>` : ''}</div>
-      ${sorties.length ? `<div class="xlog-h">Service record</div><ul class="xlog">${sorties.map((so) => `<li class="st-${so.stage === 'carrier' ? 'carrier' : 'airbase'}">${sortieText(so)}</li>`).join('')}</ul>`
+      ${sorties.length ? `<div class="xlog-h">Service record</div><ul class="xlog">${sorties.map((so) => `<li class="st-${so.stage === 'carrier' ? 'carrier' : so.half === 'pm' ? 'pm' : 'airbase'}">${sortieText(so)}</li>`).join('')}</ul>`
         : `<p class="note" style="color:var(--ink-2);margin:0">${full ? 'No sorties yet.' : 'No sorties seen.'}</p>`}
       ${full ? '' : '<p class="note" style="color:var(--ink-2);margin:0">Enemy aircraft: only what you have seen. The full record shows when the game ends.</p>'}
     </div>`;
@@ -3233,7 +3495,7 @@ function turnItems(t) {
       add('Enemy losses', lossOf(E.other(me())));
       for (const x of R.filter((x) => x.cls === 'dmg' || x.vet)) add('Target', x.vet ? `<b style="color:var(--signal)">${esc(x.msg)}</b>` : esc(pubMsg(x)) + (x.detail && !x.arrived ? `<small class="aar-detail">${esc(x.detail)}</small>` : ''));
       for (const x of R.filter((x) => x.cls === 'land')) add('Landing', esc(x.msg));
-      items.push(`<li class="side-${l.side}"><span>${opTag(l.stage)}</span>${secs.map((sc) => `<span class="aar"><em>${sc.label}</em><span class="aar-lines">${sc.lines.map((x) => `<span>${x}</span>`).join('')}</span></span>`).join('')}</li>`);
+      items.push(`<li class="side-${l.side}"><span>${opTag(l.stage, l.half)}</span>${secs.map((sc) => `<span class="aar"><em>${sc.label}</em><span class="aar-lines">${sc.lines.map((x) => `<span>${x}</span>`).join('')}</span></span>`).join('')}</li>`);
     }
   }
   return items;
@@ -3376,7 +3638,10 @@ function decisionHTML() {
       const mob = sortHand(p.hand.filter((u) => E.canMobilize(S, u)));
       const fr = p.fresh || [];
       let extra = '';
-      if (sel && D(sel).kind === 'war') {
+      if (sel && D(sel).special === 'engineers') {
+        const tg = E.warTargets(S, sel);
+        extra = `<div class="label">Rebuild which airbase?</div><div class="chips">${tg.map((x) => btn('mob', esc(D(x).name), { arg: x, cls: 'chip' })).join('')}</div>`;
+      } else if (sel && D(sel).kind === 'war') {
         const tg = E.warTargets(S, sel);
         const lab = (x) => (x === 'industry' ? 'Industry' : x === 'convoy' ? 'Convoy' : esc(D(x).name));
         if (E.has(D(sel), 'heavyAAA')) {
@@ -3391,7 +3656,7 @@ function decisionHTML() {
           `Put airbases, carriers and war cards into play. Landed aircraft are back in your hand.${lim ? ` Single mobilization: ${S.mobilized ? 'used this turn' : '1 available'}.` : ''}`)
         + `<div class="label">Ready to mobilize · ${mob.length}</div>${mob.length ? `<div class="cgrid three">${mob.map((u) => cardHTML(u, { pick: true, zone: 'hand', sel: sel === u, fresh: fr.includes(u) })).join('')}</div>` : '<p class="empty">Nothing in your hand can be mobilized now.</p>'}
         ${extra}<div class="label">What you have now</div>${forcesHTML(v)}${errH}
-        <div class="actions">${sel && D(sel).kind !== 'war' ? btn('mob', 'Mobilize ' + nm(sel), { cls: 'go' }) : ''}${btn('endMob', 'Continue to Airbase Stage', { cls: sel ? '' : 'go' })}</div>`;
+        <div class="actions">${sel && D(sel).kind !== 'war' && D(sel).special !== 'engineers' ? btn('mob', 'Mobilize ' + nm(sel), { cls: 'go' }) : ''}${btn('endMob', two() ? 'Continue to the Morning Attack Mission' : 'Continue to Airbase Stage', { cls: sel ? '' : 'go' })}</div>`;
     }
     case 'attack': {
       const kind = E.launchKind(S), cap = E.availCap(S, p, kind), opp = S.players[E.other(v)];
@@ -3414,7 +3679,7 @@ function decisionHTML() {
       const el = sortHand(p.hand.filter((u) => E.launchEligible(S, u)));
       const mo = p.hand.find((u) => D(u).special === 'opmo');
       const moOk = ui.target && ui.target.kind === 'airbase';
-      return head(opTag(S.stage), `Plan your ${opName(S.stage)}`, S.stage,
+      return head(opTag(S.stage, S.half), `Plan your ${opName(S.stage, S.half)}`, stk(S.stage, S.half),
           `${S.stage === 'carrier' ? 'Carrier-capable aircraft from your carriers. CAR and CNV are doubled.' : 'Any aircraft from your airbases.'} Up to <b>${cap}</b> aircraft. They land afterwards and can't intercept until your next turn.`)
         + `<div class="label">Target</div><div class="trows">${tg.map(row).join('')}${opp.airbases.filter((f) => !tg.some((x) => x.uid === f.uid)).map((f) => `<button class="trow" disabled>${flag(natOf(f.uid), 22)}<span>${esc(D(f.uid).name)}<small>Objective · can't be attacked on your first turn</small></span><span class="tv">DEF ${defLabel(f)}</span></button>`).join('')}${opp.carriers.filter((f) => !E.usable(S, f)).map((f) => `<button class="trow" disabled>${flag(natOf(f.uid), 22)}<span>${esc(D(f.uid).name)}<small>Carrier · hidden by weather this round</small></span><span class="tv"></span></button>`).join('')}</div>
         <div class="label">Aircraft · ${ui.sel.length} of ${cap} selected</div>
@@ -3430,7 +3695,7 @@ function decisionHTML() {
       const el = sortHand(p.hand.filter((u) => E.interceptUsable(S, u)));
       const hy = p.hand.find((u) => D(u).special === 'hypo');
       const sq = E.squallOptions(S);
-      return head(opTag(c.stage), `Incoming: ${c.mission.length} aircraft`, c.stage, `${SIDE[c.att]} ${opName(c.stage)} against your <b>${targetName(c.target)}</b>. Scramble fighters or let them through. You commit the whole group now.`)
+      return head(opTag(c.stage, c.half), `Incoming: ${c.mission.length} aircraft`, stk(c.stage, c.half), `${SIDE[c.att]} ${opName(c.stage, c.half)} against your <b>${targetName(c.target)}</b>. Scramble fighters or let them through. You commit the whole group now.`)
         + battleHTML()
         + `<div class="label">Your fighters · ${ui.sel.length} selected · room ${capTxt}</div>
         ${el.length ? `<div class="cgrid three">${el.map((u) => cardHTML(u, { pick: true, zone: 'hand', sel: ui.sel.includes(u) })).join('')}</div>` : '<p class="empty">No fighters in hand can intercept.</p>'}
@@ -3440,6 +3705,7 @@ function decisionHTML() {
     }
     case 'combat': {
       const c = S.combat, isDef = v === c.def;
+      if (isDef && c.mustGo && ui.own !== c.mustGo) { ui.own = c.mustGo; ui.strike = null; ui.slot = null; }
       const anyBattle = p.hand.some((u) => D(u).kind === 'battle' && !D(u).special);
       const fits = ui.own ? E.battleOptions(S, v, ui.own) : [];
       let pv = '';
@@ -3459,13 +3725,13 @@ function decisionHTML() {
         : `<div class="label">Battle card (optional)</div><div class="cgrid three">${fits.map((u) => cardHTML(u, { pick: true, zone: 'hand', sel: ui.battle === u })).join('')}</div>`) : '';
       if (isDef) {
         const ready = ui.own && (ui.slot !== null || ui.strike);
-        return head(opTag(c.stage), 'Combat: your move', c.stage, 'Pick one of your interceptors, then a hidden attacker (blind draw) or a scouted one (it fights at −1 DEF).')
+        return head(opTag(c.stage, c.half), 'Combat: your move', stk(c.stage, c.half), c.mustGo ? `<b>${nm(c.mustGo)} presses on:</b> it must attack again now. Pick a hidden attacker (blind draw) or a scouted one (it fights at −1 DEF).` : 'Pick one of your interceptors, then a hidden attacker (blind draw) or a scouted one (it fights at −1 DEF).')
           + battleHTML() + pv + bl + errH
           + `<p class="note">Each side's A2A must equal or beat the other's DEF. Each aircraft fights once.</p>
-          <div class="actions">${btn('endCombat', 'End combat')}${btn('engage', ui.strike ? 'Strike' : 'Intercept', { cls: 'go', dis: !ready })}</div>`;
+          <div class="actions">${btn('endCombat', 'End combat', { dis: !!c.mustGo })}${btn('engage', ui.strike ? 'Strike' : 'Intercept', { cls: 'go', dis: !ready })}</div>`;
       }
       const canGo = c.mission.some((m) => E.canInitiate(S, m));
-      return head(opTag(c.stage), 'Combat: your answer', c.stage, 'Strike a scouted interceptor with a fighter that hasn’t fought yet, or hold and let the defender decide.')
+      return head(opTag(c.stage, c.half), 'Combat: your answer', stk(c.stage, c.half), 'Strike a scouted interceptor with a fighter that hasn’t fought yet, or hold and let the defender decide.')
         + battleHTML() + pv + (canGo ? bl : '<p class="note">No fighter left that can strike, so hold. The defender isn’t told why.</p>') + errH
         + `<div class="actions">${btn('yield', 'Hold', { cls: canGo ? '' : 'go' })}${btn('engage', 'Strike', { cls: 'go', dis: !(ui.own && ui.strike) })}</div>`;
     }
@@ -3480,7 +3746,7 @@ function decisionHTML() {
       const line = (who, st) => `<div class="duel-row"><span class="duel-name">${who.side === v ? 'Your' : 'Their'} ${nm(who.uid)}</span><span>A2A <b>${st.a2a}</b>${st.icpt ? ' (Interceptor)' : ''}</span><span>DEF <b>${st.def}</b>${st.struck ? ' (scouted −1)' : ''}</span>${c.eng.battles[who.side] ? `<span>+ ${nm(c.eng.battles[who.side])}</span>` : ''}</div>`;
       const now = E.engagementPreview(S, null);
       const youMet = c.eng.mode === 'intercept' && meInit;
-      return head(opTag(c.stage), youMet ? 'Attacker revealed' : 'Engagement', c.stage, youMet
+      return head(opTag(c.stage, c.half), youMet ? 'Attacker revealed' : 'Engagement', stk(c.stage, c.half), youMet
           ? `Your <b>${nm(c.eng.init.uid)}</b> intercepted a <b>${nm(c.eng.tgt.uid)}</b>. You may play one battle card on it before the fight resolves.`
           : `<b>${nm(c.eng.init.uid)}</b> engages <b>${nm(c.eng.tgt.uid)}</b>. You may play one battle card on your aircraft before it resolves.`)
         + `<div class="duel">${line(c.eng.init, now.init)}${line(c.eng.tgt, now.tgt)}<span>As it stands: ${fate(now)}.</span>
@@ -3493,7 +3759,7 @@ function decisionHTML() {
     case 'allocate': {
       const split = {}; for (const m of S.combat.mission) if (m.alive) split[m.uid] = ui.split[m.uid] || 'industry';
       const r = E.resourcePreview(S, split);
-      return head(opTag(S.combat.stage), 'Allocate damage', S.combat.stage, 'Tap each arriving aircraft to send it to Industry (BMB) or Convoy (CNV).')
+      return head(opTag(S.combat.stage, S.combat.half), 'Allocate damage', stk(S.combat.stage, S.combat.half), 'Tap each arriving aircraft to send it to Industry (BMB) or Convoy (CNV).')
         + battleHTML() + `<div class="est">Industry <b>${r.industry}</b>${r.aaaI ? ` (Heavy AAA −${r.aaaI})` : ''} · Convoy <b>${r.convoy}</b>${r.aaaC ? ` (Heavy AAA −${r.aaaC})` : ''}</div>`
         + `<div class="actions">${btn('alloc', 'Drop bombs', { cls: 'go' })}</div>`;
     }
@@ -3515,6 +3781,11 @@ function decisionHTML() {
         }).join('')}</div></div>`).join('');
         return head('', 'Landing', 'sig', esc(pc.reason)) + '<p class="note">Your opponent sees how many aircraft are on each base, not which.</p>'
           + `<div>${rows}</div>${errH}<div class="actions">${btn('landGo', 'Land aircraft', { cls: 'go' })}</div>`;
+      }
+      if (pc.kind === 'lightAAA') {
+        if (!pc.card) return head('', 'Light AAA', 'sig', esc(pc.reason)) + `<p class="note">You don't have Light AAA in hand. Continue; your opponent isn't told why.</p><div class="actions">${btn('choose', 'Continue', { cls: 'go' })}</div>`;
+        return head('', 'Light AAA', 'sig', esc(pc.reason)) + `<div class="label">Fighters over the target</div><div class="cgrid three">${opts.map((u) => cardHTML(u, { pick: true, zone: 'opt', sel: ui.sel.includes(u) })).join('')}</div>${errH}
+          <div class="actions">${btn('choose', 'Hold fire', { cls: '' , arg: 'none' })}${btn('choose', ui.sel.length ? 'Fire at ' + nm(ui.sel[0]) : 'Pick a target', { cls: 'go', dis: !ui.sel.length })}</div>`;
       }
       if (pc.kind === 'playWar' && !pc.card)
         return head('', 'Decision', 'sig', esc(pc.reason)) + `<p class="note">You don't have ${esc(pc.cardName || 'it')} in hand. Continue; your opponent isn't told why.</p><div class="actions">${btn('declineWar', 'Continue', { cls: 'go' })}</div>`;
@@ -3546,11 +3817,11 @@ function phaseBlurb() {
   switch (S.phase) {
     case 'setup': return 'Choose your opening hand.';
     case 'mobilize': return 'Your turn begins: draw, recover landed aircraft, mobilize.';
-    case 'attack': return `Plan your ${opName(S.stage)}.`;
+    case 'attack': return `Plan your ${opName(S.stage, S.half)}.`;
     case 'intercept': return `${SIDE[c.att]} aircraft are inbound to your ${targetName(c.target)}. Decide whether to scramble fighters.`;
-    case 'combat': return c.turn === 'def' ? `Your interceptors are engaging the ${opName(c.stage)}.` : 'You may strike back at a scouted interceptor.';
+    case 'combat': return c.turn === 'def' ? `Your interceptors are engaging the ${opName(c.stage, c.half)}.` : 'You may strike back at a scouted interceptor.';
     case 'respond': return 'An engagement involves your aircraft. You may play a battle card.';
-    case 'allocate': return `Your ${opName(c.stage)} reached the target. Allocate damage.`;
+    case 'allocate': return `Your ${opName(c.stage, c.half)} reached the target. Allocate damage.`;
     case 'choice': return S.pending[0].reason;
   }
   return '';
@@ -3577,7 +3848,7 @@ function ordersPage(reps) {
       + (small ? decisionHTML() : `<div class="actions">${btn('repSkip', aiTurn() ? 'End turn' : myTurnNext ? `Continue to turn ${S.turnNo}` : 'Continue', { cls: 'go' })}</div>`);
   }
   if (aiTurn()) {
-    return `${head('<span class="label">Stand by</span>', 'Computer’s move', 'sig')}<div class="wait"><p>The computer is playing the ${SIDE[aiSide()]} side${S.combat ? ` in this ${opName(S.combat.stage)}` : ''}.</p></div>${S.combat ? battleHTML() : ''}`;
+    return `${head('<span class="label">Stand by</span>', 'Computer’s move', 'sig')}<div class="wait"><p>The computer is playing the ${SIDE[aiSide()]} side${S.combat ? ` in this ${opName(S.combat.stage, S.combat.half)}` : ''}.</p></div>${S.combat ? battleHTML() : ''}`;
   }
   return decisionHTML();
 }
@@ -3599,6 +3870,12 @@ function sitRep(side) {
     const dmg = f && E.turnDamage(S, f);
     mets.push({ icon: 'objective', label: name.replace('Port ', 'Pt. '), viz, value: 'Objective', sub: f ? (dmg ? `Hit ${dmg} this turn` : f.fort ? `${f.fort} supplies` : 'Holding') : 'Destroyed' });
   }
+  const dbs = sc && sc.victory && sc.victory.destroyBases && sc.victory.destroyBases[side];
+  if (dbs) {
+    const razed = (S.razed || {})[side] || [];
+    const fld = (id) => `<span class="fld ${razed.includes(id) ? 'gone' : ''}" title="${esc(E.CARD_DB[id].name)}${razed.includes(id) ? ' (destroyed)' : ''}">${ico('airfieldTop', 17)}<small>${esc(E.CARD_DB[id].name)}</small></span>`;
+    mets.push({ icon: 'objective', label: 'Airfields', viz: `<div class="flds">${dbs.list.map(fld).join('')}</div>`, value: `${razed.length}/${dbs.n}`, sub: 'Destroyed' });
+  }
   if (sc && sc.victory && sc.victory.sinkCarriers) {
     const sunk = (S.sunk || {})[side] || 0, afloat = p.carriers.length;
     const cv = (cls) => `<span class="cv ${cls}" title="${cls ? 'Sunk' : 'Afloat'}">${ico(cls ? 'sunk' : 'carrier', cls ? 26 : 22)}</span>`;
@@ -3609,7 +3886,9 @@ function sitRep(side) {
   const fl = downed.slice(0, 16).map((u) => flag(natOf(u), 18)).join('');
   const aces = Object.entries(((S.stats || {})[side] || {}).kills || {}).filter(([, k]) => k >= E.ACE_KILLS).map(([u]) => u);
   const vets = Object.entries(((S.stats || {})[side] || {}).missions || {}).filter(([, k]) => k >= E.VET_MISSIONS).map(([u]) => u);
-  mets.push({ icon: 'target', label: 'Air to air', viz: downed.length ? `<div class="killf">${fl}</div>` : '<span class="note">None yet</span>', value: kv ? `${downed.length}/${kv}` : `${downed.length}`, sub: 'Enemy killed' });
+  const gk = sc && sc.victory && sc.victory.groundKill, half = (x) => (Number.isInteger(x) ? `${x}` : `${Math.floor(x)}½`);
+  const kc = gk ? E.killCount(S, side) : downed.length;
+  mets.push({ icon: 'target', label: gk ? 'Air war' : 'Air to air', viz: downed.length ? `<div class="killf">${fl}</div>` : '<span class="note">None yet</span>', value: kv ? `${half(kc)}/${kv}` : `${downed.length}`, sub: gk ? 'Kills' : 'Enemy killed' });
   return `<section class="sit ${side}"><div class="sit-h"><h3>${SIDE[side]} sit rep</h3><span class="flags">${sideFlags(side)}</span><span class="note">Deck ${p.deck.length}<br>Hand ${p.hand.length}</span></div>
     <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml"${m.label.length > 9 && !m.label.includes(' ') ? ' style="font-size:13px"' : ''}>${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
     ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}
@@ -3651,10 +3930,12 @@ function victoryHTML() {
   const W = { allied: [], axis: [] };
   for (const side of ['allied', 'axis']) {
     const en = E.other(side);
+    const dbE = v.destroyBases && v.destroyBases[en], dbS = v.destroyBases && v.destroyBases[side];
     if (hb[en]) W[side].push(`Destroy ${E.CARD_DB[hb[en]].name} (Defense ${liveDef(hb[en])})`);
+    if (dbE) { const rz = (S.razed || {})[en] || []; W[side].push(`Destroy ${dbE.n} of the ${dbE.list.length} fields: ${dbE.list.map((x) => `${E.CARD_DB[x].name} (${rz.includes(x) ? 'destroyed' : `Defense ${liveDef(x)}`})`).join(', ')}`); }
     if (v.sinkCarriers) W[side].push(`Sink ${v.sinkCarriers} enemy carriers`);
-    if (v.kills) W[side].push(`Shoot down ${v.kills} enemy aircraft`);
-    if (sc.timeoutWinner === side) W[side].unshift(hb[side] ? `${E.CARD_DB[hb[side]].name} still stands after turn ${lim}` : `Hold out past turn ${lim}`);
+    if (v.kills) W[side].push(v.groundKill ? `Destroy ${v.kills} enemy aircraft (one destroyed on the ground counts ½)` : `Shoot down ${v.kills} enemy aircraft`);
+    if (sc.timeoutWinner === side) W[side].unshift(hb[side] ? `${E.CARD_DB[hb[side]].name} still stands after turn ${lim}` : dbS ? `The ${dbS.list.map((x) => E.CARD_DB[x].name).join(', ')} fields still hold after turn ${lim}` : `Hold out past turn ${lim}`);
   }
   const rules = [];
   if (sc.noIndustry) rules.push('No Industry target: attack bases, carriers or the Convoy');
@@ -3662,7 +3943,7 @@ function victoryHTML() {
   if (sc.objectiveFrom > 1) for (const sd of ['allied', 'axis']) { const ob = sc.victory && sc.victory.holdBase && sc.victory.holdBase[sd];
     if (ob) rules.push(`${E.CARD_DB[ob].name} can't be attacked on the ${SIDE[E.other(sd)]} first turn`); }
   for (const side of ['allied', 'axis']) { const fx = sc.convoyEffects && sc.convoyEffects[side]; if (!fx) continue;
-    if (fx.fortDelta) rules.push(`A sunk ${SIDE[side]} convoy costs ${E.CARD_DB[fx.base].name} ${-fx.fortDelta} Defense`);
+    if (fx.fortDelta) rules.push(`A sunk ${SIDE[side]} convoy costs ${(fx.bases || [fx.base]).map((x) => E.CARD_DB[x].name).join(', ')} ${-fx.fortDelta} Defense${fx.bases ? ' each' : ''}`);
     if (fx.clock) rules.push(`A sunk ${SIDE[side]} convoy ends the battle ${-fx.clock} turns sooner`); }
   const specials = ['allied', 'axis'].flatMap((sd) => (sc.sides[sd].specialInDeck || []).map((id) => E.CARD_DB[id].name));
   if (specials.length) rules.push(`Scenario cards shuffled into the decks: ${specials.join(', ')}`);
@@ -3681,8 +3962,11 @@ function baseTile(side, f, kind) {
   const cap = E.capOf(S, f), isTarget = c && c.target.uid === f.uid;
   let pips = ''; for (let i = 0; i < Math.max(cap, f.landed.length); i++) pips += `<i class="${i < f.landed.length ? 'full' : ''}"></i>`;
   const st = [];
-  if (isTarget) st.push(`<span class="o">Under attack: ${SIDE[c.att]} ${opName(c.stage)}</span>`);
+  if (isTarget) st.push(`<span class="o">Under attack: ${SIDE[c.att]} ${opName(c.stage, c.half)}</span>`);
   if (sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side] === S.cards[f.uid]) st.push('<span class="o">Objective: losing it loses the game</span>');
+  { const db = sc && sc.victory && sc.victory.destroyBases && sc.victory.destroyBases[side];
+    if (db && db.list.includes(S.cards[f.uid])) st.push(`<span class="o">Objective: ${db.n} of these ${db.list.length} fields lost loses the game</span>`); }
+  if (f.secret) st.push('<span class="o">Secret: the enemy can\u2019t attack it until aircraft fly from it</span>');
   if (E.isHomeProtected(S, f)) st.push('Home base: can’t be destroyed; a hit wipes what is on it');
   const dmg = E.turnDamage(S, f);
   if (dmg) st.push(`<span class="k">Hit for ${dmg} this turn: ${E.damageNeeded(S, f)} more destroys it</span>`);
@@ -3709,7 +3993,7 @@ function baseTile(side, f, kind) {
 }
 function basesPage(side) {
   const p = S.players[side];
-  const ab = p.airbases.map((f) => baseTile(side, f, 'Airbase')).join(''), cv = p.carriers.map((f) => baseTile(side, f, 'Carrier')).join('');
+  const ab = p.airbases.filter((f) => !(f.secret && side !== me() && !over())).map((f) => baseTile(side, f, 'Airbase')).join(''), cv = p.carriers.map((f) => baseTile(side, f, 'Carrier')).join('');
   const onBases = p.airbases.flatMap((f) => f.war.filter((w) => (S.aaaCover || {})[w]).map((w) => `${nm(w)} on ${esc(D(f.uid).name)} covers ${RES_NAMES[S.aaaCover[w]]} (−2 per attack)`));
   const rw = [...p.resWar.convoy.map((w) => `${nm(w)} protects the Convoy`), ...p.resWar.industry.map((w) => `${nm(w)} protects Industry`), ...onBases];
   return `<div class="sec-h">Airbases:</div>${ab ? `<div class="bgrid">${ab}</div>` : '<p class="empty">No airbases in play.</p>'}
@@ -3806,10 +4090,12 @@ function scenarioWins(sc) {
   const v = sc.victory || {}, hb = v.holdBase || {}, def = (id) => (sc.defs && sc.defs[id]) || E.CARD_DB[id].def, W = { allied: [], axis: [] };
   for (const side of ['allied', 'axis']) {
     const en = E.other(side);
-    if (sc.timeoutWinner === side) W[side].push(hb[side] ? `${E.CARD_DB[hb[side]].name} still stands after turn ${sc.turnLimit}` : `Hold out past turn ${sc.turnLimit}`);
+    const dbE = v.destroyBases && v.destroyBases[en], dbS = v.destroyBases && v.destroyBases[side];
+    if (sc.timeoutWinner === side) W[side].push(hb[side] ? `${E.CARD_DB[hb[side]].name} still stands after turn ${sc.turnLimit}` : dbS ? `The ${dbS.list.map((x) => E.CARD_DB[x].name).join(', ')} fields still hold after turn ${sc.turnLimit}` : `Hold out past turn ${sc.turnLimit}`);
+    if (dbE) W[side].push(`Destroy ${dbE.n} of the ${dbE.list.length} fields: ${dbE.list.map((x) => `${E.CARD_DB[x].name} (${def(x)})`).join(', ')}`);
     if (hb[en]) W[side].push(`Destroy ${E.CARD_DB[hb[en]].name} (Defense ${def(hb[en])})`);
     if (v.sinkCarriers) W[side].push(`Sink ${v.sinkCarriers} enemy carriers`);
-    if (v.kills) W[side].push(`Shoot down ${v.kills} enemy aircraft`);
+    if (v.kills) W[side].push(v.groundKill ? `Destroy ${v.kills} enemy aircraft (one destroyed on the ground counts ½)` : `Shoot down ${v.kills} enemy aircraft`);
   }
   return W;
 }
@@ -3818,7 +4104,7 @@ function rulesPage(t) {
   if (t === 'basics') return `<section class="rules">
     <p>Airwar Pacific! is a two-player card game of the air war over the Pacific, 1942–43. One player commands the <b>Allies</b>, the other the <b>Axis</b>. Each side has its own deck. You launch attacks on the enemy's airbases, carriers and shipping; your opponent scrambles fighters to stop them, and the air battle is fought card against card.</p>
     <h3>How you win</h3>
-    <p>It depends on the game you play (see <b>Modes</b>). In a scenario you might have to destroy an enemy base, sink their carriers, win the air war, or simply hold out until the clock runs out. In the Campaign you wear down the enemy's Industry. Strategy → Victory Conditions shows the goals for the game you're in.</p>
+    <p>It depends on the game you play (see <b>Game types</b>). In a scenario you might have to destroy an enemy base, sink their carriers, win the air war, or simply hold out until the clock runs out. In the Campaign you wear down the enemy's Industry. Strategy → Victory Conditions shows the goals for the game you're in.</p>
     <h3>The cards</h3>
     <div class="tbl"><span class="k">Airbase</span><span>Where land aircraft fly from and land. <b>Capacity</b> is how many aircraft it can hold; <b>Defense</b> is the damage it takes to destroy it.</span>
       <span class="k">Carrier</span><span>An airbase at sea. Only aircraft marked <b>land or carrier</b> can use it. Attacks launched from carriers are Carrier Strikes.</span>
@@ -3837,7 +4123,9 @@ function rulesPage(t) {
       <li><b>Hit and Run</b> (Flying Tigers): can't be attacked once scouted.</li>
       <li><b>First strike</b> (VMF-214 Black Sheep): when it starts a fight and hasn't been scouted, it fires first; an enemy it shoots down never fires back. When it is attacked, or once it has been scouted, it fights normally.</li>
       <li><b>Bomber killer</b> (204th Kokutai): after shooting down a bomber it may fight once more in the same combat.</li>
-      <li><b>Elite units</b> (Flying Tigers, Tainan Kokutai, VMF-214, 204th Kokutai) are unique: one copy each.</li></ul>
+      <li><b>Strafing</b> (348th Fighter Group): when it reaches an airbase it attacks, every aircraft parked there is destroyed, whether or not the airbase falls (each counts ½ toward the air war).</li>
+      <li><b>Press on</b> (68th Sentai): when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again straight away, at a hidden or a scouted attacker.</li>
+      <li><b>Elite units</b> (Flying Tigers, Tainan Kokutai, VMF-214, 204th Kokutai, 348th Fighter Group, 68th Sentai) are unique: one copy each.</li></ul>
     <h3>Card markings</h3>
     <ul><li>An <b>anchor</b> beside the name: the aircraft can fly from carriers.</li>
       <li>A <b>parachute bomb</b>: the bomber carries Para-Frags.</li>
@@ -3896,55 +4184,70 @@ function rulesPage(t) {
       <li>Both players are always asked, holding a card or not, so the question gives nothing away.</li></ul>
     <h3>Reading the reports</h3>
     <p>Fights read like "Axis A6M2 Zero (4 ATT | 4 DEF) shoots down Allied F4F-3 Wildcat (3 ATT | 3 DEF*)": the numbers each aircraft fought with, battle cards included. DEF* means it was scouted and fought at −1.</p></section>`;
-  // Modes
+  // Game types: the Campaign, then each scenario with its own special rules.
   const scs = Object.values(E.SCENARIOS).sort((a, b) => a.name.localeCompare(b.name)).map((sc) => { const W = scenarioWins(sc);
+    const extra = [];
+    if (sc.twoMissions) extra.push('<b>Two Attack Missions a day:</b> there is no Carrier Stage. Each turn has a Morning and an Afternoon Attack Mission. Each aircraft flies once a day, and morning planes land in your base slots, leaving less room for the afternoon. Fighters that intercepted in the morning are on the ground in the afternoon: they can’t take off, and if their base is destroyed they are lost with it.');
+    if (sc.pmBonus === 'each') extra.push('An Afternoon Attack Mission on an airbase gets <b>+1 for each aircraft that reaches it</b>.');
+    if (sc.stackAirbaseDamage) extra.push(sc.twoMissions ? 'Damage to a base adds up over the day.' : 'Damage to a base or carrier from both stages of a turn adds up.');
+    if (sc.objectiveFrom > 1) for (const sd of ['allied', 'axis']) { const ob = sc.victory && sc.victory.holdBase && sc.victory.holdBase[sd];
+      if (ob) extra.push(`${esc(E.CARD_DB[ob].name)} can’t be attacked on the ${SIDE[E.other(sd)]} first turn.`); }
+    for (const side of ['allied', 'axis']) { const fx = sc.convoyEffects && sc.convoyEffects[side]; if (!fx) continue;
+      if (fx.fortDelta) extra.push(`A sunk ${SIDE[side]} convoy costs ${(fx.bases || [fx.base]).map((x) => esc(E.CARD_DB[x].name)).join(', ')} ${-fx.fortDelta} Defense${fx.bases ? ' each' : ''}.`);
+      if (fx.clock) extra.push(`A sunk ${SIDE[side]} convoy ends the battle ${-fx.clock} turns sooner.`); }
+    const specials = ['allied', 'axis'].flatMap((sd) => [...new Set(sc.sides[sd].special || [])].map((id) => E.CARD_DB[id]).filter((d) => d && d.kind !== 'airbase'));
+    if (specials.length) extra.push(`Scenario cards: ${specials.map((d) => `<b>${esc(d.name.replace(/^Ace: /, 'Ace '))}</b>`).join(', ')}.`);
     return `<div class="box"><h4>${esc(sc.name)} · ${esc(sc.date)}</h4><p>${esc(sc.blurb)}</p>
-      <p class="note">${SIDE[sc.first]} moves first · ${sc.turnLimit} turns${sc.noIndustry ? ' · no Industry' : ''}${sc.objectiveFrom > 1 ? Object.entries((sc.victory || {}).holdBase || {}).map(([sd, id]) => ` · ${E.CARD_DB[id].name} can't be attacked on the ${SIDE[E.other(sd)]} first turn`).join('') : ''}</p>
-      <b style="color:var(--allied-text)">The Allies win:</b>${orList(W.allied)}<b style="color:var(--axis-text)">The Axis wins:</b>${orList(W.axis)}</div>`; }).join('');
+      <p class="note">${SIDE[sc.first]} moves first · ${sc.turnLimit} turns</p>
+      <b style="color:var(--allied-text)">The Allies win:</b>${orList(W.allied)}<b style="color:var(--axis-text)">The Axis wins:</b>${orList(W.axis)}
+      <b>Special rules:</b><ul>${extra.map((x) => `<li>${x}</li>`).join('')}</ul></div>`; }).join('');
   return `<section class="rules">
+    <h3>Campaign</h3>
+    <p>The long war. Each side starts with its home airbase (Allied: Midway, Axis: Lae) and 5 set cards, secretly picks ${E.CAMPAIGN_BUY.picks} more from its deck for up to ${E.CAMPAIGN_BUY.budget} points, then draws ${E.CAMPAIGN_BUY.draws}. You win by inflicting <b>60 Industry damage</b> on the enemy; a sunk convoy also costs 4 Industry. Each turn has an Airbase Stage and a Carrier Stage, and the full deck is in play. The Campaign is still being balanced.</p>
     <h3>Scenarios</h3>
     <p>The main way to play: a short historical battle of 14 or 15 turns. Each scenario sets the bases and carriers in play, a 5-card opening hand for each side (plus 2 drawn), the aircraft that were actually there, special scenario cards shuffled into the decks, and its own victory conditions and clock. There is no Industry track; the Convoy is the supply line.</p>
     ${scs}
-    <h3>Campaign</h3>
-    <p>The long war. Each side starts with its home airbase (Allied: Midway, Axis: Lae) and 5 set cards, secretly picks ${E.CAMPAIGN_BUY.picks} more from its deck for up to ${E.CAMPAIGN_BUY.budget} points, then draws ${E.CAMPAIGN_BUY.draws}. You win by inflicting <b>60 Industry damage</b> on the enemy; a sunk convoy also costs 4 Industry. The Campaign is still being balanced.</p>
-    <h3>Scenario or Campaign?</h3>
-    <div class="tbl"><span class="k">Length</span><span>Scenario: 15 turns (Coral Sea) or 14 (Guadalcanal ’43). Campaign: until one side's Industry breaks.</span>
-      <span class="k">Goal</span><span>Scenario: its own objectives. Campaign: 60 Industry damage.</span>
-      <span class="k">Forces</span><span>Scenario: period aircraft and ships only. Campaign: the full deck.</span>
-      <span class="k">Opening</span><span>Scenario: set hand + 2 draws. Campaign: home base, set hand, 2 picks, 2 draws.</span></div>
-    <h3>Opponents and options</h3>
-    <ul><li><b>Pass and play:</b> two players share the device, with hand-off screens.</li>
-      <li><b>Against the computer:</b> choose your side; the computer plays the other. Pick its style in New game: <b>Mixed</b> attacks whenever the numbers look good; <b>Waiting</b> sits back, defends to rack up kills and saves everything for safe kills and one big strike late in the battle.</li>
-      <li>New game options (Axis head start, surprise attack, draw 3 keep 2 and so on) are set to the most even values found in thousands of test games; you can change them.</li></ul></section>`;
+    <h3>Opponent and options</h3>
+    <ul><li><b>Against the computer:</b> choose your side; the computer plays the other. Pick its style in New game: <b>Mixed</b> attacks whenever the numbers look good; <b>Waiting</b> sits back, defends to rack up kills and saves everything for safe kills and one big strike late in the battle.</li>
+      <li>Game options (Axis head start, surprise attack, draw 3 keep 2 and so on) are in the ••• menu. They are set to the most even values found in thousands of test games; you can change them.</li></ul></section>`;
 }
+/* Pass and play is hidden for now (the code still works): set to true to offer it on New game again. */
+const PNP_ON_NEW = false;
 function newHTML() {
-  const sc = E.SCENARIOS[newOpts.scenario];
-  const forced = newOpts.mode === 'scenario' && sc && sc.needs1942;
-  const opt = (name, id, on, title, text, extra) => `<label class="opt ${on ? 'on' : ''}"><input type="radio" name="${name}" value="${id}" ${on ? 'checked' : ''}><span class="opt-name">${title}</span>${extra || ''}<span class="opt-text">${esc(text)}</span></label>`;
-  const scs = newOpts.mode === 'scenario' ? `<div class="label">Scenario</div>${Object.entries(E.SCENARIOS).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([id, x]) =>
-    opt('scen', id, newOpts.scenario === id, esc(x.name), x.blurb, `<span class="opt-date">${esc(x.date)} · ${SIDE[x.first]} moves first</span>`)).join('')}` : '';
+  const sc = E.SCENARIOS[newOpts.scenario], isScen = newOpts.mode === 'scenario';
+  if (!PNP_ON_NEW && !newOpts.ai) newOpts.ai = { side: 'axis', profile: 'balanced' };
+  const segBtns = (id, cur, list) => `<div class="pick2">${list.map(([v, l]) => btn(id, l, { arg: v, cls: cur === v ? 'on' : '' })).join('')}</div>`;
+  const scList = Object.entries(E.SCENARIOS).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const info = isScen
+    ? `<div class="ng-card"><label class="ng-pick"><span class="sr">Scenario</span><select id="opt-scen">${scList.map(([id, x]) => `<option value="${id}" ${newOpts.scenario === id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev', 18)}</label>
+        <div class="opt-date">${esc(sc.date)} · ${SIDE[sc.first]} moves first · ${sc.turnLimit} turns</div><p>${esc(sc.blurb)}</p></div>`
+    : `<div class="ng-card"><h4>Campaign</h4><p>${esc(MODES.campaign.text)}</p></div>`;
   const oppV = newOpts.ai ? newOpts.ai.side : '';
-  return `<div class="label">Game mode</div>${Object.entries(MODES).map(([id, m]) => opt('mode', id, newOpts.mode === id, m.name, m.text)).join('')}
-    ${scs}
-    <div class="label">Opponent</div>
-    ${[['', 'Pass and play', 'Two players share this device, with hand-off screens.'], ['axis', 'You play Allied', 'The computer commands the Axis.'], ['allied', 'You play Axis', 'The computer commands the Allies.']]
-      .map(([id, n, tx]) => opt('opp', id, oppV === id, n, tx)).join('')}
-    ${newOpts.ai ? (() => { const list = STYLES.filter(([v]) => v !== 'industry' || newOpts.mode !== 'scenario');
-        if (!list.some(([v]) => v === newOpts.ai.profile)) newOpts.ai.profile = 'balanced';
-        const cur = STYLES.find(([v]) => v === newOpts.ai.profile);
-        return `<label class="tog sel"><span>Computer's style<small>${esc(cur[2])}</small></span><select id="opt-style">${list
-        .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`; })() : ''}
-    <div class="label">Options</div>
-    <p class="note">Choosing a mode sets the surprise attack and Axis head start to the values closest to 50/50 in computer test games.</p>
-    <label class="tog"><input type="checkbox" id="opt-surprise" ${newOpts.surpriseAttack ? 'checked' : ''}><span>Pearl Harbor surprise attack<small>On turn 1 the Allies cannot intercept.</small></span></label>
-    <label class="tog sel"><span>Axis head start</span><select id="opt-bonus">${[0, 1, 2, 3].map((n) => `<option value="${n}" ${((newOpts.bonusCards || {}).axis || 0) === n ? 'selected' : ''}>${n ? `+${n} card${n > 1 ? 's' : ''}` : 'None'}</option>`).join('')}</select></label>
+  const sides = [['axis', 'Allied'], ['allied', 'Axis']].concat(PNP_ON_NEW ? [['', 'Pass and play']] : []);
+  const style = newOpts.ai ? (() => { const list = STYLES.filter(([v]) => v !== 'industry' || !isScen);
+    if (!list.some(([v]) => v === newOpts.ai.profile)) newOpts.ai.profile = 'balanced';
+    const cur = STYLES.find(([v]) => v === newOpts.ai.profile);
+    return `<label class="tog sel"><span>Computer's style<small>${esc(cur[2])}</small></span><select id="opt-style">${list
+      .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`; })() : '';
+  return `<div class="label">Game type</div>${segBtns('newMode', newOpts.mode, [['scenario', 'Scenario'], ['campaign', 'Campaign']])}
+    ${info}
+    <div class="label">You command</div>${segBtns('newSide', oppV, sides)}
+    ${style}
+    <p class="note">More game options are in the ••• menu.${S && S.phase && !over() ? ' Starting replaces the current game.' : ''}</p>
+    <div class="actions">${S && S.phase ? btn('cancelNew', 'Back') : ''}${btn('startNew', 'Start game', { cls: 'go' })}</div>`;
+}
+/* New-game options, shown in the ••• menu. */
+function newOptsHTML() {
+  const sc = E.SCENARIOS[newOpts.scenario], forced = newOpts.mode === 'scenario' && sc && sc.needs1942;
+  return `<div class="label" style="margin-top:6px">New game options</div>
+    <p class="note">Used the next time you start a game. Picking a game type or scenario resets the surprise attack and Axis head start to the most even values.</p>
     <label class="tog"><input type="checkbox" id="opt-keep" ${newOpts.drawKeep ? 'checked' : ''}><span>Draw 3, keep 2<small>Shuffle the third card back into your deck.</small></span></label>
+    <label class="tog sel"><span>Axis head start</span><select id="opt-bonus">${[0, 1, 2, 3].map((n) => `<option value="${n}" ${((newOpts.bonusCards || {}).axis || 0) === n ? 'selected' : ''}>${n ? `+${n} card${n > 1 ? 's' : ''}` : 'None'}</option>`).join('')}</select></label>
+    <label class="tog"><input type="checkbox" id="opt-surprise" ${newOpts.surpriseAttack ? 'checked' : ''}><span>Pearl Harbor surprise attack<small>On turn 1 the Allies cannot intercept.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-home" ${newOpts.indestructibleHome ? 'checked' : ''}><span>Protected home airbase<small>A hit wipes what is on it instead of destroying it.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-convoy" ${newOpts.convoyDiscards === 1 ? 'checked' : ''}><span>Lighter convoy losses<small>A sunk convoy costs 1 card instead of 2.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-single" ${newOpts.singleMobilization ? 'checked' : ''}><span>Single mobilization per turn</span></label>
-    <label class="tog"><input type="checkbox" id="opt-exp" ${newOpts.expansion1942 || forced ? 'checked' : ''} ${forced ? 'disabled' : ''}><span>Include the 1942 expansion<small>${forced ? 'Required by this scenario.' : 'Adds 9 cards to each deck.'}</small></span></label>
-    <p class="note">Starting replaces the current game.</p>
-    <div class="actions">${S && S.phase ? btn('cancelNew', 'Back') : ''}${btn('startNew', 'Start game', { cls: 'go' })}</div>`;
+    <label class="tog"><input type="checkbox" id="opt-exp" ${newOpts.expansion1942 || forced ? 'checked' : ''} ${forced ? 'disabled' : ''}><span>Include the 1942 expansion<small>${forced ? 'Required by this scenario.' : 'Adds 9 cards to each deck.'}</small></span></label>`;
 }
 
 /* ---------------------------------------------------------------- render */
@@ -3954,7 +4257,7 @@ const START_ART = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgFBg
 const TABS = [['orders', 'Orders'], ['strategy', 'Strategy'], ['bases', 'Bases'], ['planes', 'Planes'], ['reports', 'Reports']];
 function statusHTML() {
   if (over()) return `<b>Game over</b> · ${S.winner === 'draw' ? 'Draw' : `<span class="s-${S.winner}">${SIDE[S.winner]} victory</span>`}`;
-  const st = S.stage === 'setup' ? 'Opening hands' : S.stage === 'mobilize' ? 'Mobilization' : S.stage === 'airbase' ? '<span class="st-airbase">Attack Missions</span>' : '<span class="st-carrier">Carrier Strikes</span>';
+  const st = S.stage === 'setup' ? 'Opening hands' : S.stage === 'mobilize' ? 'Mobilization' : S.stage === 'airbase' ? (two() ? (S.half === 'pm' ? '<span class="st-pm">Afternoon Attack Mission</span>' : '<span class="st-airbase">Morning Attack Mission</span>') : '<span class="st-airbase">Attack Missions</span>') : '<span class="st-carrier">Carrier Strikes</span>';
   const sc = scen(), lim = sc && sc.turnLimit ? `/${E.clockLimit(S)}` : '';
   return `Turn <b>${S.turnNo}${lim}</b> · <span class="s-${S.active}">${SIDE[S.active]}</span> · ${st}`;
 }
@@ -3970,7 +4273,7 @@ function frame(title, segs, body, o) {
         ${o.noMenu ? '<span></span>' : `<button class="iconbtn" data-btn="menu" aria-label="Menu">${ico('more', 22)}</button>`}</div>
       <div class="hdr-top"><span class="status">${o.noStatus ? `${esc(modeName())}` : statusHTML()}</span></div>
       <h1 class="ptitle">${title}</h1></header>
-    ${segH}<main class="main${o.stage ? ` stg stg-${o.stage === 'carrier' ? 'carrier' : 'airbase'}` : ''}" id="main">${o.stage ? `<div class="stg-rib"><span>${o.stage === 'carrier' ? 'Carrier Stage' : 'Airbase Stage'}</span><span>Stage ${o.stage === 'carrier' ? 2 : 1} of 2</span></div>` : ''}${body}</main>${nav}${o.overlay || ''}</div>`;
+    ${segH}<main class="main${o.stage ? ` stg stg-${o.stage}` : ''}" id="main">${o.stage ? `<div class="stg-rib"><span>${o.stage === 'carrier' ? 'Carrier Stage' : o.stage === 'pm' ? 'Afternoon' : two() ? 'Morning' : 'Airbase Stage'}</span><span>${two() ? `Mission ${o.stage === 'pm' ? 2 : 1} of 2` : `Stage ${o.stage === 'carrier' ? 2 : 1} of 2`}</span></div>` : ''}${body}</main>${nav}${o.overlay || ''}</div>`;
 }
 /* ---------------------------------------------------------------- export: a plain-text game report */
 const HKEY = 'awp-history';
@@ -4000,7 +4303,7 @@ function reportText() {
   for (const t of [...new Set(S.log.map((l) => l.t))].sort((a, b) => a - b)) {
     const g = S.log.filter((l) => l.t === t && l.cls !== 'turn'), who = (g.find((l) => l.who) || {}).who;
     L.push('', `Turn ${t}${who ? ' (' + SIDE[who] + ')' : ''}`);
-    for (const l of g) L.push(`  ${l.kind === 'raid' ? '[' + opName(l.stage) + '] ' : ''}${pubMsg(l)}${l.detail ? ' (' + l.detail + ')' : ''}`);
+    for (const l of g) L.push(`  ${l.kind === 'raid' ? '[' + opName(l.stage, l.half) + '] ' : ''}${pubMsg(l)}${l.detail ? ' (' + l.detail + ')' : ''}`);
   }
   return L.join('\n') + '\n';
 }
@@ -4052,21 +4355,30 @@ document.addEventListener('fullscreenchange', () => { fit(); render(); });
 document.addEventListener('webkitfullscreenchange', () => { fit(); render(); });
 function menuHTML() {
   if (!menu) return '';
-  return `<div class="sheet-wrap" data-btn="closeMenu"><div class="sheet" role="dialog" aria-label="Menu"><h3>${esc(modeName())}</h3>
-    <p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer` : 'Pass and play'} · turn ${S.turnNo}</p>
-    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${btn('toStart', 'Main menu')}${btn('openNew', 'New game')}
+  const inGame = S && S.phase && !showNew && !startScreen;
+  return `<div class="sheet-wrap" data-btn="closeMenu"><div class="sheet" role="dialog" aria-label="Menu"><h3>${inGame ? esc(modeName()) : 'Options'}</h3>
+    ${inGame ? `<p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer` : 'Pass and play'} · turn ${S.turnNo}</p>
+    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${btn('toStart', 'Main menu')}${btn('openNew', 'New game')}` : ''}
     <div class="label" style="margin-top:6px">Game options</div>
     ${btn('animToggle', `<span class="optrow"><span>Battle animations</span><span>${prefs.anim ? 'On' : 'Off'}</span></span>`)}
+    ${newOptsHTML()}
     ${btn('closeMenu', 'Close', { cls: 'go' })}</div></div>`;
+}
+function setThemeColor(c) {
+  let m = document.querySelector('meta[name="theme-color"]');
+  if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+  if (m.content !== c) m.content = c;
+  document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c;
 }
 function render() {
   repInline = false;
+  if (document.documentElement.classList.contains('mobile')) setThemeColor('#0e1a21');
   const app = document.getElementById('app');
   const keep = document.getElementById('main'), top = keep ? keep.scrollTop : 0, prevTab = app.dataset.tab;
-  if (rules) { app.innerHTML = frame('How to play', [['basics', 'Basics'], ['turn', 'Your turn'], ['combat', 'Combat'], ['modes', 'Modes']], rulesPage(rulesTab),
+  if (rules) { app.innerHTML = frame('How to play', [['basics', 'Basics'], ['turn', 'Your turn'], ['combat', 'Combat'], ['modes', 'Game types']], rulesPage(rulesTab),
     { noNav: true, noMenu: true, noStatus: !S || startScreen, seg: rulesTab, segBtn: 'rtab' }); const mn = document.getElementById('main'); if (mn) mn.scrollTop = 0; return; }
   if (startScreen) { app.innerHTML = startHTML(); return; }
-  if (showNew) { app.innerHTML = frame('New game', null, newHTML(), { noNav: true, noMenu: true, noStatus: true }); return; }
+  if (showNew) { app.innerHTML = frame('New game', null, newHTML(), { noNav: true, noStatus: true, overlay: menuHTML() }); return; }
   if (!prefs.anim && S) fightSeen = S.log.length;
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
@@ -4112,7 +4424,7 @@ function render() {
     o.overlay += preFightHTML();
   // Attack Mission / Carrier Strike screens take the stage colour.
   const stgPh = ['attack', 'intercept', 'combat', 'respond', 'allocate'].includes(S.phase) && !over() && !reps.length;
-  if (tab === 'orders' && stgPh) o.stage = S.combat ? S.combat.stage : S.stage;
+  if (tab === 'orders' && stgPh) o.stage = S.combat ? stk(S.combat.stage, S.combat.half) : stk(S.stage, S.half);
   if (tab === 'orders') html = frame('Orders', null, ordersPage(reps), o);
   else if (tab === 'strategy') html = frame('Strategy', [['sit', 'Situation report'], ['vc', 'Victory conditions']],
     sub.strategy === 'sit' ? clockHTML() + sitRep(m) + sitRep(E.other(m)) : victoryHTML(), Object.assign(o, { seg: sub.strategy }));
@@ -4131,8 +4443,10 @@ function render() {
 
 /* ---------------------------------------------------------------- input */
 function onBtn(id, arg) {
-  const c = S.combat;
+  const c = S && S.combat;
   switch (id) {
+    case 'newMode': newOpts.mode = arg; applyBalance(); break;
+    case 'newSide': newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; break;
     case 'tab': tab = arg; menu = false; break;
     case 'sub': sub[tab] = arg; break;
     case 'menu': menu = true; clearAsk = false; break;
@@ -4182,7 +4496,7 @@ function onBtn(id, arg) {
     case 'respond': return act({ type: 'respond', battle: ui.battle, sub: ui.sub || undefined });
     case 'noRespond': return act({ type: 'respond', battle: null });
     case 'alloc': { const split = {}; for (const m of c.mission) if (m.alive) split[m.uid] = ui.split[m.uid] || 'industry'; return act({ type: 'allocate', split }); }
-    case 'choose': return act({ type: 'choose', uids: ui.sel });
+    case 'choose': return act({ type: 'choose', uids: arg === 'none' ? [] : ui.sel });
   }
   render();
 }
@@ -4249,7 +4563,7 @@ document.addEventListener('change', (e) => {
   if (e.target.id === 'opt-style' && newOpts.ai) { newOpts.ai.profile = e.target.value; render(); }
   if (e.target.id === 'opt-surprise') newOpts.surpriseAttack = e.target.checked;
   if (e.target.id === 'opt-bonus') newOpts.bonusCards = +e.target.value ? { axis: +e.target.value } : undefined;
-  if (e.target.name === 'scen') { newOpts.scenario = e.target.value; applyBalance(); render(); }
+  if (e.target.name === 'scen' || e.target.id === 'opt-scen') { newOpts.scenario = e.target.value; applyBalance(); render(); }
 });
 
 window.claude?.hot?.snapshot?.(() => ({ S, hist, shownFor, seen, intel, tab, startScreen }));
