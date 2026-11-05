@@ -273,6 +273,27 @@ p { margin: 0; }
 .bombf { position: absolute; top: -4px; margin-left: -4px; opacity: 0; }
 .bombf svg path:first-child, .bombf svg path:nth-child(2) { fill: #e6e2d3; }
 .play .bombf { animation: fall .75s ease-in forwards; }
+/* Heavy AAA: flak bursts among the formation. Light AAA: tracers up from the target at one fighter, which goes down. */
+.fzone { position: relative; }
+.flak { position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 2;
+  background: radial-gradient(circle, #fff1b0 0 8%, #ffb43a 16%, #e0601e 24%, rgba(22,22,22,.95) 34%, rgba(35,35,35,.7) 52%, rgba(40,40,40,0) 71%); }
+.play .flak { animation: flak 1.1s ease-out forwards; } .done .flak { opacity: .35; transform: scale(1.6); filter: blur(1px); }
+@keyframes flak { 0% { opacity: 0; transform: scale(.2); } 18% { opacity: 1; transform: scale(1); } 100% { opacity: .35; transform: scale(1.7); filter: blur(1px); } }
+.aaachip { justify-self: center; padding: 4px 9px; border-radius: 3px; background: #c8281a; color: #fff; font: 700 11px/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; opacity: 0; }
+.play .aaachip { animation: fadeIn .3s calc(var(--t0, 0s) + .7s) forwards; } .done .aaachip { opacity: 1; }
+.mcard { position: relative; }
+.mcard.ldown .ldstamp { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%) rotate(-10deg) scale(1.5); padding: 2px 6px; border: 2px solid #c8281a; color: #c8281a;
+  background: rgba(230,226,211,.92); font: 800 13px/1 var(--f-display); white-space: nowrap; opacity: 0; z-index: 2; }
+.play .mcard.ldown .mart img { animation: downArt .6s 1s forwards; } .done .mcard.ldown .mart img { filter: grayscale(1) brightness(.55); transform: rotate(-6deg) scale(1.2); }
+.play .mcard.ldown .ldstamp { animation: stamp .3s 1.05s forwards; } .done .mcard.ldown .ldstamp { opacity: 1; transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
+.play .mcard.ldown { animation: hitShake .4s .85s; }
+.ltr { position: absolute; bottom: 0; width: 3px; height: 22px; margin-left: -1.5px; border-radius: 2px; background: linear-gradient(#fff6c2, #f0b23a); box-shadow: 0 0 6px #f0b23a; opacity: 0; }
+.play .ltr { animation: ltrUp .45s linear 2; }
+.mcard.ldown .mart { position: relative; }
+.mcard.ldown .ctr { position: absolute; bottom: -24px; width: 3px; height: 20px; border-radius: 2px; background: linear-gradient(#fff6c2, #f0b23a); box-shadow: 0 0 6px #f0b23a; opacity: 0; z-index: 1; }
+.play .mcard.ldown .ctr { animation: ctrUp .45s linear 2; }
+@keyframes ctrUp { 0% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-110px); } }
+@keyframes ltrUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
 @keyframes fall { 0% { opacity: 1; transform: translateY(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(66px); } }
 .tcard { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; padding: 14px 14px 64px; border-radius: 7px; background: var(--paper); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.5); overflow: hidden; }
 .tcard .tico { color: var(--ink); }
@@ -294,15 +315,15 @@ p { margin: 0; }
   display: flex; align-items: center; justify-content: center; border: 3px solid var(--ink); color: var(--ink); background: rgba(230,226,211,.9);
   font: 800 24px/1 var(--f-display); letter-spacing: .04em; opacity: 0; white-space: nowrap; }
 .tstamp.red { border-color: #c8281a; color: #c8281a; }
-.play .tcard { animation: hitShake .45s 1.15s; }
-.play .tcard .boom { animation: boom .9s 1.05s ease-out forwards; }
-.play .tcard .smoke { animation: smoke 1.6s 1.35s ease-out forwards; } .play .tcard .smoke.s2 { animation-delay: 1.5s; } .play .tcard .smoke.s3 { animation-delay: 1.65s; }
-.play .tbadge .sv0 { animation: fadeOut .3s 1.5s forwards; } .play .tbadge .sv1 { animation: fadeIn .3s 1.6s forwards; } .play .tminus { animation: fadeIn .25s 1.5s forwards; }
-.play .tcard.lost { animation: hitShake .45s 1.15s, sinkCard .8s 1.5s forwards; }
-.play .tstamp { animation: tstamp .35s 1.85s forwards; }
+.play .tcard { animation: hitShake .45s calc(var(--t0, 0s) + 1.15s); }
+.play .tcard .boom { animation: boom .9s calc(var(--t0, 0s) + 1.05s) ease-out forwards; }
+.play .tcard .smoke { animation: smoke 1.6s calc(var(--t0, 0s) + 1.35s) ease-out forwards; } .play .tcard .smoke.s2 { animation-delay: calc(var(--t0, 0s) + 1.5s); } .play .tcard .smoke.s3 { animation-delay: calc(var(--t0, 0s) + 1.65s); }
+.play .tbadge .sv0 { animation: fadeOut .3s calc(var(--t0, 0s) + 1.5s) forwards; } .play .tbadge .sv1 { animation: fadeIn .3s calc(var(--t0, 0s) + 1.6s) forwards; } .play .tminus { animation: fadeIn .25s calc(var(--t0, 0s) + 1.5s) forwards; }
+.play .tcard.lost { animation: hitShake .45s calc(var(--t0, 0s) + 1.15s), sinkCard .8s calc(var(--t0, 0s) + 1.5s) forwards; }
+.play .tstamp { animation: tstamp .35s calc(var(--t0, 0s) + 1.85s) forwards; }
 .done .tbadge .sv0 { opacity: 0; } .done .tbadge .sv1, .done .tminus { opacity: 1; } .done .tstamp { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); }
 .done .tcard .smoke { opacity: .5; } .done .tcard.lost { filter: grayscale(.7) brightness(.8); }
-.strike .after { } .play.strike .after { animation: fadeIn .35s 2.3s forwards; }
+.strike .after { } .play.strike .after { animation: fadeIn .35s calc(var(--t0, 0s) + 2.3s) forwards; }
 @keyframes fadeOut { to { opacity: 0; } }
 @keyframes tstamp { to { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); } }
 @keyframes sinkCard { to { filter: grayscale(.7) brightness(.8); } }
@@ -1619,7 +1640,7 @@ function apply0(state, action, inPlace) {
           if (!pc.card) fail('You have no Light AAA in hand.');
           const c = s.combat, m = c.mission.find((x) => x.uid === u[0] && x.alive);
           p.hand.splice(p.hand.indexOf(pc.card), 1); p.discard.push(pc.card); (s.publicUsed = s.publicUsed || []).push(pc.card);
-          m.alive = false; s.players[c.att].discard.push(m.uid); (s.downed = s.downed || []).push(m.uid);
+          m.alive = false; s.players[c.att].discard.push(m.uid); (s.downed = s.downed || []).push(m.uid); c.laaa = { uid: m.uid, card: pc.card };
           stats(s, c.att).lost.push(m.uid); const st = stats(s, c.def); st.flak = (st.flak || 0) + 1;
           { const so = curSortie(s, m.uid); if (so) so.shot = true; } setFate(s, m.uid, 'shot', Object.assign({ side: c.def }, c.target), 'attack');
           log(s, `The ${SIDE[pc.player]} player played Light AAA over ${nm(s, c.target.uid)}: ${nm(s, m.uid)} was shot down before it could attack.`, 'fight',
@@ -1784,7 +1805,12 @@ function goDamage(s) {
   const c = s.combat;
   const arriving = c.mission.filter((m) => m.alive);
   for (const m of arriving) { m.revealed = true; markSeen(s, m.uid); }
-  if (!arriving.length) { log(s, 'Every attacker was shot down. Nothing reached the target.', 'dmg'); s.after = 'land'; flush(s); return; }
+  if (!arriving.length) {
+    // Light AAA got the last one over the target: still show it in the bombing popup.
+    const lf = c.laaa && findFac(s.players[c.def], c.target.uid);
+    const extra = lf ? { strike: strikeInfo(s, { kind: 'airbase', uid: lf.f.uid, raid: 0, prior: turnDamage(s, lf.f), total: turnDamage(s, lf.f), def: facDef(s, lf.f), notes: ['Light AAA'], stacks: stacks(s, lf.f), res: 'held' }) } : {};
+    if (lf) c.strikePlanes = [];
+    log(s, 'Every attacker was shot down. Nothing reached the target.', 'dmg', extra); s.after = 'land'; flush(s); return; }
   // Light AAA: the defender may shoot down one fighter or fighter-bomber over an airbase before the damage counts.
   if (c.target.kind === 'airbase' && !c.aaaAsked) {
     c.aaaAsked = true;
@@ -1896,7 +1922,7 @@ function facilityAttack(s, arriving) {
     { const pb = pmBonus(s, f, arriving); if (pb.n) { dmg += pb.n; notes.push(pb.note); } }
     if (c.boost) { const b = c.boost.perAircraft ? Math.min(c.boost.amount, arriving.length) : c.boost.amount; dmg += b; notes.push(`${nm(s, c.boost.uid)} +${b}${c.boost.perAircraft ? ` (${arriving.length} aircraft reached the target)` : ''}`); }
     const guns = 2 * aaaOnBase(s, f);
-    if (guns && dmg) { const cut = Math.min(guns, dmg); dmg -= cut; notes.push(`Heavy AAA −${cut}`); }
+    if (guns && dmg) { const cut = Math.min(guns, dmg); dmg -= cut; notes.push(`Heavy AAA −${cut}`); c.aaaCut = cut; }
   } else {
     const mult = c.stage === 'carrier' ? 2 : 1;
     for (const m of arriving) dmg += D(s, m.uid).car * mult;
@@ -1953,7 +1979,8 @@ function revealSecret(s, p, facUids) {
 /* Summary of an attack for the bombing popup: the formation over the target and what it did. */
 function strikeInfo(s, o) {
   const c = s.combat;
-  return Object.assign({ stage: c.stage, half: c.half, att: c.att, side: c.def, planes: c.strikePlanes || [], raidNo: s.raidNo }, o);
+  // Heavy AAA's cut and the fighter Light AAA shot down over the target, for the bombing popup's flak and tracers.
+  return Object.assign({ stage: c.stage, half: c.half, att: c.att, side: c.def, planes: c.strikePlanes || [], raidNo: s.raidNo, aaa: c.aaaCut || 0, laaa: c.laaa || null }, o);
 }
 function destroyFacility(s, side, f, kind) {
   const p = s.players[side], list = facs(p, kind);
@@ -2079,7 +2106,7 @@ function flush(s) {
     const tk = c.target.kind === 'resources' ? (r.convoy >= r.industry ? 'convoy' : 'industry') : c.target.kind;
     const sMax = tk === 'convoy' ? CONVOY_MAX : industryMax(s), got = tk === 'convoy' ? r.convoy : r.industry, aaa = tk === 'convoy' ? r.aaaC : r.aaaI;
     log(s, `${n} attacking aircraft reached the target. ${SIDE[c.def]} takes ${parts.join(' and ') || 'no damage'}.`, 'dmg', { detail: now.join('. ') + (now.length ? '.' : ''),
-      strike: strikeInfo(s, { kind: tk, raid: got, before: before[tk], after: Math.min(sMax, before[tk] + got), max: sMax, notes: aaa ? [`Heavy AAA −${aaa}`] : [],
+      strike: strikeInfo(s, { kind: tk, raid: got, before: before[tk], after: Math.min(sMax, before[tk] + got), max: sMax, notes: aaa ? [`Heavy AAA −${aaa}`] : [], aaa: aaa || 0,
         res: tk === 'convoy' && before.convoy + got >= CONVOY_MAX ? 'sunk' : tk === 'industry' && before.industry + got >= sMax ? 'destroyed' : got ? 'hit' : 'held' }) });
     if (r.industry) raidStat(s, c.att, 'industry').dmg += r.industry;
     if (r.convoy) raidStat(s, c.att, 'convoy').dmg += r.convoy;
@@ -3336,7 +3363,8 @@ function fightHTML(f) {
 function strikeHTML(f) {
   const k = f.l.strike, mine = me();
   const done = fightDone[fdKey(f.i)];
-  if (!done) { const key = fdKey(f.i); setTimeout(() => { fightDone[key] = true; }, 2800); }
+  const t0 = k.laaa ? 1.4 : 0; // Light AAA opens the sequence; the bombing follows
+  if (!done) { const key = fdKey(f.i); setTimeout(() => { fightDone[key] = true; }, 2800 + t0 * 1000); }
   const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return true; return false; })();
   const n = k.planes.length;
   const mini = (p) => { const d = D(p.uid), id = S.cards[p.uid], a = ART[id] || ART[ART_SAME[id]];
@@ -3346,7 +3374,16 @@ function strikeHTML(f) {
   // Bombs from each bomber (not the escorts), spread across the drop zone.
   const bombers = k.planes.filter((p) => !p.escort);
   const bombs = bombers.flatMap((p, i) => [0, 1].map((j) => { const x = ((i + 0.5) / bombers.length) * 100 + (j ? 4 : -4);
-    return `<span class="bombf" style="left:${x.toFixed(1)}%;animation-delay:${(0.15 + i * 0.12 + j * 0.18).toFixed(2)}s">${BOMB(18)}</span>`; })).join('');
+    return `<span class="bombf" style="left:${x.toFixed(1)}%;animation-delay:${(t0 + 0.15 + i * 0.12 + j * 0.18).toFixed(2)}s">${BOMB(18)}</span>`; })).join('');
+  // Light AAA: the fighter it shot down, with tracers rising from the target.
+  const ld = k.laaa ? (() => { const d = D(k.laaa.uid), id = S.cards[k.laaa.uid], a = ART[id] || ART[ART_SAME[id]];
+    return `<div class="mcard ldown ${d.side}"><div class="mrail">${flag(natOf(k.laaa.uid), 15)}<span>${esc(shortNm(k.laaa.uid))}</span></div>
+      <div class="mart">${a ? `<img src="${a}" alt="">` : ico('planes', 26)}${[22, 40, 58, 76].map((x, i) => `<span class="ctr" style="left:${x}%;animation-delay:${(0.2 + i * 0.1).toFixed(2)}s"></span>`).join('')}</div><div class="mval"><span>Light AAA</span></div><span class="ldstamp">SHOT DOWN</span></div>`; })() : '';
+  const ltr = k.laaa ? [8, 22, 36, 50, 64, 78, 92].map((x, i) => `<span class="ltr" style="left:${x}%;animation-delay:${(0.1 + (i % 4) * 0.12).toFixed(2)}s"></span>`).join('') : '';
+  // Heavy AAA: flak bursts around the formation.
+  const flak = k.aaa ? [[12, 20], [70, 12], [40, 55], [88, 48], [25, 78], [58, 30], [80, 85], [8, 60]].map(([x, y], i) =>
+    `<span class="flak" style="left:${x}%;top:${y}%;animation-delay:${(t0 + 0.05 + i * 0.13).toFixed(2)}s"></span>`).join('') : '';
+  const nAll = n + (k.laaa ? 1 : 0);
   const kindName = { airbase: 'Airbase', carrier: 'Carrier', convoy: 'Convoy', industry: 'Industry' }[k.kind] || 'Target';
   const isFac = k.kind === 'airbase' || k.kind === 'carrier';
   const tname = k.uid ? D(k.uid).name : `${SIDE[k.side]} ${kindName}`;
@@ -3361,10 +3398,11 @@ function strikeHTML(f) {
   const title = { destroyed: `${tname} destroyed`, sunk: `${tname} sunk`, crippled: `${tname} crippled`, wiped: `${tname} wiped out`, hit: `${tname} hit for ${k.raid}` }[k.res] || `${tname} held`;
   const good = k.att === mine ? red || k.res === 'hit' : !(red || k.res === 'hit');
   const sub = [`${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
-  return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results">
+  return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s">
     <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage, k.half)}</div>
-    <div class="formation" style="--mw:${n <= 4 ? 140 : n <= 6 ? 108 : 82}px">${k.planes.map(mini).join('')}</div>
-    <div class="dropzone">${bombs}</div>
+    <div class="fzone"><div class="formation" style="--mw:${nAll <= 4 ? 140 : nAll <= 6 ? 108 : 82}px">${ld}${k.planes.map(mini).join('')}</div>${flak}</div>
+    ${k.aaa ? `<span class="aaachip">Heavy AAA −${k.aaa} damage</span>` : ''}
+    <div class="dropzone">${bombs}${ltr}</div>
     <div class="tcard ${red ? 'lost' : ''}"><div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' ? 'convoy' : k.kind === 'industry' ? 'industry' : 'airbase', 34)}</div>
       <div class="tname"><b>${esc(tname)}</b><small>${esc(sub.join(' · '))}</small></div>${badge}
       <svg class="boom" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>
