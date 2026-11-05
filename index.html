@@ -661,7 +661,7 @@ Object.assign(CARD_DB, {
   p47x: F({ name: 'P-47D 348th Fighter Group', side: 'allied', service: 'USAAF', role: 'Fighter-Bomber', elite: true, a2a: 6, bomb: 3, def: 6, scenario: 'wewak',
           abilities: ['strafe'], text: 'Strafing: when it reaches an airbase it attacks, every aircraft parked there is destroyed, whether or not the airbase falls. Neel Kearby\u2019s group; on 11 October 1943 he shot down six aircraft over Wewak in one sweep.' }),
   k68: F({ name: 'Ki-61 68th Sentai', side: 'axis', service: 'JAAF', role: 'Fighter', elite: true, a2a: 6, def: 6, model: 'Ki-61', scenario: 'wewak',
-          abilities: ['pressOn'], text: 'Press on: when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again at once. The Tony group that defended Wewak against the Fifth Air Force in 1943.' }),
+          abilities: ['pressOn'], text: 'Press on: when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again at once, now scouted (−1 DEF). The Tony group that defended Wewak against the Fifth Air Force in 1943.' }),
   bong: { name: 'Ace: Richard Bong', side: 'allied', kind: 'battle', mod: { a2a: 1 }, req: 'P-38', scenario: 'wewak',
           text: 'Combat: +1 to a P-38F Lightning\u2019s Air to Air. The top American ace of the war flew P-38s from Dobodura with the 9th Fighter Squadron.' },
   takeuchi: { name: 'Ace: Shogo Takeuchi', side: 'axis', kind: 'battle', mod: { a2a: 1 }, req: 'Ki-61', scenario: 'wewak',
@@ -674,9 +674,9 @@ Object.assign(CARD_DB, {
   but:      { name: 'But', side: 'axis', kind: 'airbase', cap: 2, def: 6, scenario: 'wewak', text: 'One of the four Wewak airfields.' },
   dagua:    { name: 'Dagua', side: 'axis', kind: 'airbase', cap: 2, def: 6, scenario: 'wewak', text: 'One of the four Wewak airfields.' },
   radarAl: { name: 'Radar', side: 'allied', kind: 'war', attach: 'ownAirbase', abilities: ['radar'], scenario: 'wewak',
-              text: 'Mobilization: attach to an airbase. Whenever the enemy attacks any of your bases, 2 of the incoming aircraft are revealed (scouted) before you scramble. Lost if that airbase is destroyed.' },
+              text: 'Mobilization: attach to an airbase. When the enemy attacks that airbase, 2 of the incoming aircraft are revealed (scouted) before you scramble; when it attacks any other base or your Convoy, 1 is. Lost if that airbase is destroyed.' },
   radarAx: { name: 'Radar', side: 'axis', kind: 'war', attach: 'ownAirbase', abilities: ['radar'], scenario: 'wewak',
-              text: 'Mobilization: attach to an airbase. Whenever the enemy attacks any of your bases, 2 of the incoming aircraft are revealed (scouted) before you scramble. Lost if that airbase is destroyed.' },
+              text: 'Mobilization: attach to an airbase. When the enemy attacks that airbase, 2 of the incoming aircraft are revealed (scouted) before you scramble; when it attacks any other base or your Convoy, 1 is. Lost if that airbase is destroyed.' },
   laaaAl: { name: 'Light AAA', side: 'allied', kind: 'battle', special: 'lightAAA', scenario: 'wewak',
               text: 'Play when an enemy attack reaches one of your airbases: shoot down one fighter or fighter-bomber over the target before the damage counts. It counts toward your air war.' },
   laaaAx: { name: 'Light AAA', side: 'axis', kind: 'battle', special: 'lightAAA', scenario: 'wewak',
@@ -711,27 +711,28 @@ const SCENARIOS = {
       'guadalcanal', 'darwin', 'leyte', 'rabaul', 'kavieng'],
     // Afternoon bonus: +1 per aircraft over an airbase target (tested against doubled bombs, too strong at 70% Axis
     // and 6-turn games, and +1 per parked aircraft, which barely changed play). With it, about 30% of missions fly in the afternoon.
-    // Radar, Light AAA and Airfield Engineers lengthen the game (9.6 -> 10.5 turns at balance).
-    // Balanced by self-play: Wewak fields Defense 8, Port Moresby 13, Dobodura 11, 3 fields to win,
-    // 14-kill air war with ground kills at 1/2; Axis 68th Sentai, Ace Takeuchi, 1 Engineers and 1 Light AAA (53.6 / 51.5%, 10.4 turns); 348th BMB 3 with strafing; Allies Ace Bong, 1 Engineers and 2 Light AAA.
+    // Rebalanced after playtests (computer tactics for two-mission days, Nov 2026): fields Defense 9, Port Moresby 15,
+    // 16-kill air war (ground kills 1/2), two Ki-61s (a Tony and the 68th Sentai), no Axis Engineers, an extra B-25 and A-20
+    // for the Allies; convoys sink at 10. Self-play with the new tactics: see the BALANCE note in ui.html.
     pmBonus: 'each',
-    turnLimit: 14, stackAirbaseDamage: 'all', defs: { wewak: 8, boram: 8, but: 8, dagua: 8, moresby: 13, dobodura: 11 },
+    turnLimit: 14, stackAirbaseDamage: 'all', defs: { wewak: 9, boram: 9, but: 9, dagua: 9, moresby: 15, dobodura: 11 },
     timeoutWinner: 'axis', timeoutText: 'The year is over and the Wewak airfields are still operating.',
-    convoyEffects: { allied: { base: 'moresby', fortDelta: -2, text: 'Supplies for Port Moresby went down with the convoy.' },
-                     axis: { bases: ['wewak', 'boram', 'but', 'dagua'], fortDelta: -1, text: 'The Wewak fields lost their fuel and spares with the convoy.' } },
-    victory: { holdBase: { allied: 'moresby' }, destroyBases: { axis: { list: ['wewak', 'boram', 'but', 'dagua'], n: 3 } }, kills: 14, groundKill: 0.5 },
-    victoryText: 'The Allies win by destroying three of the four Wewak airfields (Wewak, Boram, But and Dagua, Defense 8 each). The Axis wins by destroying Port Moresby (Defense 13). Either side wins the air war at 14 enemy aircraft destroyed; an aircraft destroyed on the ground counts ½. If the Wewak fields still hold after turn 14, the Axis wins. Each turn has a Morning and an Afternoon Attack Mission; an Afternoon Attack Mission on an airbase gets +1 for each aircraft that reaches it. Damage to a base adds up over the day. No carriers.',
+    convoyMax: 10, // convoys sink at 10 here, and hurt more: a real alternative to bombing the fields
+    convoyEffects: { allied: { base: 'moresby', fortDelta: -3, text: 'Supplies for Port Moresby went down with the convoy.' },
+                     axis: { bases: ['wewak', 'boram', 'but', 'dagua'], fortDelta: -2, text: 'The Wewak fields lost their fuel and spares with the convoy.' } },
+    victory: { holdBase: { allied: 'moresby' }, destroyBases: { axis: { list: ['wewak', 'boram', 'but', 'dagua'], n: 3 } }, kills: 16, groundKill: 0.5 },
+    victoryText: 'The Allies win by destroying three of the four Wewak airfields (Wewak, Boram, But and Dagua, Defense 9 each). The Axis wins by destroying Port Moresby (Defense 15). Either side wins the air war at 16 enemy aircraft destroyed; an aircraft destroyed on the ground counts ½. If the Wewak fields still hold after turn 14, the Axis wins. Each turn has a Morning and an Afternoon Attack Mission; an Afternoon Attack Mission on an airbase gets +1 for each aircraft that reaches it. Damage to a base adds up over the day. No carriers. Convoys sink at 10 damage: a sunk Axis convoy costs every Wewak field 2 Defense, a sunk Allied convoy costs Port Moresby 3.',
     sides: {
       allied: { home: null, inPlay: ['moresby', 'dobodura', 'tsili'], hand: ['p38', 'p47', 'p40e', 'b25', 'a20'],
-        special: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'laaaAl', 'engAl'], specialInDeck: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'engAl'], extra: { p47: 2, p38: 1, b25: 2, a20: 1, p40e: 1, p39: 1 } },
+        special: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'laaaAl', 'engAl'], specialInDeck: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'engAl'], extra: { p47: 2, p38: 1, b25: 3, a20: 2, p40e: 1, p39: 1 } },
       axis: { home: null, inPlay: ['wewak', 'boram', 'but', 'dagua'], hand: ['oscar', 'oscar', 'tony', 'lily', 'sally'],
-        special: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx', 'engAx'], specialInDeck: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx', 'engAx'], extra: { oscar: 4, tony: 2, lily: 2, sally: 1, nick: 1 } },
+        special: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx'], specialInDeck: ['k68', 'takeuchi', 'dispersal', 'radarAx', 'laaaAx'], extra: { oscar: 4, lily: 2, sally: 1, nick: 1 } },
     },
   },
   guadalcanal: {
     name: "Guadalcanal '43", date: 'April–December 1943', needs1942: true, first: 'axis',
     blurb: 'Guadalcanal is lost to Japan, but Henderson Field is now the springboard for the Allied push up the Solomons toward Rabaul. Yamamoto answers with Operation I-Go. Corsairs, Lightnings and Flying Fortresses meet Tonys, Tojos and veteran Zero units in a year-long battle for the air.',
-    // Two objectives, no carriers in play. Alternate path: win the air war by shooting down 14 enemy aircraft.
+    // Two objectives, no carriers in play. Alternate path: win the air war by shooting down 16 enemy aircraft.
     // If neither objective falls before the clock runs out, Rabaul has held (it was never taken) and the Axis wins.
     resourceTargets: ['convoy'], noIndustry: true,
     // 1943 rosters. Out: aircraft retired from the front by 1943 (F2A, F4F-3, TBD, SB2U, P-40B, A5M, Ki-27),
@@ -829,6 +830,7 @@ const COSTS = {
 const costOf = (id) => COSTS[id] || 1;
 
 const INDUSTRY_MAX = 60, CONVOY_MAX = 15, CONVOY_PENALTY = 4;
+const convoyMax = (s) => (scenarioOf(s) || {}).convoyMax || CONVOY_MAX;
 const VET_MISSIONS = 5; // an aircraft that has dropped on the target this many times is a Veteran (callout only)
 const ACE_KILLS = 5; // a single aircraft with this many kills is an Ace
 /* Optional Ace bonus (options.aceBonus): 'flat' = +1 A2A / +1 DEF for every Ace;
@@ -1416,12 +1418,13 @@ function apply0(state, action, inPlace) {
       shuffle(s, mission);
       s.combat = { att: actor, def: other(actor), stage: s.stage, half: twoMissions(s) ? s.half || 'am' : undefined, target: { kind: t.kind, uid: t.uid }, mission, intercept: [], turn: 'def', eng: null, last: null, responder: null, history: [], boost };
       if (boost) { p.hand.splice(p.hand.indexOf(boost.uid), 1); p.discard.push(boost.uid); (s.publicUsed = s.publicUsed || []).push(boost.uid); }
-      // Radar: the defender sees 2 of the incoming aircraft when its bases are attacked.
-      { const dp = s.players[other(actor)], rf = [...dp.airbases, ...dp.carriers].find((f) => f.war.some((w) => has(D(s, w), 'radar')));
-        if (rf && (t.kind === 'airbase' || t.kind === 'carrier')) {
-          const pick = shuffle(s, [...mission]).slice(0, 2);
+      // Radar: the defender sees 2 incoming aircraft when the base it is on is attacked, 1 for any other base or the Convoy.
+      { const dp = s.players[other(actor)], rfs = [...dp.airbases, ...dp.carriers].filter((f) => f.war.some((w) => has(D(s, w), 'radar')));
+        const rf = rfs.find((f) => f.uid === t.uid) || rfs[0];
+        if (rf && (t.kind === 'airbase' || t.kind === 'carrier' || t.kind === 'convoy')) {
+          const pick = shuffle(s, [...mission]).slice(0, rf.uid === t.uid ? 2 : 1);
           for (const m of pick) { m.revealed = true; markSeen(s, m.uid); }
-          s.radarNote = `Radar at ${nm(s, rf.uid)} picked up ${pick.map((m) => nm(s, m.uid)).join(' and ')}.`;
+          s.radarNote = `Radar at ${nm(s, rf.uid)} picked up ${pick.map((m) => nm(s, m.uid)).join(' and ')}${rf.uid === t.uid ? '' : ' (1 aircraft: Radar sees 2 only over its own base)'}.`;
         } }
       const tName = RES[t.kind] || `${t.kind} ${nm(s, t.uid)}`;
       s.raidNo = (s.raidNo || 0) + 1;
@@ -1524,9 +1527,11 @@ function apply0(state, action, inPlace) {
         if (!tgt || !strikeable(s, tgt)) fail('That card cannot be struck.');
       } else fail('Unknown engagement.');
       const p = s.players[side];
+      // Press on: the 68th Sentai's second attack comes after it has been seen, so it fights scouted (-1 DEF).
+      const press = !!c.mustGo && own.uid === c.mustGo;
       c.mustGo = null;
       // First strike only counts for an aircraft that starts the fight unseen (not already scouted).
-      c.eng = { mode: A_.mode, init: { side, uid: own.uid }, tgt: { side: other(side), uid: tgt.uid }, battles: {}, fsOK: !own.revealed };
+      c.eng = { mode: A_.mode, init: { side, uid: own.uid }, tgt: { side: other(side), uid: tgt.uid }, battles: {}, fsOK: !own.revealed, press };
       if (A_.battle) {
         if (!p.hand.includes(A_.battle) || !battleFits(s, A_.battle, own.uid)) fail(`That battle card can't be used on ${nm(s, own.uid)}.`);
         p.hand.splice(p.hand.indexOf(A_.battle), 1);
@@ -1716,7 +1721,7 @@ function engagementPreview(s, extra) {
     const foe = D(s, (who === e.init ? e.tgt : e.init).uid);
     const icpt = d.interceptor && foe.type === 'bomber' ? d.interceptor : 0;
     const am = aceMod(s, who.uid);
-    return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + abilityA2A(s, who.uid, who.side), def: d.def + (b.def || 0) + am.def - (isTarget && e.mode === 'strike' ? 1 : 0), icpt, ace: !!(am.a2a || am.def), struck: isTarget && e.mode === 'strike' };
+    return { a2a: d.a2a + (b.a2a || 0) + icpt + am.a2a + abilityA2A(s, who.uid, who.side), def: d.def + (b.def || 0) + am.def - (isTarget && e.mode === 'strike' ? 1 : 0) - (!isTarget && e.press ? 1 : 0), icpt, ace: !!(am.a2a || am.def), struck: (isTarget && e.mode === 'strike') || (!isTarget && !!e.press) };
   };
   const I = stat(e.init, false), T = stat(e.tgt, true);
   let killT = I.a2a >= 1 && I.a2a >= T.def, killI = T.a2a >= 1 && T.a2a >= I.def;
@@ -1782,7 +1787,7 @@ function resolveEngagement(s) {
         && c.mission.some((m) => D(s, m.uid).type === 'bomber') && !me.again
         && (c.mission.some((m) => m.alive && !m.revealed && !m.safe) || c.mission.some((m) => strikeable(s, m)))) {
       me.again = true; me.spent = false; c.mustGo = who.uid;
-      log(s, `${nm(s, who.uid)} shot down an escort and presses on: it attacks again at once.`, 'fight', { side: who.side });
+      log(s, `${nm(s, who.uid)} shot down an escort and presses on: it attacks again at once, now scouted (−1 DEF).`, 'fight', { side: who.side });
     }
   }
   // An Ace's side draws 1 card (options.aceDraw, on unless set to false).
@@ -2055,7 +2060,7 @@ function damageConvoy(s, side, n) {
   if (!n) return;
   const p = s.players[side];
   p.convoy += n;
-  if (p.convoy >= CONVOY_MAX) {
+  if (p.convoy >= convoyMax(s)) {
     p.convoy = 0; p.convoysLost = (p.convoysLost || 0) + 1;
     raidStat(s, other(side), 'convoy').kills++;
     const n = s.options.convoyDiscards ?? 2, cards = `${n} card${n === 1 ? '' : 's'}`;
@@ -2102,12 +2107,12 @@ function flush(s) {
     const before = { industry: p.industry, convoy: p.convoy };
     const now = [];
     if (r.industry || r.aaaI) now.push(`Industry damage is now ${Math.min(industryMax(s), p.industry + r.industry)}/${industryMax(s)}`);
-    if ((r.convoy || r.aaaC) && p.convoy + r.convoy < CONVOY_MAX) now.push(`Convoy damage is now ${p.convoy + r.convoy}/15`);
+    if ((r.convoy || r.aaaC) && p.convoy + r.convoy < convoyMax(s)) now.push(`Convoy damage is now ${p.convoy + r.convoy}/${convoyMax(s)}`);
     const tk = c.target.kind === 'resources' ? (r.convoy >= r.industry ? 'convoy' : 'industry') : c.target.kind;
-    const sMax = tk === 'convoy' ? CONVOY_MAX : industryMax(s), got = tk === 'convoy' ? r.convoy : r.industry, aaa = tk === 'convoy' ? r.aaaC : r.aaaI;
+    const sMax = tk === 'convoy' ? convoyMax(s) : industryMax(s), got = tk === 'convoy' ? r.convoy : r.industry, aaa = tk === 'convoy' ? r.aaaC : r.aaaI;
     log(s, `${n} attacking aircraft reached the target. ${SIDE[c.def]} takes ${parts.join(' and ') || 'no damage'}.`, 'dmg', { detail: now.join('. ') + (now.length ? '.' : ''),
       strike: strikeInfo(s, { kind: tk, raid: got, before: before[tk], after: Math.min(sMax, before[tk] + got), max: sMax, notes: aaa ? [`Heavy AAA −${aaa}`] : [], aaa: aaa || 0,
-        res: tk === 'convoy' && before.convoy + got >= CONVOY_MAX ? 'sunk' : tk === 'industry' && before.industry + got >= sMax ? 'destroyed' : got ? 'hit' : 'held' }) });
+        res: tk === 'convoy' && before.convoy + got >= convoyMax(s) ? 'sunk' : tk === 'industry' && before.industry + got >= sMax ? 'destroyed' : got ? 'hit' : 'held' }) });
     if (r.industry) raidStat(s, c.att, 'industry').dmg += r.industry;
     if (r.convoy) raidStat(s, c.att, 'convoy').dmg += r.convoy;
     damageIndustry(s, c.def, r.industry);
@@ -2236,7 +2241,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -2339,7 +2344,7 @@ function value(s, u) {
 /* Value of convoy damage in "Industry points", given the discard rule in force. */
 function convoyWeight(s) {
   const n = s.options.convoyDiscards ?? 2;
-  return (4 + 3 * n) / E.CONVOY_MAX;
+  return (4 + 3 * n) / E.convoyMax(s);
 }
 
 /* ------------------------------------------------------------------ setup / drafting */
@@ -2612,6 +2617,9 @@ function planRaid(s, side, prof) {
     }
   }
   options.sort((a, b) => b.value - a.value);
+  // Two missions a day, the side that wins on the clock: no attacks except one that wins, or a cheap, sure kill.
+  if (E.twoMissions(s) && holdout(s, side) && prof.doctrine !== false)
+    for (let i = options.length - 1; i >= 0; i--) { const x = options[i]; if (!(x.value >= WIN_VALUE * 0.5 || (x.lost <= 0.5 && x.value >= 8))) options.splice(i, 1); }
   const o = options[0];
   if (!o || !o.cards.length) return null;
   if ((prof.waiting || prof.waitGate) && prof.waitGate !== false) {
@@ -2646,6 +2654,7 @@ function planRaid(s, side, prof) {
 function planSweep(s, side, prof) {
   // The waiting player sweeps in scenarios (cheap kills count there), not in the long Campaign (self-play: stronger without).
   if (prof.sweep === false || (prof.waiting && !E.scenarioOf(s))) return null;
+  if (E.twoMissions(s) && holdout(s, side) && prof.doctrine !== false) return null;
   const p = s.players[side], op = s.players[E.other(side)];
   const kind = E.launchKind(s), cap = E.availCap(s, p, kind);
   const land = s.stage === 'airbase';
@@ -2706,7 +2715,7 @@ function convoyFinisher(s, side, prof) {
   if (!fx || !fx.clock || !E.attackTargets(s).some((t) => t.kind === 'convoy')) return null;
   const p = s.players[side], kind = E.launchKind(s), cap = E.availCap(s, p, kind);
   const mult = s.stage === 'carrier' && s.options.convoyCarrierDouble !== false ? 2 : 1;
-  const remaining = E.CONVOY_MAX - op.convoy + 2 * op.resWar.convoy.length;
+  const remaining = E.convoyMax(s) - op.convoy + 2 * op.resWar.convoy.length;
   const elig = p.hand.filter((u) => E.launchEligible(s, u));
   // Airbase Stage: land-based bombers go now; carrier aircraft wait for the Carrier Stage, where Convoy doubles.
   const now = elig.filter((u) => D(s, u).conv && (s.stage === 'carrier' || !E.carrierCapable(D(s, u)) || !p.carriers.length))
@@ -2729,6 +2738,149 @@ function convoyFinisher(s, side, prof) {
   const ob = raidOutlook(s, now, (d) => d.conv * mult, enemyThreat(s, side, 'convoy'));
   if (ob.delivered >= remaining + 1) return { type: 'launch', target: { kind: 'convoy' }, cards: now };
   return null;
+}
+
+
+/* ------------------------------------------------------------------ two missions a day (Wewak '43)
+   Tactics from playtesting. The side that wins on the clock defends and lets the other side come to it.
+   Interceptors that go up in the morning are on the ground in the afternoon, so small morning raids get a look
+   from an expendable fighter and no more; the afternoon gets everything. Expendable fighters lead into unknown
+   formations; the best fighters (Ki-61s, elites) strike what has been scouted, after the escorts have fought.
+   The attacking side builds up, then runs a one-two: fighter-bombers in the morning draw the interceptors,
+   bombers in the afternoon finish the field. Landed aircraft are spread out. */
+const holdout = (s, side) => { const sc = E.scenarioOf(s); return !!(sc && sc.timeoutWinner === side); };
+const precious = (s, u) => { const d = D(s, u); return isFighter(d) && (!!d.elite || d.a2a >= 6); };
+const fWorth = (s, u) => { const d = D(s, u); return d.a2a + d.def + (d.interceptor ? 2 : 0) + (precious(s, u) ? 8 : 0); };
+const bombVal = (s, u) => (D(s, u).bomb || 0) + (E.armedWith(s, u) ? 4 : 0);
+
+function dayIntercept(s, side, usable, mustStop) {
+  const c = s.combat, n = c.mission.length, am = c.half !== 'pm';
+  const fighters = usable.filter((u) => D(s, u).a2a >= 3);
+  const cheap = fighters.filter((u) => !precious(s, u)).sort((a, b) => fWorth(s, a) - fWorth(s, b));
+  const best = fighters.filter((u) => precious(s, u)).sort((a, b) => fWorth(s, b) - fWorth(s, a));
+  let want, order;
+  if (!am) { want = Math.max(n + 1, mustStop); order = [...cheap.slice(0, 1), ...best, ...cheap.slice(1)]; }
+  else if (n <= 2 && !mustStop) { want = 1; order = cheap; } // a small morning raid: one look, no more
+  else {
+    // A bigger morning raid: a look with the cheap fighters, and half the best ones at most, unless the base is in danger.
+    want = Math.max(Math.min(n, 3), mustStop);
+    const spareBest = mustStop > cheap.length ? best : best.slice(0, Math.floor(best.length / 2));
+    order = [...cheap, ...spareBest];
+  }
+  const group = [];
+  for (const u of order) { if (group.length >= want) break; if (E.planIntercept(s, group.concat(u))) group.push(u); }
+  return { type: 'intercept', cards: group };
+}
+
+function dayDefense(s, side, prof) {
+  const c = s.combat, p = s.players[side];
+  const mine = c.intercept.filter((e) => E.canInitiate(s, e));
+  const strikes = c.mission.filter((m) => E.strikeable(s, m));
+  const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
+  const dmgOf = (d) => Math.max(d.bomb || 0, d.conv || 0);
+  // Could what is still flying destroy the target? Hidden aircraft count as a typical bomber.
+  const alive = c.mission.filter((m) => m.alive && !m.safe);
+  const tf = (c.target.kind === 'airbase') && E.findFac(p, c.target.uid);
+  const pot = alive.reduce((x, m) => x + (m.revealed ? bombVal(s, m.uid) : 3), 0) + (c.half === 'pm' ? alive.length : 0);
+  const danger = tf ? pot >= E.damageNeeded(s, tf.f) : c.target.kind === 'convoy' ? pot >= E.convoyMax(s) - p.convoy : false;
+  // A fighter sweep that can't hurt the target: break off and save the fighters.
+  const shown = c.mission.filter((m) => m.revealed);
+  if (shown.length >= 2 && shown.every((m) => !dmgCapable(D(s, m.uid))) && !danger) return { type: 'endCombat' };
+  // After a fight our aircraft is scouted (-1 DEF): could an escort that hasn't fought yet shoot it down then?
+  const exposedAfter = (own, tUid) => { const d = D(s, own); return c.mission.some((m) => m.alive && !m.spent && m.uid !== tUid
+    && (m.revealed ? isFighter(D(s, m.uid)) && D(s, m.uid).a2a >= d.def - 1 : true)); };
+  let best = null;
+  for (const own of mine) for (const t of strikes) for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
+    const td = D(s, t.uid), r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
+    if (!r.killB) continue;
+    const big = dmgCapable(td) ? dmgOf(td) + (E.armedWith(s, t.uid) ? 4 : 0) : 0;
+    let score = 10 + (big ? 4 + big * 1.5 : td.a2a * 1.2) - (bc ? 2 : 0);
+    if (r.killA) score -= precious(s, own.uid) ? 14 : big >= 4 ? 6 : 12;
+    if (precious(s, own.uid)) {
+      if (exposedAfter(own.uid, t.uid)) score -= 4;
+      // Let a lesser fighter take a kill it can make and survive.
+      if (mine.some((o) => o !== own && !precious(s, o.uid) && (() => { const q = duel(eff(s, o.uid, t.uid, null, false), eff(s, t.uid, o.uid, null, true, true)); return q.killB && !q.killA; })())) score -= 3;
+    }
+    if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
+  }
+  if (best && best.score > 6) return best.action;
+  if (hidden.length && mine.length) {
+    const cheap = mine.filter((e) => !precious(s, e.uid)).sort((a, b) => fWorth(s, a.uid) - fWorth(s, b.uid));
+    if (cheap.length) return { type: 'engage', mode: 'intercept', own: cheap[0].uid, slot: hidden[Math.floor(rnd() * hidden.length)] };
+    // Only the best fighters are left: they go in blind (unscouted, few attackers can hurt them) when the target is
+    // in danger or it is the afternoon raid, and never while an escort is waiting to strike them afterwards.
+    const go = danger || (c.half === 'pm' && hidden.length >= 2);
+    if (go) { const o = [...mine].sort((a, b) => D(s, b.uid).def - D(s, a.uid).def)[0];
+      return { type: 'engage', mode: 'intercept', own: o.uid, slot: hidden[Math.floor(rnd() * hidden.length)] }; }
+  }
+  if (best && best.score > 0) return best.action;
+  return { type: 'endCombat' };
+}
+
+/* The side racing the clock: the day's plan against one field. */
+function dayPlan(s, side, prof) {
+  const p = s.players[side], opp = E.other(side), op = s.players[opp];
+  const goals = E.attackTargets(s).filter((t) => t.kind === 'airbase' && baseGoal(s, opp, t.uid));
+  if (!goals.length) return null;
+  const cap = E.availCap(s, p, 'airbase');
+  const elig = p.hand.filter((u) => E.launchEligible(s, u));
+  if (!cap || !elig.length) return { type: 'skipStage' };
+  const clock = E.clockLimit(s), left = baseGoal(s, opp, goals[0].uid).left;
+  const ourTurns = clock ? Math.floor((clock - s.turnNo) / 2) + 1 : 9;
+  const urgent = ourTurns <= left + 1;
+  const FB = elig.filter((u) => isFighter(D(s, u)) && (D(s, u).bomb || 0) > 0).sort((a, b) => bombVal(s, b) - bombVal(s, a));
+  // Two pure fighters stay home to guard our own objective (everything that flies is landed on the enemy's turn).
+  const PF = elig.filter((u) => isFighter(D(s, u)) && !(D(s, u).bomb || 0) && D(s, u).a2a >= 3).sort((a, b) => fWorth(s, b) - fWorth(s, a)).slice(urgent ? 0 : prof.dayGuard ?? 2);
+  const BB = elig.filter((u) => !isFighter(D(s, u)) && dmgCapable(D(s, u))).sort((a, b) => bombVal(s, b) - bombVal(s, a));
+  const fac = (t) => E.findFac(op, t.uid).f;
+  const radar = (f) => f.war.some((w) => E.has(D(s, w), 'radar'));
+  // Prefer the weakest field with the most aircraft parked on it; avoid one loaded with Heavy AAA and Radar.
+  const tScore = (t) => { const f = fac(t); return -E.damageNeeded(s, f) + f.landed.length * 1.5 - (radar(f) ? 2 : 0) - f.war.length * 0.5 + E.turnDamage(s, f) * 0.5; };
+  const ranked = [...goals].sort((a, b) => tScore(b) - tScore(a));
+  const threat = enemyThreat(s, side, 'airbase');
+  const pmBon = (cards, o) => cards.length * Math.max(0, 1 - o.lost / Math.max(1, cards.length));
+  if (E.halfOf(s) === 'pm') {
+    const hit = ranked.find((t) => E.turnDamage(s, fac(t)) > 0);
+    const t = hit || ranked[0], need = E.damageNeeded(s, fac(t));
+    const cards = [...BB, ...FB, ...PF].slice(0, cap);
+    const o = raidOutlook(s, cards, (d) => d.bomb || 0, threat);
+    const pf = cards.filter((u) => E.armedWith(s, u)).length * 4 * Math.max(0, 1 - o.lost / cards.length);
+    const del = o.delivered + pf + pmBon(cards, o);
+    // Finish the morning's work, or a fresh afternoon strike that is sure to take the field.
+    if (del >= need * (hit ? 0.75 : prof.dayFresh ?? 1.4) || (urgent && del >= need * 0.6)) return { type: 'launch', target: t, cards };
+    return { type: 'skipStage' };
+  }
+  // Morning.
+  let pick = null;
+  for (const t of ranked) {
+    const f = fac(t), need = E.damageNeeded(s, f);
+    // Option 1, the one-two: fighter-bombers and fighters now, bombers in the afternoon.
+    // Three or more in the morning: a careful defender only sends one fighter up against two.
+    const mN = Math.max(prof.dayMorning ?? 3, Math.min(FB.length + PF.length, cap - Math.min(BB.length, cap - 3)));
+    const M = [...FB, ...PF].slice(0, mN);
+    if (M.length >= Math.min(2, prof.dayMorning ?? 3)) {
+      const amO = raidOutlook(s, M, (d) => d.bomb || 0, threat);
+      // A careful defender answers a small morning raid with its lesser fighters: those are grounded for the afternoon.
+      const grounded = Math.min(threat.n, M.length <= 2 ? 1 : Math.min(M.length, 3) + 0.5);
+      const pmThreat = { n: Math.max(0, threat.n - grounded), fighters: threat.fighters.slice(0, Math.max(0, Math.ceil(threat.n - grounded))) };
+      const P = [...BB, ...[...FB, ...PF].filter((u) => !M.includes(u))].slice(0, Math.max(0, cap - M.length + Math.round(amO.lost)));
+      const pmO = raidOutlook(s, P, (d) => d.bomb || 0, pmThreat);
+      const pf = P.filter((u) => E.armedWith(s, u)).length * 4 * Math.max(0, 1 - pmO.lost / Math.max(1, P.length));
+      const total = amO.delivered + pmO.delivered + pf + pmBon(P, pmO);
+      const r = { kind: 'onetwo', t, cards: M, ratio: total / need, lost: amO.lost + pmO.lost };
+      if (!pick || r.ratio - r.lost * 0.1 > pick.ratio - pick.lost * 0.1) pick = r;
+    }
+    // Option 2, everything in the morning: when the enemy has few fighters to put up, or now and then to stay unpredictable.
+    const all = [...BB, ...FB, ...PF].slice(0, cap);
+    const aO = raidOutlook(s, all, (d) => d.bomb || 0, threat);
+    const apf = all.filter((u) => E.armedWith(s, u)).length * 4 * Math.max(0, 1 - aO.lost / Math.max(1, all.length));
+    const r2 = { kind: 'all', t, cards: all, ratio: (aO.delivered + apf) / need, lost: aO.lost };
+    if (r2.ratio >= 1.1 && (threat.n < 1.5 || rnd() < 0.3) && (!pick || pick.ratio < 1.15 || rnd() < 0.3)) pick = r2;
+  }
+  if (!pick) return { type: 'skipStage' };
+  const bar = urgent ? 0.8 : prof.dayBar ?? 1.15;
+  if (pick.ratio >= bar) return { type: 'launch', target: pick.t, cards: pick.cards };
+  return { type: 'skipStage' };
 }
 
 /* ------------------------------------------------------------------ combat helpers */
@@ -2756,6 +2908,7 @@ function eff(s, uid, foeUid, battleUid, struck, isTarget) {
 
 function defenderMove(s, side, prof) {
   if (s.combat.mustGo) return pressOnMove(s, side);
+  if (E.twoMissions(s) && prof.doctrine !== false) return dayDefense(s, side, prof);
   if (prof && (prof.waiting || prof.waitDefense) && prof.waitDefense !== false) return waitingDefense(s, side, prof);
   const c = s.combat, p = s.players[side];
   const mine = c.intercept.filter((e) => E.canInitiate(s, e)).sort((a, b) => D(s, b.uid).a2a - D(s, a.uid).a2a);
@@ -2817,7 +2970,7 @@ function waitingDefense(s, side, prof) {
   if (shown.length >= 2 && hidden.length && shown.every((m) => !dmgCapable(D(s, m.uid)))) {
     const t = c.target, maxHit = hidden.length * 5 * (c.stage === 'carrier' && t.kind !== 'airbase' ? 2 : 1);
     let danger = false;
-    if (t.kind === 'convoy') danger = E.CONVOY_MAX - p.convoy <= maxHit;
+    if (t.kind === 'convoy') danger = E.convoyMax(s) - p.convoy <= maxHit;
     else if (t.kind === 'airbase' || t.kind === 'carrier') { const f = E.findFac(p, t.uid); danger = !!f && E.damageNeeded(s, f.f) <= maxHit; }
     if (!danger) return { type: 'endCombat' };
   }
@@ -2955,6 +3108,7 @@ function interceptMove(s, side, prof) {
       keep = keep.slice(Math.max(0, mustStop - others)); }
     usable = usable.filter((u) => !keep.includes(u));
   }
+  if (E.twoMissions(s) && prof && prof.doctrine !== false) return dayIntercept(s, side, usable, mustStop);
   const group = [];
   // Against a dangerous raid the slots go to fighters that can actually shoot something down.
   if (mustStop) usable = [...usable].sort((x, y) => (D(s, y).a2a >= 3) - (D(s, x).a2a >= 3));
@@ -2989,8 +3143,17 @@ function choice(s, side) {
       return { type: 'choose', uids: [[...opts].sort((x, y) => defOf(y) - defOf(x))[0]] };
     }
     case 'land': {
-      // Park aircraft where they're safest: toughest bases first, protected home a little preferred.
       const p = s.players[side], used = {}, assign = {};
+      if (E.twoMissions(s)) {
+        // Spread out: the toughest field, less 3 for each aircraft already parked there; the best fighters go first.
+        const sc2 = (u) => { const f = E.findFac(p, u).f; return E.facDef(s, f) - E.turnDamage(s, f) - 3 * (f.landed.length + (used[u] || 0)); };
+        for (const u of [...pc.planes].sort((a, b) => fWorth(s, b) - fWorth(s, a))) {
+          const spot = [...pc.spots[u]].filter((x) => (used[x] || 0) < E.free(s, E.findFac(p, x).f)).sort((x, y) => sc2(y) - sc2(x))[0];
+          assign[u] = spot || 'hand'; if (spot) used[spot] = (used[spot] || 0) + 1;
+        }
+        return { type: 'land', assign };
+      }
+      // Park aircraft where they're safest: toughest bases first, protected home a little preferred.
       const score = (u) => { const f = E.findFac(p, u).f; return E.facDef(s, f) + (E.isHomeProtected(s, f) ? 2 : 0); };
       for (const u of pc.planes) {
         const spot = [...pc.spots[u]].sort((x, y) => score(y) - score(x)).find((x) => (used[x] || 0) < E.free(s, E.findFac(p, x).f));
@@ -3021,7 +3184,7 @@ function chooseAction(s, profile) {
   switch (s.phase) {
     case 'setup': return pickOpening(s, side);
     case 'mobilize': return mobilize(s, side, prof);
-    case 'attack': return (prof.allIn !== false && allIn(s, side, prof)) || convoyFinisher(s, side, prof) || planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
+    case 'attack': return (prof.allIn !== false && allIn(s, side, prof)) || (E.twoMissions(s) && !holdout(s, side) && prof.doctrine !== false && dayPlan(s, side, prof)) || convoyFinisher(s, side, prof) || planRaid(s, side, prof) || planSweep(s, side, prof) || { type: 'skipStage' };
     case 'intercept': return interceptMove(s, side, prof);
     case 'combat': return side === s.combat.def ? defenderMove(s, side, prof) : attackerMove(s, side);
     case 'respond': return respondMove(s, side);
@@ -3066,7 +3229,7 @@ const BALANCE = {
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
   guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
-  wewak: { surpriseAttack: false, axis: 0 },       // 53.6 / 51.5%, 10.4 turns: fields Defense 8, Moresby 13, 3 fields, 14-kill air war (ground ½), afternoon +1; Radar, Light AAA, Engineers, 68th Sentai, aces Bong and Takeuchi
+  wewak: { surpriseAttack: false, axis: 0 },       // 52.6 / 54.1%, 11.0 turns (new two-mission tactics): fields Defense 9, Moresby 15, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -3704,7 +3867,7 @@ function decisionHTML() {
         let icon, name, sub2, val;
         if (x.kind === 'convoy' || x.kind === 'industry' || x.kind === 'resources') {
           icon = ico(x.kind === 'industry' ? 'industry' : 'convoy', 22); name = RES_NAMES[x.kind];
-          sub2 = x.kind === 'convoy' ? `${opp.convoy} of 15 damage · sinks at 15` : x.kind === 'industry' ? `${opp.industry} of ${E.industryMax(S)} damage` : 'Split by aircraft';
+          sub2 = x.kind === 'convoy' ? `${opp.convoy} of ${E.convoyMax(S)} damage · sinks at ${E.convoyMax(S)}` : x.kind === 'industry' ? `${opp.industry} of ${E.industryMax(S)} damage` : 'Split by aircraft';
           val = '';
         } else {
           const f = E.findFac(opp, x.uid).f;
@@ -3897,8 +4060,8 @@ function sitRep(side) {
   const mets = [];
   if (!(sc && sc.noIndustry)) { const mx = E.industryMax(S);
     mets.push({ icon: 'industry', label: 'Industry', viz: pie((mx - p.industry) / mx, side, 64), value: `${p.industry}/${mx}`, sub: 'Lost' }); }
-  const tankers = Array.from({ length: 15 }, (_, i) => i < p.convoy ? `<span class="tk sunk" title="Sunk">${ico('tankerSunk', 16)}</span>` : `<span class="tk">${ico('tanker', 15)}</span>`).join('');
-  mets.push({ icon: 'convoy', label: 'Convoy', viz: `<div class="tankers" title="${p.convoy} of 15 lost">${tankers}</div>`, value: `${p.convoy}/15`, sub: p.convoysLost ? `Lost · sunk ${p.convoysLost}×` : 'Lost' });
+  const tankers = Array.from({ length: E.convoyMax(S) }, (_, i) => i < p.convoy ? `<span class="tk sunk" title="Sunk">${ico('tankerSunk', 16)}</span>` : `<span class="tk">${ico('tanker', 15)}</span>`).join('');
+  mets.push({ icon: 'convoy', label: 'Convoy', viz: `<div class="tankers" title="${p.convoy} of ${E.convoyMax(S)} lost">${tankers}</div>`, value: `${p.convoy}/${E.convoyMax(S)}`, sub: p.convoysLost ? `Lost · sunk ${p.convoysLost}×` : 'Lost' });
   const hb = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
   if (hb) {
     const f = p.airbases.find((x) => S.cards[x.uid] === hb);
@@ -4037,9 +4200,9 @@ function basesPage(side) {
   return `<div class="sec-h">Airbases:</div>${ab ? `<div class="bgrid">${ab}</div>` : '<p class="empty">No airbases in play.</p>'}
     <div class="sec-h">Carriers:</div>${cv ? `<div class="bgrid">${cv}</div>` : '<p class="empty">No carriers in play.</p>'}
     <div class="sec-h">Convoy:</div>
-    <div class="base ${side} wide"><div class="b-top">${ico('convoy', 18)}<span>Shipping</span><span class="bdef">${p.convoy}/15</span></div>
+    <div class="base ${side} wide"><div class="b-top">${ico('convoy', 18)}<span>Shipping</span><span class="bdef">${p.convoy}/${E.convoyMax(S)}</span></div>
       <div class="gauge"><i style="width:${(p.convoy / 15) * 100}%"></i></div>
-      <div class="bstat"><span class="m">Sinks at 15 damage${p.convoysLost ? ` · sunk ${p.convoysLost}× so far` : ''}</span>${rw.map((x) => `<span>${x}</span>`).join('')}</div></div>`;
+      <div class="bstat"><span class="m">Sinks at ${E.convoyMax(S)} damage${p.convoysLost ? ` · sunk ${p.convoysLost}× so far` : ''}</span>${rw.map((x) => `<span>${x}</span>`).join('')}</div></div>`;
 }
 
 /* ---------------------------------------------------------------- planes */
@@ -4162,7 +4325,7 @@ function rulesPage(t) {
       <li><b>First strike</b> (VMF-214 Black Sheep): when it starts a fight and hasn't been scouted, it fires first; an enemy it shoots down never fires back. When it is attacked, or once it has been scouted, it fights normally.</li>
       <li><b>Bomber killer</b> (204th Kokutai): after shooting down a bomber it may fight once more in the same combat.</li>
       <li><b>Strafing</b> (348th Fighter Group): when it reaches an airbase it attacks, every aircraft parked there is destroyed, whether or not the airbase falls (each counts ½ toward the air war).</li>
-      <li><b>Press on</b> (68th Sentai): when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again straight away, at a hidden or a scouted attacker.</li>
+      <li><b>Press on</b> (68th Sentai): when it intercepts a mission with bombers and shoots down an escorting fighter, it must attack again straight away, at a hidden or a scouted attacker. It has been seen, so it fights that second attack scouted (−1 DEF).</li>
       <li><b>Elite units</b> (Flying Tigers, Tainan Kokutai, VMF-214, 204th Kokutai, 348th Fighter Group, 68th Sentai) are unique: one copy each.</li></ul>
     <h3>Card markings</h3>
     <ul><li>An <b>anchor</b> beside the name: the aircraft can fly from carriers.</li>
@@ -4330,7 +4493,7 @@ function reportText() {
   for (const sd of ['allied', 'axis']) {
     const p = S.players[sd], st = (S.stats || {})[sd] || {};
     const kills = (S.downed || []).filter((u) => D(u).side !== sd).length;
-    L.push(`${SIDE[sd].toUpperCase()}: enemy aircraft shot down ${kills}; carriers lost ${(S.sunk || {})[sd] || 0}; convoy ${p.convoy}/15 (sunk ${p.convoysLost || 0}x)${sc && sc.noIndustry ? '' : `; Industry ${p.industry}/${E.industryMax(S)}`}; deck ${p.deck.length}, hand ${p.hand.length}`);
+    L.push(`${SIDE[sd].toUpperCase()}: enemy aircraft shot down ${kills}; carriers lost ${(S.sunk || {})[sd] || 0}; convoy ${p.convoy}/${E.convoyMax(S)} (sunk ${p.convoysLost || 0}x)${sc && sc.noIndustry ? '' : `; Industry ${p.industry}/${E.industryMax(S)}`}; deck ${p.deck.length}, hand ${p.hand.length}`);
     const vets = Object.keys(S.cards).filter((u) => D(u).side === sd && D(u).kind === 'aircraft' && ((st.kills || {})[u] || (st.missions || {})[u]))
       .sort((a, b) => ((st.kills || {})[b] || 0) - ((st.kills || {})[a] || 0));
     for (const u of vets) L.push(`  ${D(u).name}: ${plural((st.kills || {})[u] || 0, 'kill')}${((st.kills || {})[u] || 0) >= E.ACE_KILLS ? ' (ACE)' : ''}, ${plural((st.missions || {})[u] || 0, 'mission')} over target${((st.missions || {})[u] || 0) >= E.VET_MISSIONS ? ' (VETERAN)' : ''}${(S.downed || []).includes(u) ? ', lost' : ''}`);
