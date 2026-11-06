@@ -51,8 +51,14 @@ svg { display: block; }
   background: var(--sea); box-shadow: 0 0 0 9px #020507, 0 0 0 10px #1d2a30, 0 30px 80px rgba(0,0,0,.7);
   display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
 html.mobile #app { background: var(--sea); }
-/* Home-screen app: an opaque status bar (set in the GitHub page head) keeps the page below it; just match the background. */
+/* Home-screen app: the status bar is translucent (GitHub page head), so the page runs under it. Push the whole frame
+   down by the status bar's height (the strip shows the app background) so everything sits where an opaque bar put it,
+   and size #app from the full screen height, since iOS reports a short viewport in this mode (it left a band at the bottom). */
 html.standalone, html.standalone body { background: var(--sea); }
+html.standalone #app { bottom: auto; height: var(--app-h, 100%); }
+html.standalone .frame { padding-top: env(safe-area-inset-top, 0px); }
+html.standalone .hdr { padding-top: 10px; }
+html.standalone .frame.start { background-origin: content-box; background-clip: content-box; }
 html.mobile .frame { width: 100%; height: 100%; transform: none; border-radius: 0; box-shadow: none; }
 
 .hdr { padding: calc(10px + env(safe-area-inset-top, 0px)) var(--gut-r) 10px var(--gut-l); display: grid; gap: 6px; }
@@ -3370,6 +3376,10 @@ function fit() {
   document.documentElement.classList.toggle('mobile', mob);
   const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
   document.documentElement.classList.toggle('standalone', standalone);
+  if (standalone && screen.height) {
+    const portrait = matchMedia('(orientation: portrait)').matches, full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    document.documentElement.style.setProperty('--app-h', Math.max(innerHeight, full) + 'px');
+  }
   const f = document.querySelector('.frame');
   const k = Math.min((innerWidth - 28) / 375, (innerHeight - 28) / 812);
   document.documentElement.style.setProperty('--k', mob ? 1 : Math.max(0.3, k).toFixed(4));
