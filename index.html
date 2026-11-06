@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Airwar Pacific">
 <meta name="theme-color" content="#0e1a21">
 <link rel="manifest" href="manifest.webmanifest">
@@ -194,14 +194,25 @@ p { margin: 0; }
 .b-mid { display: flex; align-items: start; gap: 8px; } .b-mid > div { flex: 1; min-width: 0; display: grid; gap: 6px; }
 .base[data-view] { cursor: pointer; }
 .base.dead { opacity: .62; filter: grayscale(.7); }
-/* The target's whole 16:9 map across the top of a narrower card; the bombs, explosion and stamp land on it. */
-.tcard.hasmap { width: min(100%, 330px); justify-self: center; padding-top: 0; }
+/* The bombing popup fits the screen: the formation takes what it needs (3 across, 4 across from 7 planes) and the
+   target card fills the rest, keeping its whole 16:9 map; the bombs, explosion and stamp land on the map. */
+.fight.strike { display: flex; flex-direction: column; gap: 8px; height: 100%; margin: 0 auto; }
+.fight.strike > * { flex: none; }
+.fight.strike .tzone { flex: 1 1 0; min-height: 110px; container-type: size; display: grid; place-items: center; }
+.tzone .tcard { width: min(330px, 100cqw, max(150px, calc((100cqh - 78px) * 16 / 9))); container-type: inline-size; gap: 8px; padding: 0 10px 10px; }
+.tzone .tcard .tban { margin: 0 -10px; }
+.tzone .tcard .tname b { font-size: clamp(15px, 6.6cqw, 22px); }
+.tzone .tcard .tname small { font-size: clamp(8px, 3.1cqw, 10.5px); }
+.tzone .tcard .tico svg { width: clamp(20px, 10cqw, 34px); height: auto; }
+@container (max-width: 240px) { .tzone .tcard .tico { display: none; } .tzone .tcard { grid-template-columns: 1fr auto; } .tzone .tcard .tban { grid-column: 1 / -1; } }
+.tcard.hasmap { padding-top: 0; }
 .tcard .tban { grid-column: 1 / -1; position: relative; margin: 0 -14px 0; aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; }
 .tcard .tban.res { background: #33404a; color: #a9b6bf; }
-.tcard.hasmap .boom { top: 92px; }
-.tcard.hasmap .smoke.s1 { top: 50px; } .tcard.hasmap .smoke.s2 { top: 72px; } .tcard.hasmap .smoke.s3 { top: 94px; }
-.tcard.hasmap .tstamp { bottom: auto; top: 70px; }
-.tcard:not(.hasmap) { padding-bottom: 96px; }
+.tban .boom { top: 50%; left: 50%; width: 56%; height: auto; aspect-ratio: 1; margin: -28% 0 0 -28%; }
+.tban .smoke.s1 { left: 36%; top: 26%; } .tban .smoke.s2 { left: 50%; top: 40%; } .tban .smoke.s3 { left: 44%; top: 54%; }
+.tban .tstamp { top: calc(50% - min(20px, 6cqw)); bottom: auto; min-width: min(168px, 58cqw); height: min(40px, 12cqw); font-size: min(24px, 7.2cqw); }
+.formation.fgrid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, var(--mw))); justify-content: center; }
+.formation.fgrid .mcard { width: auto; }
 .tcard .tban img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tcard .tban::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(230,226,211,0) 72%, var(--paper)); }
 .xhist { margin: 0; padding: 0 0 0 16px; display: grid; gap: 5px; font-size: 13px; color: var(--ink); }
@@ -302,6 +313,7 @@ p { margin: 0; }
 .mcard .mval { padding: 4px 6px 5px; font: 600 10px/1.25 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
 .mcard .mval b { color: var(--ink); font-size: 12px; } .mcard .mval span { color: #7a2a22; }
 .dropzone { position: relative; height: 58px; }
+.strike .dropzone { height: 36px; }
 .bombf { position: absolute; top: -4px; margin-left: -4px; opacity: 0; }
 .bombf svg path:first-child, .bombf svg path:nth-child(2) { fill: #e6e2d3; }
 .play .bombf { animation: fall .75s ease-in forwards; }
@@ -743,20 +755,20 @@ const SCENARIOS = {
       'guadalcanal', 'darwin', 'leyte', 'rabaul', 'kavieng'],
     // Afternoon bonus: +1 per aircraft over an airbase target (tested against doubled bombs, too strong at 70% Axis
     // and 6-turn games, and +1 per parked aircraft, which barely changed play). With it, about 30% of missions fly in the afternoon.
-    // Rebalanced after playtests (computer tactics for two-mission days, Nov 2026): fields Defense 9, Port Moresby 15,
+    // Rebalanced after playtests (computer tactics for two-mission days, Nov 2026): fields Defense 9, Port Moresby 16,
     // 16-kill air war (ground kills 1/2), two Ki-61s (a Tony and the 68th Sentai), no Axis Engineers, an extra B-25 and A-20
     // for the Allies; 15 turns so the Allies move last; convoys sink at 10. Self-play with the new tactics: see the BALANCE note in ui.html.
     pmBonus: 'each',
-    turnLimit: 15, stackAirbaseDamage: 'all', defs: { wewak: 9, boram: 9, but: 9, dagua: 9, moresby: 15, dobodura: 11 },
+    turnLimit: 15, stackAirbaseDamage: 'all', defs: { wewak: 9, boram: 9, but: 9, dagua: 9, moresby: 16, dobodura: 11 },
     timeoutWinner: 'axis', timeoutText: 'The year is over and the Wewak airfields are still operating.',
     convoyMax: 10, // convoys sink at 10 here, and hurt more: a real alternative to bombing the fields
     convoyEffects: { allied: { base: 'moresby', fortDelta: -3, text: 'Supplies for Port Moresby went down with the convoy.' },
                      axis: { bases: ['wewak', 'boram', 'but', 'dagua'], fortDelta: -2, text: 'The Wewak fields lost their fuel and spares with the convoy.' } },
     victory: { holdBase: { allied: 'moresby' }, destroyBases: { axis: { list: ['wewak', 'boram', 'but', 'dagua'], n: 3 } }, kills: 16, groundKill: 0.5 },
-    victoryText: 'The Allies win by destroying three of the four Wewak airfields (Wewak, Boram, But and Dagua, Defense 9 each). The Axis wins by destroying Port Moresby (Defense 15). Either side wins the air war at 16 enemy aircraft destroyed; an aircraft destroyed on the ground counts ½. If the Wewak fields still hold after turn 14, the Axis wins. Each turn has a Morning and an Afternoon Attack Mission; an Afternoon Attack Mission on an airbase gets +1 for each aircraft that reaches it. Damage to a base adds up over the day. No carriers. Convoys sink at 10 damage: a sunk Axis convoy costs every Wewak field 2 Defense, a sunk Allied convoy costs Port Moresby 3.',
+    victoryText: 'The Allies win by destroying three of the four Wewak airfields (Wewak, Boram, But and Dagua, Defense 9 each). The Axis wins by destroying Port Moresby (Defense 16). Either side wins the air war at 16 enemy aircraft destroyed; an aircraft destroyed on the ground counts ½. If the Wewak fields still hold after turn 15, the Axis wins. Each turn has a Morning and an Afternoon Attack Mission; an Afternoon Attack Mission on an airbase gets +1 for each aircraft that reaches it. Damage to a base adds up over the day. No carriers. Convoys sink at 10 damage: a sunk Axis convoy costs every Wewak field 2 Defense, a sunk Allied convoy costs Port Moresby 3.',
     sides: {
       allied: { home: null, inPlay: ['moresby', 'dobodura', 'tsili'], hand: ['p38', 'p47', 'p40e', 'b25', 'a20'],
-        special: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'laaaAl', 'engAl'], specialInDeck: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'engAl'], extra: { p47: 2, p38: 1, b25: 3, a20: 2, p40e: 1, p39: 1 } },
+        special: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'laaaAl', 'engAl'], specialInDeck: ['p47x', 'bong', 'nadzab', 'radarAl', 'laaaAl', 'engAl'], extra: { p47: 3, p38: 1, b25: 3, a20: 2, p40e: 1, p39: 1 } },
       axis: { home: null, inPlay: ['wewak', 'boram', 'but', 'dagua'], hand: ['oscar', 'oscar', 'tony', 'lily', 'sally'],
         special: ['k68', 'nango', 'dispersal', 'radarAx', 'laaaAx'], specialInDeck: ['k68', 'nango', 'dispersal', 'radarAx', 'laaaAx'], extra: { oscar: 4, lily: 2, sally: 1, nick: 1 } },
     },
@@ -2788,13 +2800,31 @@ const precious = (s, u) => { const d = D(s, u); return isFighter(d) && (!!d.elit
 const fWorth = (s, u) => { const d = D(s, u); return d.a2a + d.def + (d.interceptor ? 2 : 0) + (precious(s, u) ? 8 : 0); };
 const bombVal = (s, u) => (D(s, u).bomb || 0) + (E.armedWith(s, u) ? 4 : 0);
 
-function dayIntercept(s, side, usable, mustStop) {
+// Our own recent days: for each of our last turns, did the morning raid carry bombers? (From our planes' records.)
+function ourMornings(s, side) {
+  const raids = {};
+  for (const l of s.log) if (l.kind === 'raid' && l.actor === side && l.op && (l.half || 'am') === 'am' && l.t < s.turnNo) raids[l.raid] = { t: l.t, bombers: 0, n: 0 };
+  for (const [u, r] of Object.entries(s.rec || {})) { if (D(s, u).side !== side) continue;
+    for (const so of r.sorties || []) { const x = raids[so.raid]; if (x && so.role !== 'defend') { x.n++; if (!isFighter(D(s, u))) x.bombers++; } } }
+  return Object.values(raids).sort((a, b) => b.t - a.t);
+}
+// The enemy's recent morning raids on us: how many aircraft each (public).
+function theirMornings(s, side) {
+  const out = [];
+  for (const l of s.log) if (l.kind === 'raid' && l.actor && l.actor !== side && l.op && (l.half || 'am') === 'am' && l.t < s.turnNo) { const m = /of (\d+) aircraft/.exec(l.msg || ''); if (m) out.push({ t: l.t, n: +m[1] }); }
+  return out.sort((a, b) => b.t - a.t);
+}
+function dayIntercept(s, side, usable, mustStop, prof) {
   const c = s.combat, n = c.mission.length, am = c.half !== 'pm';
   const fighters = usable.filter((u) => D(s, u).a2a >= 3);
   const cheap = fighters.filter((u) => !precious(s, u)).sort((a, b) => fWorth(s, a) - fWorth(s, b));
   const best = fighters.filter((u) => precious(s, u)).sort((a, b) => fWorth(s, b) - fWorth(s, a));
   let want, order;
   if (!am) { want = Math.max(n + 1, mustStop); order = [...cheap.slice(0, 1), ...best, ...cheap.slice(1)]; }
+  else if (n <= 3 && !mustStop && best.length && (prof && prof.dayAmbush !== false) && rnd() < (theirMornings(s, side).slice(0, 2).filter((x) => x.n <= 3).length >= 2 ? 0.5 : 0.2)) {
+    // Cross them up: an enemy that keeps sending small morning raids meets a real interception now and then.
+    want = Math.min(n + 1, 3); order = [...cheap.slice(0, 1), ...best.slice(0, 2), ...cheap.slice(1)];
+  }
   else if (n <= 2 && !mustStop) { want = 1; order = cheap; } // a small morning raid: one look, no more
   else {
     // A bigger morning raid: a look with the cheap fighters, and half the best ones at most, unless the base is in danger.
@@ -2874,7 +2904,16 @@ function dayPlan(s, side, prof) {
   const ranked = [...goals].sort((a, b) => tScore(b) - tScore(a));
   const threat = enemyThreat(s, side, 'airbase');
   const pmBon = (cards, o) => cards.length * Math.max(0, 1 - o.lost / Math.max(1, cards.length));
+  const strafer = elig.find((u) => E.has(D(s, u), 'strafe'));
   if (E.halfOf(s) === 'pm') {
+    // The 348th strafes the field where their morning interceptors landed: everything parked there is destroyed.
+    const parked = strafer && E.attackTargets(s).filter((t) => t.kind === 'airbase' && fac(t).landed.length >= 2).sort((a, b) => fac(b).landed.length - fac(a).landed.length)[0];
+    if (parked && prof.dayStrafe !== false) {
+      const cards = [strafer, ...FB.filter((u) => u !== strafer), ...PF, ...BB].slice(0, cap);
+      const o = raidOutlook(s, cards, (d) => d.bomb || 0, threat);
+      const p348 = Math.max(0, 1 - o.lost / cards.length);
+      if (fac(parked).landed.length * p348 >= 1.4) return { type: 'launch', target: parked, cards };
+    }
     const hit = ranked.find((t) => E.turnDamage(s, fac(t)) > 0);
     const t = hit || ranked[0], need = E.damageNeeded(s, fac(t));
     const cards = [...BB, ...FB, ...PF].slice(0, cap);
@@ -2904,6 +2943,21 @@ function dayPlan(s, side, prof) {
       const total = amO.delivered + pmO.delivered + pf + pmBon(P, pmO);
       const r = { kind: 'onetwo', t, cards: M, ratio: total / need, lost: amO.lost + pmO.lost };
       if (!pick || r.ratio - r.lost * 0.1 > pick.ratio - pick.lost * 0.1) pick = r;
+    }
+    // Option 3, the reverse: bombers (with escorts) in the morning draw the interceptors; in the afternoon the 348th
+    // strafes where they landed, or the fighter-bombers finish the field. Favoured after two mornings without bombers.
+    if (BB.length) {
+      const keep = [strafer, ...FB.filter((u) => u !== strafer).slice(0, 2)].filter(Boolean);
+      const R = [...BB, ...[...FB, ...PF].filter((u) => !keep.includes(u))].slice(0, Math.max(2, cap - keep.length));
+      const rO = raidOutlook(s, R, (d) => d.bomb || 0, threat);
+      const rpf = R.filter((u) => E.armedWith(s, u)).length * 4 * Math.max(0, 1 - rO.lost / Math.max(1, R.length));
+      const grounded = Math.min(threat.n, Math.max(2, R.length - 1));
+      const pmT = { n: Math.max(0, threat.n - grounded), fighters: threat.fighters.slice(0, Math.max(0, Math.ceil(threat.n - grounded))) };
+      const kO = raidOutlook(s, keep, (d) => d.bomb || 0, pmT);
+      const total = rO.delivered + rpf + kO.delivered + pmBon(keep, kO);
+      const mornings = ourMornings(s, side).slice(0, 2), stale = mornings.length >= 2 && mornings.every((x) => !x.bombers);
+      const r3 = { kind: 'reverse', t, cards: R, ratio: total / need, lost: rO.lost + kO.lost };
+      if (prof.dayReverse !== false && r3.ratio >= (prof.dayRevBar ?? 1.25) && r3.lost <= R.length * 0.4 && (stale ? rnd() < 0.4 : rnd() < 0.1)) pick = r3;
     }
     // Option 2, everything in the morning: when the enemy has few fighters to put up, or now and then to stay unpredictable.
     const all = [...BB, ...FB, ...PF].slice(0, cap);
@@ -3145,7 +3199,7 @@ function interceptMove(s, side, prof) {
       keep = keep.slice(Math.max(0, mustStop - others)); }
     usable = usable.filter((u) => !keep.includes(u));
   }
-  if (E.twoMissions(s) && prof && prof.doctrine !== false) return dayIntercept(s, side, usable, mustStop);
+  if (E.twoMissions(s) && prof && prof.doctrine !== false) return dayIntercept(s, side, usable, mustStop, prof);
   const group = [];
   // Against a dangerous raid the slots go to fighters that can actually shoot something down.
   if (mustStop) usable = [...usable].sort((x, y) => (D(s, y).a2a >= 3) - (D(s, x).a2a >= 3));
@@ -3266,7 +3320,7 @@ const BALANCE = {
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
   guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
-  wewak: { surpriseAttack: false, axis: 0 },       // 53.3 / 53.4%, 11.7 turns, 15-turn limit so the Allies move last (new two-mission tactics; 68th presses on vs fighter-bombers): fields Defense 9, Moresby 15, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
+  wewak: { surpriseAttack: false, axis: 0 },       // 50.7 / 51.0%, 12 turns, 15-turn limit so the Allies move last; Moresby 16, 3 extra P-47s; mixed-up computer tactics (68th presses on vs fighter-bombers): fields Defense 9, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
 };
 function applyBalance() {
   const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
@@ -3600,16 +3654,15 @@ function strikeHTML(f) {
   const sub = [`${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
   return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s">
     <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage, k.half)}</div>
-    <div class="fzone"><div class="formation" style="--mw:${nAll <= 4 ? 140 : nAll <= 6 ? 108 : 82}px">${ld}${k.planes.map(mini).join('')}</div>${flak}</div>
+    <div class="fzone"><div class="formation fgrid" style="--cols:${nAll <= 3 ? Math.max(1, nAll) : nAll <= 6 ? 3 : 4};--mw:${nAll <= 6 ? 'min(118px, 13.5dvh)' : 'min(88px, 10.5dvh)'}">${ld}${k.planes.map(mini).join('')}</div>${flak}</div>
     ${k.aaa ? `<span class="aaachip">Heavy AAA −${k.aaa} damage</span>` : ''}
     <div class="dropzone">${bombs}${ltr}</div>
-    <div class="tcard ${red ? 'lost' : ''} hasmap">${(() => { const a = isFac ? k.uid && ART[S.cards[k.uid]] : ART[k.kind === 'industry' ? 'industry' : 'convoy'];
-      return a ? `<div class="tban"><img src="${a}" alt="" decoding="async"></div>` : `<div class="tban ph res">${ico(isFac ? (k.kind === 'carrier' ? 'carrier' : 'airbase') : k.kind === 'industry' ? 'industry' : 'convoy', 56)}</div>`; })()}<div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' ? 'convoy' : k.kind === 'industry' ? 'industry' : 'airbase', 34)}</div>
+    <div class="tzone"><div class="tcard ${red ? 'lost' : ''} hasmap">${(() => { const a = isFac ? k.uid && ART[S.cards[k.uid]] : ART[k.kind === 'industry' ? 'industry' : 'convoy'];
+      const fx = `<svg class="boom" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>
+        <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span><span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span>`;
+      return a ? `<div class="tban"><img src="${a}" alt="" decoding="async">${fx}</div>` : `<div class="tban ph res">${ico(isFac ? (k.kind === 'carrier' ? 'carrier' : 'airbase') : k.kind === 'industry' ? 'industry' : 'convoy', 56)}${fx}</div>`; })()}<div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' ? 'convoy' : k.kind === 'industry' ? 'industry' : 'airbase', 34)}</div>
       <div class="tname"><b>${esc(tname)}</b><small>${esc(sub.join(' · '))}</small></div>${badge}
-      <svg class="boom" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>
-      <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span>
-
-      <span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span></div>
+</div></div>
     <div class="after"><div class="ftext"><h4 style="color:${good ? 'var(--ok)' : 'var(--kill)'}">${esc(title)}</h4>${esc(pubMsg(f.l))}${f.l.detail ? `<br><small style="color:var(--muted)">${esc(f.l.detail)}</small>` : ''}
       ${isFac && k.stacks && k.res === 'held' && k.total ? '<br><small style="color:var(--muted)">Damage adds up until the end of this turn.</small>' : ''}</div>
       <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
