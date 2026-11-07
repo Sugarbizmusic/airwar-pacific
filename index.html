@@ -577,6 +577,45 @@ html:not(.mobile) .start-btns { padding-bottom: 30px; }
 .start-sub { text-align: center; font: 600 10.5px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); margin-bottom: 2px; }
 .result h2 { margin: 0; font: 800 44px/.95 var(--f-display); text-transform: uppercase; color: var(--signal); }
 .empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
+
+/* ---------------- briefings (Basic Training, scenario briefings): the officer heads a poster-style band */
+.brief-frame { background: var(--sea); display: block; }
+.brief-frame > .brief, .brief-frame > .bf-wrap { height: 100%; }
+.brief { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.bf-hdr { flex: none; }
+.bf-band { position: relative; flex: none; margin: 2px var(--gut-r) 0 var(--gut-l); aspect-ratio: 1032 / 377; }
+.bf-band img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 0 0 8px 8px; }
+/* the room fills the lower 75% of the image (the officer's head rises above it); the title sits on its darkened left side */
+.bf-cap { position: absolute; left: 4.5%; right: 40%; top: 46%; bottom: 9%; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
+.bf-cap h2 { margin: 0; font: 800 27px/.92 var(--f-display); text-transform: uppercase; color: #fff; letter-spacing: .01em; overflow-wrap: anywhere; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+.bf-cap span { font-size: 13px; line-height: 1.15; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+.bf-prog { align-self: center; font: 600 10.5px/1 var(--f-mono); letter-spacing: .06em; color: var(--dim); min-width: 38px; }
+.bf-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px var(--gut-r) 20px var(--gut-l); }
+.bf-body p { margin: 0 0 11px; font-size: 15.5px; line-height: 1.45; color: var(--fg); }
+.bf-body p b { color: #fff; font-weight: 600; }
+.bf-body h4 { margin: 14px 0 6px; font: 600 11px/1.2 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--signal); }
+.bf-body h4:first-child { margin-top: 0; }
+.bf-cards { display: flex; gap: 14px; justify-content: center; margin: 4px 0 14px; }
+.bf-cards .card { width: 108px; zoom: 1.45; box-shadow: 0 4px 12px rgba(0,0,0,.45); }
+.bf-cards.n2 .card { zoom: 1.4; }
+.bf-cards .card .ctext { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.bf-stats { display: grid; gap: 7px; margin: 0 0 14px; }
+.bf-stat { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: center; font-size: 13.5px; line-height: 1.3; color: var(--muted); }
+.bf-stat b { display: flex; justify-content: space-between; align-items: baseline; background: var(--paper); color: var(--ink); border-radius: 4px; padding: 5px 8px; font: 600 10.5px/1 var(--f-mono); letter-spacing: .04em; }
+.bf-stat b i { font: 800 18px/1 var(--f-display); font-style: normal; }
+.bf-stat b.z { opacity: .55; }
+.bf-foot { flex: none; display: flex; gap: 8px; padding: 10px var(--gut-r) calc(12px + env(safe-area-inset-bottom, 0px)) var(--gut-l); background: var(--nav); border-top: 1px solid var(--line); }
+.bf-foot button { flex: 1; min-height: 46px; } .bf-foot button.go { flex: 2; }
+html:not(.mobile) .bf-foot { padding-bottom: 26px; }
+/* Training safeguard: a small dialog with the officer in a roundel */
+.bf-wrap { position: absolute; inset: 0; z-index: 60; background: rgba(3,8,10,.72); display: grid; place-items: center; padding: 24px var(--gut-r) 24px var(--gut-l); }
+.bf-dlg { width: 100%; max-width: 360px; background: var(--sea-2); border: 1px solid var(--line); border-top: 3px solid var(--signal); border-radius: 10px; padding: 0 18px 18px; display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: 40px; }
+.bf-ring { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; margin-top: -48px; border: 3px solid var(--signal); box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+.bf-ring.allied { background: radial-gradient(circle at 50% 70%, #5d9be6, #173a66); }
+.bf-ring img { width: 100%; height: auto; display: block; margin-top: 4px; }
+.bf-dlg h3 { margin: 0; font: 800 26px/1 var(--f-display); text-transform: uppercase; color: var(--signal); }
+.bf-dlg .bf-txt p { margin: 0 0 8px; font-size: 15px; line-height: 1.42; } .bf-dlg .bf-txt b { color: #fff; }
+.bf-dlg button { width: 100%; min-height: 46px; }
 </style>
 
 </head>
@@ -803,6 +842,22 @@ const SCENARIOS = {
                 extra: { hamp: 2, zero: 1, tony: 1, tojo: 1, betty: 1, val: 1 } },
     },
   },
+  // Basic Training: a scripted two-turn lesson (Allied player vs a scripted computer, see ai.js trainingMove).
+  // Fixed hands, no decks except a fixed Allied draw, so every briefing lands on the moment it describes.
+  training: {
+    name: 'Basic Training', date: 'New Guinea, 1942', needs1942: true, first: 'allied', tutorial: true,
+    blurb: 'A two-turn exercise with an operations officer at your side: read the cards, fly an Attack Mission against Lae, then defend Port Moresby.',
+    resourceTargets: ['convoy'], noIndustry: true, noCarriers: true,
+    noDecks: true, noOpeningDraw: true, firstTurnDraw: true, deckTop: { allied: ['parafrag', 'sunAl', 'squallAl'] },
+    forceOptions: { drawKeep: true, indestructibleHome: true, singleMobilization: false, surpriseAttack: false, noFirstTurnAttack: false, bonusCards: {} },
+    turnLimit: 2, defs: { lae: 7, moresby: 9 }, timeoutWinner: 'allied', timeoutText: 'Training complete.',
+    victory: {},
+    victoryText: 'Training: no victory conditions. Destroy Lae on your turn, then defend Port Moresby on theirs.',
+    sides: {
+      allied: { home: null, inPlay: ['moresby', 'milne'], hand: ['b25', 'beaufort', 'p40e', 'p400', 'p39', 'thatch'] },
+      axis:   { home: 'rabaul', inPlay: ['lae', 'rabaul'], hand: ['zero', 'zero', 'betty', 'betty'] },
+    },
+  },
   coralsea: {
     name: 'Battle of the Coral Sea', date: 'May 4–8, 1942', needs1942: true, first: 'axis',
     blurb: 'Japan sends an invasion force toward Port Moresby, covered by the carriers Shokaku and Zuikaku and the light carrier Shoho. Allied codebreakers have read the plan, and Lexington and Yorktown are waiting. The first carrier battle in history.',
@@ -980,6 +1035,7 @@ function newGame(opts) {
   const sc = mode === 'scenario' ? SCENARIOS[s.options.scenario] : null;
   if (mode === 'scenario' && !sc) fail('Unknown scenario.');
   if (sc && sc.needs1942) s.options.expansion1942 = true;
+  if (sc && sc.forceOptions) Object.assign(s.options, JSON.parse(JSON.stringify(sc.forceOptions)));
   if (sc) s.active = sc.first;
   else if (s.options.first) s.active = s.options.first;
   const mk = (id) => { const uid = 'c' + s.nextUid++; s.cards[uid] = id; return uid; };
@@ -1008,7 +1064,14 @@ function newGame(opts) {
       for (const id of sc.sides[side].special || []) (inDeck.has(id) ? p.deck : p.hand).push(mk(id));
     }
     shuffle(s, p.deck);
+    if (sc && sc.noDecks) {
+      // Training: the deck holds only the scripted draw, top card last (draws pop from the end).
+      const top = ((sc.deckTop || {})[side] || []).map(take).reverse();
+      for (const u of p.deck) delete s.cards[u];
+      p.deck = top;
+    }
     if (mode === 'classic') draw(s, side, 7, true);
+    else if (sc && sc.noOpeningDraw) { /* fixed opening hand */ }
     else if (mode !== 'pointbuy' && mode !== 'campaign') draw(s, side, 2, true);
     // Head start: extra opening cards for one side (e.g. the Axis, for Pearl Harbor and Japan's early lead).
     const bonus = (s.options.bonusCards || {})[side] || 0;
@@ -1021,7 +1084,8 @@ function newGame(opts) {
     return s;
   }
   log(s, sc ? `Scenario: ${sc.name}. ${SIDE[s.active]} moves first.` : `New game. ${SIDE[s.active]} moves first.`, 'minor');
-  beginTurn(s, true);
+  beginTurn(s, !(sc && sc.firstTurnDraw));
+  if (s.pending.length) { s.phase = 'choice'; s.after = 'mobilize'; }
   return s;
 }
 
@@ -1196,11 +1260,17 @@ function attCanStrike(s) {
   if (!c.intercept.some((e) => e.alive && !e.revealed) && !c.mission.some((m) => canInitiate(s, m))) return false;
   return true;
 }
+/* A base whose loss counts toward losing this scenario (Rabaul, Guadalcanal, Port Moresby, the Wewak fields). */
+function isObjectiveBase(s, side, f) {
+  const v = (scenarioOf(s) || {}).victory || {}, id = s.cards[f.uid];
+  return !!((v.holdBase && v.holdBase[side] === id) || (v.destroyBases && v.destroyBases[side] && v.destroyBases[side].list.includes(id)));
+}
 function convoyOptions(s, side) {
   const p = s.players[side], out = [...p.hand];
   for (const kind of ['airbase', 'carrier']) for (const f of facs(p, kind)) {
     out.push(...f.landed, ...f.war); // war cards attached to a base can go, even on an indestructible home base
-    if (!isHomeProtected(s, f)) out.push(f.uid);
+    // Never the protected home, and never your own scenario objective: a convoy loss can't hand the other side the game.
+    if (!isHomeProtected(s, f) && !isObjectiveBase(s, side, f)) out.push(f.uid);
   }
   out.push(...p.resWar.industry, ...p.resWar.convoy);
   return out;
@@ -2288,7 +2358,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -3269,9 +3339,41 @@ function choice(s, side) {
   }
 }
 
+/* Basic Training: the enemy follows a script so each briefing lands on the moment it describes.
+   Turn 1: one Zero intercepts and goes for the weakest bomber it can shoot down (the Beaufort), then breaks off.
+   Turn 2: everything that can fly attacks Port Moresby. Anything not covered here uses the normal computer. */
+function trainingMove(s, side) {
+  const c = s.combat;
+  if (s.phase === 'intercept' && s.turnNo === 1) {
+    const z = s.players[side].hand.filter((u) => E.interceptEligible(s, u) && s.cards[u] === 'zero');
+    return { type: 'intercept', cards: z.slice(0, 1) };
+  }
+  if (s.phase === 'combat' && side === c.def && s.turnNo === 1) {
+    const own = c.intercept.find((e) => E.canInitiate(s, e));
+    if (!own) return { type: 'endCombat' };
+    const a2a = D(s, own.uid).a2a;
+    const order = c.mission.map((m, i) => ({ m, i, d: D(s, m.uid) })).filter((x) => x.m.alive && !x.m.safe)
+      .sort((x, y) => (y.d.kind === 'aircraft' && !y.d.a2a) - (x.d.kind === 'aircraft' && !x.d.a2a) || x.d.def - y.d.def);
+    const t = order.find((x) => !x.d.a2a && x.d.def - (x.m.revealed ? 1 : 0) <= a2a) || order[0];
+    if (!t) return { type: 'endCombat' };
+    return t.m.revealed ? { type: 'engage', mode: 'strike', own: own.uid, target: t.m.uid } : { type: 'engage', mode: 'intercept', own: own.uid, slot: t.i };
+  }
+  if (s.phase === 'respond') return { type: 'respond', battle: null };
+  if (s.phase === 'attack' && s.stage === 'airbase') {
+    const tg = E.attackTargets(s).find((t) => t.uid && s.cards[t.uid] === 'moresby') || E.attackTargets(s).find((t) => t.kind === 'airbase');
+    const p = s.players[side], cap = E.availCap(s, p, E.launchKind(s));
+    const el = p.hand.filter((u) => E.launchEligible(s, u)).sort((a, b) => (D(s, b).bomb || 0) - (D(s, a).bomb || 0)).slice(0, cap);
+    if (tg && el.length) return { type: 'launch', target: tg, cards: el };
+    return { type: 'skipStage' };
+  }
+  return null;
+}
+
 function chooseAction(s, profile) {
   const side = E.actorOf(s);
   const prof = typeof profile === 'string' ? PROFILES[profile] : (profile || PROFILES.balanced);
+  { const sc = s.options.mode === 'scenario' && E.SCENARIOS[s.options.scenario];
+    if (sc && sc.tutorial && side === 'axis') { const a = trainingMove(s, side); if (a) return a; } }
   switch (s.phase) {
     case 'setup': return pickOpening(s, side);
     case 'mobilize': return mobilize(s, side, prof);
@@ -3309,7 +3411,7 @@ const PKEY = 'awp-prefs';
 let prefs = (() => { try { return Object.assign({ anim: true }, JSON.parse(localStorage.getItem(PKEY)) || {}); } catch (e) { return { anim: true }; } })();
 const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify(prefs)); } catch (e) {} }; // expanded aircraft card; Orders stage key (scroll to top when it changes)
 /* Artwork for the expanded card, by card id (e.g. ART.f4f3 = 'data:image/jpeg;base64,...'). Empty until the art is in. */
-const ART = {"a20":"art/a20.jpg","akagi":"art/akagi.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","boram":"art/boram.jpg","but":"art/but.jpg","claude":"art/claude.jpg","convoy":"art/convoy.jpg","dagua":"art/dagua.jpg","darwin":"art/darwin.jpg","dobodura":"art/dobodura.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","guadalcanal":"art/guadalcanal.jpg","hamp":"art/hamp.jpg","industry":"art/industry.jpg","k204":"art/k204.jpg","k68":"art/k68.jpg","kate":"art/kate.jpg","kavieng":"art/kavieng.jpg","lae":"art/lae.jpg","lexington":"art/lexington.jpg","leyte":"art/leyte.jpg","lily":"art/lily.jpg","midway":"art/midway.jpg","milne":"art/milne.jpg","moresby":"art/moresby.jpg","nadzab":"art/nadzab.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","p47":"art/p47.jpg","p47x":"art/p47x.jpg","peggy":"art/peggy.jpg","rabaul":"art/rabaul.jpg","sally":"art/sally.jpg","saratoga":"art/saratoga.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","shoho":"art/shoho.jpg","shokaku":"art/shokaku.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","tsili":"art/tsili.jpg","val":"art/val.jpg","wewak":"art/wewak.jpg","yorktown":"art/yorktown.jpg","zero":"art/zero.jpg","zuikaku":"art/zuikaku.jpg"};
+const ART = {"a20":"art/a20.jpg","akagi":"art/akagi.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","boram":"art/boram.jpg","brief-allied":"art/brief-allied.png","brief-axis":"art/brief-axis.png","but":"art/but.jpg","claude":"art/claude.jpg","convoy":"art/convoy.jpg","dagua":"art/dagua.jpg","darwin":"art/darwin.jpg","dobodura":"art/dobodura.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","guadalcanal":"art/guadalcanal.jpg","hamp":"art/hamp.jpg","industry":"art/industry.jpg","k204":"art/k204.jpg","k68":"art/k68.jpg","kate":"art/kate.jpg","kavieng":"art/kavieng.jpg","lae":"art/lae.jpg","lexington":"art/lexington.jpg","leyte":"art/leyte.jpg","lily":"art/lily.jpg","midway":"art/midway.jpg","milne":"art/milne.jpg","moresby":"art/moresby.jpg","nadzab":"art/nadzab.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","officer-allied":"art/officer-allied.png","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","p47":"art/p47.jpg","p47x":"art/p47x.jpg","peggy":"art/peggy.jpg","rabaul":"art/rabaul.jpg","sally":"art/sally.jpg","saratoga":"art/saratoga.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","shoho":"art/shoho.jpg","shokaku":"art/shokaku.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","tsili":"art/tsili.jpg","val":"art/val.jpg","wewak":"art/wewak.jpg","yorktown":"art/yorktown.jpg","zero":"art/zero.jpg","zuikaku":"art/zuikaku.jpg"};
 const ART_SAME = { blacksheep: 'f4u', k204: 'hamp' }; // elite units without their own art use their base model's
 let newOpts = { ai: null, indestructibleHome: true, singleMobilization: false, expansion1942: true, mode: 'scenario', scenario: 'coralsea', drawKeep: true, convoyDiscards: 2 };
 /* Balance defaults per mode, from computer self-play (Axis win rate in brackets). Every option can still be changed. */
@@ -3344,23 +3446,23 @@ const styleName = (id) => (STYLES.find((x) => x[0] === id) || [id, id])[1];
 const OLD_MODES = { basic: 'Basic rules', pointbuy: 'Point buy', classic: 'Original rules' };
 
 function fresh() { return { sel: [], target: null, own: null, slot: null, strike: null, battle: null, sub: null, split: {}, special: null }; }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, shownFor, seen, intel, fightSeen })); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ S, shownFor, seen, intel, fightSeen, tut })); } catch (e) {} }
 function load() {
   try { const v = JSON.parse(localStorage.getItem(KEY));
     if (v && v.S && v.S.v === 1 && Object.values(v.S.cards).every((id) => E.CARD_DB[id])) {
-      S = v.S; shownFor = v.shownFor; seen = v.seen || { axis: S.log.length, allied: S.log.length }; intel = v.intel || { axis: {}, allied: {} }; fightSeen = v.fightSeen != null ? v.fightSeen : S.log.length; return true; } } catch (e) {}
+      S = v.S; shownFor = v.shownFor; seen = v.seen || { axis: S.log.length, allied: S.log.length }; intel = v.intel || { axis: {}, allied: {} }; fightSeen = v.fightSeen != null ? v.fightSeen : S.log.length; if (v.tut && v.tut.gid === S.gid) tut = v.tut; return true; } } catch (e) {}
   return false;
 }
 function start(data) {
   const valid = (st) => st && st.cards && Object.values(st.cards).every((id) => E.CARD_DB[id]);
-  if (data && valid(data.S)) { S = data.S; hist = data.hist || []; shownFor = data.shownFor; seen = data.seen || { axis: S.log.length, allied: S.log.length }; intel = data.intel || { axis: {}, allied: {} }; fightSeen = data.fightSeen != null ? data.fightSeen : S.log.length; if (data.tab) tab = data.tab; if (data.startScreen === false) startScreen = false; }
+  if (data && valid(data.S)) { S = data.S; hist = data.hist || []; shownFor = data.shownFor; seen = data.seen || { axis: S.log.length, allied: S.log.length }; intel = data.intel || { axis: {}, allied: {} }; fightSeen = data.fightSeen != null ? data.fightSeen : S.log.length; if (data.tab) tab = data.tab; if (data.startScreen === false) startScreen = false; if (data.tut && data.tut.gid === S.gid) tut = data.tut; }
   else if (!load()) newGame();
   if (S && !S.gid) S.gid = Date.now(); // games saved before ids existed
   fit(); render();
 }
-function newGame() {
+function newGame(opts) {
   if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
-  S = E.newGame({ options: JSON.parse(JSON.stringify(newOpts)) }); S.gid = Date.now(); hist = []; ui = fresh(); shownFor = null; err = ''; showNew = false; menu = false; fightSeen = 0;
+  S = E.newGame({ options: JSON.parse(JSON.stringify(opts || newOpts)) }); S.gid = Date.now(); tut = { gid: S.gid, done: {}, last: null, briefDue: true }; brief = null; hist = []; ui = fresh(); shownFor = null; err = ''; showNew = false; menu = false; fightSeen = 0;
   seen = { axis: 0, allied: 0 }; intel = { axis: {}, allied: {} }; tab = 'orders'; sub = { strategy: 'sit', bases: null, planes: null, reports: 'aar' }; lastKey = ''; save();
 }
 
@@ -3380,10 +3482,10 @@ addEventListener('resize', fit);
 /* ---------------------------------------------------------------- moves */
 let aiTimer = null;
 function scheduleAI() {
-  if (aiTimer || showNew || !S || !aiTurn() || nextFight()) return;
+  if (aiTimer || showNew || brief || !S || !aiTurn() || nextFight()) return;
   aiTimer = setTimeout(() => {
     aiTimer = null;
-    if (showNew || !aiTurn()) return;
+    if (showNew || brief || startScreen || !aiTurn()) return;
     const a = window.AWPAI.chooseAction(S, S.options.ai.profile);
     let n;
     try { n = E.apply(S, a); }
@@ -4479,7 +4581,7 @@ function startHTML() {
     <div class="start-btns">${cont ? `<div class="start-sub">${what}</div>` : ''}
       ${cont ? btn('startContinue', over() ? 'View last game' : 'Continue game', { cls: 'go' }) : ''}
       ${btn('startNewGame', 'New game', { cls: cont ? '' : 'go' })}
-      ${btn('startHow', 'How to play')}</div></div>`;
+      ${btn('startTraining', 'Basic training')}</div></div>`;
 }
 /* ---------------------------------------------------------------- how to play */
 function scenarioWins(sc) {
@@ -4582,7 +4684,7 @@ function rulesPage(t) {
     <h3>Reading the reports</h3>
     <p>Fights read like "Axis A6M2 Zero (4 ATT | 4 DEF) shoots down Allied F4F-3 Wildcat (3 ATT | 3 DEF*)": the numbers each aircraft fought with, battle cards included. DEF* means it was scouted and fought at −1.</p></section>`;
   // Game types: the Campaign, then each scenario with its own special rules.
-  const scs = Object.values(E.SCENARIOS).sort((a, b) => a.name.localeCompare(b.name)).map((sc) => { const W = scenarioWins(sc);
+  const scs = Object.values(E.SCENARIOS).filter((sc) => !sc.tutorial).sort((a, b) => a.name.localeCompare(b.name)).map((sc) => { const W = scenarioWins(sc);
     const extra = [];
     if (sc.twoMissions) extra.push('<b>Two Attack Missions a day:</b> there is no Carrier Stage. Each turn has a Morning and an Afternoon Attack Mission. Each aircraft flies once a day, and morning planes land in your base slots, leaving less room for the afternoon. Fighters that intercepted in the morning are on the ground in the afternoon: they can’t take off, and if their base is destroyed they are lost with it.');
     if (sc.pmBonus === 'each') extra.push('An Afternoon Attack Mission on an airbase gets <b>+1 for each aircraft that reaches it</b>.');
@@ -4614,7 +4716,9 @@ function newHTML() {
   const sc = E.SCENARIOS[newOpts.scenario], isScen = newOpts.mode === 'scenario';
   if (!PNP_ON_NEW && !newOpts.ai) newOpts.ai = { side: 'axis', profile: 'balanced' };
   const segBtns = (id, cur, list) => `<div class="pick2">${list.map(([v, l]) => btn(id, l, { arg: v, cls: cur === v ? 'on' : '' })).join('')}</div>`;
-  const scList = Object.entries(E.SCENARIOS).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const scList = Object.entries(E.SCENARIOS).sort((a, b) => (b[1].tutorial ? 1 : 0) - (a[1].tutorial ? 1 : 0) || a[1].name.localeCompare(b[1].name));
+  const isTut = isScen && sc && sc.tutorial;
+  if (isTut) newOpts.ai = { side: 'axis', profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' };
   const info = isScen
     ? `<div class="ng-card"><label class="ng-pick"><span class="sr">Scenario</span><select id="opt-scen">${scList.map(([id, x]) => `<option value="${id}" ${newOpts.scenario === id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev', 18)}</label>
         <div class="opt-date">${esc(sc.date)} · ${SIDE[sc.first]} moves first · ${sc.turnLimit} turns</div><p>${esc(sc.blurb)}</p></div>`
@@ -4628,8 +4732,8 @@ function newHTML() {
       .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`; })() : '';
   return `<div class="label">Game type</div>${segBtns('newMode', newOpts.mode, [['scenario', 'Scenario'], ['campaign', 'Campaign']])}
     ${info}
-    <div class="label">You command</div>${segBtns('newSide', oppV, sides)}
-    ${style}
+    ${isTut ? '<div class="label">You command</div><p class="note">The Allied side, with an operations officer briefing you at each step. The enemy follows a set plan.</p>' : `<div class="label">You command</div>${segBtns('newSide', oppV, sides)}
+    ${style}`}
     <p class="note">More game options are in the ••• menu.${S && S.phase && !over() ? ' Starting replaces the current game.' : ''}</p>
     <div class="actions">${S && S.phase ? btn('cancelNew', 'Back') : ''}${btn('startNew', 'Start game', { cls: 'go' })}</div>`;
 }
@@ -4645,6 +4749,338 @@ function newOptsHTML() {
     <label class="tog"><input type="checkbox" id="opt-convoy" ${newOpts.convoyDiscards === 1 ? 'checked' : ''}><span>Lighter convoy losses<small>A sunk convoy costs 1 card instead of 2.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-single" ${newOpts.singleMobilization ? 'checked' : ''}><span>Single mobilization per turn</span></label>
     <label class="tog"><input type="checkbox" id="opt-exp" ${newOpts.expansion1942 || forced ? 'checked' : ''} ${forced ? 'disabled' : ''}><span>Include the 1942 expansion<small>${forced ? 'Required by this scenario.' : 'Adds 9 cards to each deck.'}</small></span></label>`;
+}
+
+/* ---------------------------------------------------------------- briefings: Basic Training and first-time scenario briefings
+   All the words are in BRIEF_COPY so they can be edited in one place (the copy document is generated from it).
+   Text: blank line = new paragraph, **bold**. In Basic Training each group of pages appears at one moment of the
+   two-turn exercise (see tutGroup); the last page of a group closes it ("Go" when the player acts next). */
+const BRIEF_COPY = {
+  training: {
+    intro: [
+      { id: 'T1', sub: 'Your command', title: 'Welcome', btn: 'Next',
+        text: `Lieutenant, welcome to New Guinea. I'm the operations officer for this airfield.
+
+From today you command our air forces in this sector: the fighters, the bombers and the fields they fly from. Across the mountains the Japanese hold Lae and Rabaul, and they have the same job we do.
+
+Every turn you will do two things: send aircraft out to hit the enemy, and keep enough of them home to meet him when he comes back. Win the fight in the air and the rest follows.
+
+Before we fly, let me show you how to read your cards.` },
+      { id: 'T2', sub: 'How to read a fighter card', title: 'Fighters', show: ['p40e'], stats: true, btn: 'Next',
+        text: `This is a **P-40E Kittyhawk**, flown by the Australians of No. 75 Squadron. Every aircraft card carries the same five numbers.`,
+        after: `Fights are fired at the same moment: each aircraft shoots the other down if its **A2A equals or beats the other's DEF**. A Kittyhawk that meets a Zero (A2A 4, DEF 4) shoots it down, and is shot down by it. Remember that. We'll come back to it.` },
+      { id: 'T3', sub: 'How to read a bomber card', title: 'Bombers', show: ['b25'], stats: true, btn: 'Next',
+        text: `This is the **B-25C Mitchell**. Bombers have no A2A: they can't shoot back, and they can't start a fight. What they bring is damage.`,
+        after: `Pick the bomber for the target. The Mitchell is built for airfields. The **Beaufort** you'll also fly today is a torpedo bomber: deadly against ships (CNV 5), weak against airfields (BMB 2), and with DEF 4 an easy kill for a Zero.` },
+      { id: 'T4', sub: 'How to read an airbase card', title: 'Airbases', show: ['moresby'], btn: 'Next',
+        text: `**Port Moresby**, our home. Two numbers matter.
+
+**CAP 3**: capacity, how many aircraft can take off from it and land on it. Moresby (3) plus Milne Bay (2) means you can put up to 5 aircraft in the air at once.
+
+**DEF 9**: the damage it takes to destroy it. We've dug in for this exercise; Moresby is normally 7.
+
+After a mission your aircraft land on your fields and stay parked until your next turn. Parked aircraft can't take off to intercept, and if the enemy destroys a field, everything parked on it is lost. Spread them out.` },
+      { id: 'T5', sub: 'War cards and battle cards', title: 'Special cards', show: ['parafrag', 'thatch'], btn: 'Next',
+        text: `**War cards** go into play during Mobilization and stay there. Para-Frags arms one bomber with parachute fragmentation bombs: +4 against airbases on every mission, until that bomber is shot down.
+
+**Battle cards** stay secret in your hand until you play one, once, in the middle of a fight. Thatch Weave gives a fighter +2 Defense; Attack From The Sun gives +1 Air to Air.
+
+You'll only be offered a battle card when it would change the result. When the offer comes, take it seriously.` },
+      { id: 'T6', sub: 'Two turns: attack, then defend', title: 'The exercise', btn: 'Next',
+        text: `That's enough classroom. This exercise is two turns. First yours: we attack the Japanese field at **Lae**. Then the enemy's: he will come for Port Moresby, and you'll defend it.
+
+I'll be at your elbow the whole way. Destroy Lae, and bring as many crews home as you can.` },
+      { id: 'T7', sub: 'Turn 1 · Mobilization', title: 'Draw your cards', btn: 'Go',
+        text: `Every turn starts with **Mobilization**. First you draw three cards from your deck and keep two. The third is shuffled back.
+
+You've drawn Para-Frags, Attack From The Sun and Rain Squall. Rain Squall hides a carrier from attack, and we have no carriers here.
+
+Keep **Para-Frags** and **Attack From The Sun**.` },
+    ],
+    mobilize: [
+      { id: 'T8', sub: 'Turn 1 · Mobilization', title: 'Arm the Mitchell', btn: 'Go',
+        text: `Next you put cards into play: airbases, carriers and war cards. Aircraft don't need mobilizing; they fly straight from your hand.
+
+Select **Para-Frags** and attach it to the **B-25C Mitchell**. With it the Mitchell hits an airfield for 3 + 4 = 7, exactly Lae's Defense.
+
+Then end Mobilization.` },
+    ],
+    attack: [
+      { id: 'T9', sub: 'Turn 1 · Attack Mission', title: 'Plan the mission', btn: 'Go',
+        text: `Pick a target and the aircraft to send. You can send as many as your fields have room for.
+
+**Targets.** An enemy airbase: destroy it and everything parked there goes with it. An enemy carrier, if he has one. Or his **Convoy**, his supply line: sink it and he loses cards. Today it's **Lae**.
+
+**Aircraft.** Send both bombers, the **Mitchell** and the **Beaufort**, with the **P-40E Kittyhawk** as escort. It's your best dogfighter. An escort helps two ways: interceptors pick blind, so one may go after your escort instead of a bomber, and when an interceptor shows itself, your escort can strike it.
+
+**Keep the two Airacobras home.** Aircraft that fly today are parked during the enemy's turn and can't intercept. The P-39 gets +2 Air to Air against bombers. Tomorrow he's your Betty killer.
+
+The enemy will see how many aircraft are coming, not which.` },
+    ],
+    escort: [
+      { id: 'T10', sub: 'Turn 1 · Combat', title: 'Your escort’s move', btn: 'Go',
+        text: `A Zero came up and went straight for the Beaufort: A2A 4 against Defense 4, and the Beaufort is down. Bombers can't fight back.
+
+In combat, **whoever lost the last fight moves next**. You can **strike** the Zero with your Kittyhawk, or **hold** and let it escape to land.
+
+The Zero has been seen now (scouted), so it fights at Defense 4 − 1 = 3, and your Kittyhawk (A2A 5) will shoot it down. But it fires back with A2A 4 against your Defense 4, and you'd both go down.
+
+So play **Thatch Weave**: +2 Defense makes your Kittyhawk 6, and the Zero can't touch it. Pick the Kittyhawk, then the Zero. Under **Battle card**, tap **Thatch Weave**, then tap **Strike**.` },
+    ],
+    target: [
+      { id: 'T11', sub: 'Turn 1 · Over the target', title: 'Bombs away', btn: 'Watch',
+        text: `The way to Lae is clear. Every attacker still flying when the combat ends reaches the target.
+
+Their damage is added up and compared with the target's Defense: **equal or more destroys it**. The Mitchell brings 3 and the Para-Frags 4, against Lae's Defense of 7.
+
+Watch.` },
+    ],
+    report: [
+      { id: 'T12', sub: 'Turn 1 · Report', title: 'After-action report', btn: 'Next',
+        text: `Lae is finished, and anything parked there went with it. Good work, Lieutenant.
+
+Next comes the **after-action report**: every fight, what got through, and what it did. The Reports tab keeps them all. The Bases and Planes tabs show where everything stands, and you can tap any aircraft or base for its full record.
+
+Read it, then tap **Continue**.` },
+    ],
+    landing: [
+      { id: 'T13', sub: 'Turn 1 · Landing', title: 'Bring them home', btn: 'Go',
+        text: `Now bring them home. Choose a field for each aircraft. Each field holds as many as its capacity, and the enemy only learns how many are on each field, not which.
+
+They stay parked until your next turn, then return to your hand. Don't put everything on one field: if it's destroyed, everything on it is lost.
+
+That ends your turn. Tokyo will have something to say about Lae.` },
+    ],
+    scramble: [
+      { id: 'T14', sub: 'Turn 2 · Enemy attack', title: 'Scramble!', btn: 'Go',
+        text: `Coastwatchers report enemy aircraft heading for **Port Moresby**. You know how many, not what they are.
+
+Now you defend. You can **scramble** fighters from your hand to intercept, as many as your fields have room for, or let the attack through. Aircraft parked after your own mission can't take off.
+
+Scramble **both Airacobras**. Every bomber you stop is damage Moresby doesn't take.` },
+    ],
+    defend: [
+      { id: 'T15', sub: 'Turn 2 · Interception', title: 'Pick your fights', btn: 'Go',
+        text: `You choose the fights. Pick one of your fighters, then pick an attacker:
+
+A **hidden** one is a blind pick. It might be a bomber, it might be an escort.
+
+A **scouted** one is face up, so you know what you're fighting, and it fights at Defense −1.
+
+Go for the bombers. A Betty has Defense 5. The P-39 hits bombers at 3 + 2 = 5: a kill. The P-400 has only 4; if it meets a Betty, play **Attack From The Sun** for +1.
+
+Each fighter fights once. When you've done what you can, end combat. Whatever is left reaches Moresby. Then land your fighters.` },
+    ],
+    debrief: [
+      { id: 'T16', sub: 'Debrief', title: 'Training complete', btn: 'Finish training',
+        text: `{result}
+
+That's the job, Lieutenant. Hit him where it hurts, keep fighters at home, and never park everything on one field.
+
+A real battle runs like this turn after turn, until an objective falls, one side wins the air war, or the clock runs out. Every scenario has its own goals and its own special cards, and I'll brief you the first time you fly one.
+
+Dismissed, and good hunting.` },
+    ],
+  },
+  // Fill-ins for {result} on the debrief, and the explanations beside each stat on the card pages.
+  result: { laeHeld: 'Lae is still standing. It happens.', laeDown: 'Lae is destroyed.', moresbyHeld: 'Port Moresby held.', moresbyDown: 'We lost Port Moresby.',
+    kills: 'Enemy aircraft shot down: {n}. Ours lost: {m}.' },
+  stats: {
+    A2A: 'Air to Air: its guns. It shoots down an enemy aircraft whose Defense is equal or lower.',
+    BMB: 'Bombing: damage to an airbase.',
+    CAR: 'Damage to a carrier (doubled in a Carrier Strike).',
+    CNV: 'Damage to a convoy, the enemy’s supply line.',
+    DEF: 'Defense: an enemy needs this much A2A to shoot it down.',
+    none: 'A dash means none.',
+  },
+  // Safeguards: shown when the player strays from the exercise.
+  guard: {
+    keep: { title: 'Keep those two', text: 'Keep the **Para-Frags** and **Attack From The Sun**, Lieutenant. You’ll want both before this is over.' },
+    endMob: { title: 'Not yet', text: 'Attach the **Para-Frags** to the **Mitchell** first. Without them, Lae holds.' },
+    skip: { title: 'We fly today', text: 'We’re not sitting this one out. The target is **Lae**.' },
+    target: { title: 'Wrong target', text: 'Not that one, Lieutenant. Today it’s **Lae**.' },
+    allFighters: { title: 'Hold on!', text: 'You’re sending every fighter you have. They’ll all be parked when the enemy comes back, and nobody will be left to defend Moresby.\n\nKeep at least one fighter home. The Airacobras, ideally.' },
+    noMitchell: { title: 'Take the Mitchell', text: 'The **Mitchell** with its Para-Frags is the only aircraft that can knock out Lae. Send it.' },
+    noEscort: { title: 'Where’s the escort?', text: 'Bombers can’t fight back. Send the **Kittyhawk** with them.' },
+    noThatch: { title: 'Play the Thatch Weave', text: 'Without it the Zero takes your Kittyhawk down with it. Tap **Thatch Weave** under Battle card, then **Strike**.' },
+    noBeaufort: { title: 'Take the Beaufort', text: 'Send the **Beaufort** too. Two bombers are harder to stop than one.' },
+  },
+  // First time a scenario is played: one briefing per side, by that side's officer.
+  scenarios: {
+    coralsea: {
+      allied: {
+        situation: 'May 1942. A Japanese invasion force is steaming for Port Moresby, covered by the carriers Shokaku and Zuikaku and the light carrier Shoho. Our codebreakers have read the plan, and Lexington and Yorktown are waiting.',
+        win: 'Hold **Port Moresby** (Defense 9) until the end of turn 15, or sink **two** Japanese carriers. If Moresby falls, we lose.',
+        rules: 'The Japanese move first, and they can’t touch Moresby on their first turn. Each turn you fly an Attack Mission from your airfields and a **Carrier Strike** from your carriers, and damage to one target from both adds up. Carrier Strikes double damage against carriers and convoys. **Yorktown** takes two hits to sink. If their convoy is sunk, the invasion is delayed and the battle ends 2 turns sooner; if ours is, Moresby loses 2 Defense.',
+        cards: '**Station HYPO** (in your deck): play it before you scramble and every incoming aircraft is revealed. The enemy has **Operation MO** (up to +4 on an attack on Moresby) and **Weather Front** (hides a carrier from your strike).',
+        strategy: 'The clock is on our side. Keep fighters home to guard Moresby; that is how we win. Hunt their carriers when you can catch them: the light carrier **Shoho** is the easiest kill, and two sinkings end it. Dive and torpedo bombers do double damage on a Carrier Strike.' },
+      axis: {
+        situation: 'Operation MO. The Navy will seize Port Moresby, and with it northern Australia lies under our bombers. Shokaku, Zuikaku and Shoho cover the landing; the Americans have two carriers somewhere to the south.',
+        win: 'Destroy **Port Moresby** (Defense 9), or sink **two** American carriers. If Moresby still stands after turn 15, the operation has failed.',
+        rules: 'We move first, but Moresby can’t be attacked on our first turn. Each turn has an Attack Mission from our airfields and a **Carrier Strike** from our carriers, and damage to one target from both adds up. **Yorktown** takes two hits to sink. If our convoy is sunk, the landing is delayed and the battle ends 2 turns sooner. **Lae** is our protected home field.',
+        cards: '**Operation MO**: play it as you launch against an Allied airfield for +1 per aircraft that reaches it, up to +4. **Weather Front** hides a carrier from an American strike. Beware their codebreakers: **Station HYPO** reveals our attacks.',
+        strategy: 'Time is against us. Build up, then hit Moresby with both missions in the same turn so the damage adds up, ideally with Operation MO. Guard our carriers: losing two ends the battle just as surely.' },
+    },
+    guadalcanal: {
+      allied: {
+        situation: 'April 1943. Henderson Field on Guadalcanal is ours, and the push up the Solomons toward Rabaul begins. Yamamoto answers with Operation I-Go.',
+        win: 'Destroy **Rabaul** (Defense 13), or win the air war by shooting down **13** enemy aircraft. Lose **Guadalcanal** (Defense 10) and we lose. If Rabaul still stands after turn 14, the Japanese win.',
+        rules: 'The Japanese move first. Damage to a base from both stages of a turn adds up. A sunk convoy costs that side’s objective 2 Defense: theirs costs Rabaul, ours costs Guadalcanal.',
+        cards: '**Coastwatchers** (in your deck): play before scrambling and every incoming aircraft is revealed. **VMF-214 Black Sheep**: a Corsair that fires first when it starts a fight unseen. The enemy has **Operation I-Go** (up to +4 on an attack on our fields) and the **204th Kokutai**, which can fight again after downing a bomber.',
+        strategy: 'The clock is against us, and Rabaul is tough. Sinking their convoy takes 2 off it. The air war is a real road to victory: Corsairs outclass most of what they fly, so pick fights you win.' },
+      axis: {
+        situation: 'April 1943. Guadalcanal is lost, and the Americans are coming up the Solomons. Admiral Yamamoto has ordered Operation I-Go to break their air power.',
+        win: 'Destroy **Guadalcanal** (Defense 10), or shoot down **13** enemy aircraft. If **Rabaul** (Defense 13) still stands after turn 14, we win.',
+        rules: 'We move first. Damage to a base from both stages of a turn adds up. A sunk convoy costs that side’s objective 2 Defense: ours costs Rabaul, theirs costs Guadalcanal.',
+        cards: '**Operation I-Go**: +1 per aircraft that reaches an Allied airfield, up to +4. The **204th Kokutai** may fight once more after it shoots down a bomber. The enemy has **Coastwatchers**, which reveal our attacks, and the **Black Sheep** Corsairs.',
+        strategy: 'Time is ours. Make every raid on Rabaul pay, and guard our convoy. Strike Guadalcanal when I-Go can make it count.' },
+    },
+    wewak: {
+      allied: {
+        situation: 'August 1943. Japan’s 4th Air Army has packed the four Wewak airfields with aircraft. Fifth Air Force will wreck them from Port Moresby, Dobodura and a secret strip at Tsili Tsili.',
+        win: 'Destroy **three of the four** Wewak fields (Wewak, Boram, But, Dagua; Defense 9 each), or destroy **16** enemy aircraft (one caught on the ground counts ½). Lose **Port Moresby** (Defense 16) and we lose. If the fields still hold after turn 15, the Japanese win.',
+        rules: '**Two Attack Missions a day**, morning and afternoon, and no carriers. Each aircraft flies once a day. Morning planes land in your slots, and interceptors that flew in the morning are parked in the afternoon. An afternoon mission on an airbase gets +1 for each aircraft that reaches it, and damage adds up over the day. Convoys sink at 10: theirs costs every Wewak field 2 Defense, ours costs Moresby 3. **Tsili Tsili** is secret until aircraft fly from it. We move first and last.',
+        cards: 'The **348th Fighter Group** strafes: everything parked on the field it reaches is destroyed. **Richard Bong** (+1 to a P-38), **Nadzab**, **Radar**, **Light AAA** and **Airfield Engineers** come from the deck. The enemy has the **68th Sentai**, which presses on after a kill, **Nango**, **Dispersal**, **Radar** and **Light AAA**.',
+        strategy: 'Run the one-two: fighter-bombers in the morning to draw his interceptors up, bombers in the afternoon while they sit on the ground. Avoid fields stacked with Radar and Heavy AAA, and spread out when you land.' },
+      axis: {
+        situation: 'August 1943. The 4th Air Army holds the four Wewak airfields. The Americans have new fighters and a secret field somewhere in the hills. Hold Wewak.',
+        win: 'Destroy **Port Moresby** (Defense 16), or destroy **16** enemy aircraft (one caught on the ground counts ½). If two of our four fields still stand after turn 15, we win. Lose three and we lose.',
+        rules: '**Two Attack Missions a day**, morning and afternoon, and no carriers. Each aircraft flies once a day. Fighters that intercept in the morning are parked in the afternoon, where a strike can catch them. An afternoon mission on an airbase gets +1 per aircraft that reaches it. Convoys sink at 10: ours costs every Wewak field 2 Defense. Their **Tsili Tsili** field can’t be attacked until their aircraft fly from it.',
+        cards: 'The **68th Sentai** (Ki-61) must attack again after it shoots down a fighter on a bombing raid. **Nango** gives an Oscar +1. **Dispersal** saves the aircraft on a field that falls. **Radar** and **Light AAA** guard the fields. Beware the **348th Fighter Group**: it strafes everything parked where it hits.',
+        strategy: 'Time is ours. Don’t throw everything at a small morning raid: the afternoon is when the bombers come. Keep the Ki-61s for what you have seen, and guard the convoy.' },
+    },
+    campaign: {
+      allied: {
+        situation: 'December 1941. The Pacific war begins with a Japanese surprise attack, and it will be a long one. You hold Midway as your home base, with Port Moresby in your opening hand.',
+        win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'The Japanese move first and draw an extra card. On turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Heavy AAA** (theirs) can cover their Industry: −2 on every attack on it. **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields.',
+        strategy: 'Weather the first blow: don’t over-commit before the enemy shows his hand. Their Industry is the target; every bomber that reaches it brings the end closer. Their Convoy is a cheaper way to hurt them, and carriers let you strike from somewhere they don’t expect.' },
+      axis: {
+        situation: 'December 1941. The Navy strikes first, and the Southern Resource Area is ours to take. Hold Lae as our home base, with Wewak in the opening hand.',
+        win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'We move first and draw an extra card. On turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'Spend your 5 points where they count: carriers give a second strike every turn. **Heavy AAA** can cover our Industry or Convoy: −2 on every attack on it. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play.',
+        strategy: 'Use the surprise: the first turn is free, so hit hard. American production will tell in a long war, so press their Industry early and guard our own. Their Convoy is the soft target.' },
+    },
+  },
+  campaignHead: { title: 'The Campaign', sub: 'The long war, to 60 Industry' },
+  scenarioHeads: { situation: 'The situation', win: 'How to win', rules: 'Special rules', cards: 'Special cards', strategy: 'Strategy' },
+};
+const TUT_ORDER = ['intro', 'mobilize', 'attack', 'escort', 'target', 'report', 'landing', 'scramble', 'defend', 'debrief'];
+const TUT_TOTAL = TUT_ORDER.reduce((n, g) => n + BRIEF_COPY.training[g].length, 0);
+let brief = null;                 // what the briefing screen shows now: { kind: 'tut', group, i } | { kind: 'guard', key } | { kind: 'scen' }
+let tut = { gid: null, done: {}, last: null }; // Basic Training progress for the current game
+const isTraining = () => !!(S && scen() && scen().tutorial);
+const briefMd = (t) => esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').split(/\n\s*\n/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+const uidOf = (cid) => Object.keys(S.cards).find((u) => S.cards[u] === cid);
+/* Which group of training pages is due now (null: none). pf: the fight popup waiting to be shown. */
+function tutGroup(pf, reps) {
+  if (!isTraining()) return null;
+  const T = S.turnNo, ph = S.phase, c = S.combat, d = tut.done, pc = S.pending[0];
+  const act = over() ? null : E.actorOf(S);
+  if (over()) return d.debrief ? null : 'debrief';
+  if (pf) return T === 1 && pf.l.strike && !d.target ? 'target' : null;
+  if (T === 1 && ph === 'choice' && pc && pc.kind === 'keepTwo' && !d.intro) return 'intro';
+  if (T === 1 && ph === 'mobilize' && !d.mobilize) return 'mobilize';
+  if (T === 1 && ph === 'attack' && !d.attack) return 'attack';
+  if (T === 1 && (ph === 'combat' || ph === 'respond') && c && act === 'allied' && c.att === 'allied' && !d.escort) return 'escort';
+  if (T === 1 && !d.target && S.log.some((l) => l.strike && l.t === 1)) return 'target'; // battle animations off
+  // The game shows the turn's after-action report before landing: brief the report first, then the landing.
+  if (T === 1 && reps && reps.length && d.target && !d.report) return 'report';
+  if (T === 1 && ph === 'choice' && pc && pc.kind === 'land' && pc.player === 'allied' && !(reps && reps.length) && !d.landing) return 'landing';
+  if (T === 2 && ph === 'intercept' && act === 'allied' && !d.scramble && !(reps && reps.length)) return 'scramble';
+  if (T === 2 && (ph === 'combat' || ph === 'respond') && c && c.def === 'allied' && act === 'allied' && !d.defend) return 'defend';
+  return null;
+}
+/* Training safeguards: steer the player back onto the exercise. Returns a BRIEF_COPY.guard key or null. */
+function tutGuard(id) {
+  if (!isTraining() || S.turnNo !== 1 || over()) return null;
+  const p = S.players.allied, pc = S.pending[0], has = (list, cid) => list.some((u) => S.cards[u] === cid);
+  const fighter = (u) => D(u).kind === 'aircraft' && D(u).a2a > 0;
+  if (id === 'choose' && pc && pc.kind === 'keepTwo') return has(ui.sel, 'parafrag') && has(ui.sel, 'sunAl') ? null : 'keep';
+  if (id === 'endMob' && !Object.keys(p.planeWar || {}).length) return 'endMob';
+  if (id === 'skip' && S.phase === 'attack') return 'skip';
+  if (id === 'engage' && S.combat && S.combat.att === 'allied' && ui.strike && ui.own) {
+    const th = E.battleOptions(S, 'allied', ui.own).find((u) => S.cards[u] === 'thatch');
+    if (th && ui.battle !== th) return 'noThatch';
+  }
+  if (id === 'launch') {
+    if (!ui.target || !ui.target.uid || S.cards[ui.target.uid] !== 'lae') return 'target';
+    if (!p.hand.some((u) => fighter(u) && !ui.sel.includes(u))) return 'allFighters';
+    if (!has(ui.sel, 'b25')) return 'noMitchell';
+    if (!ui.sel.some(fighter)) return 'noEscort';
+    if (!has(ui.sel, 'beaufort')) return 'noBeaufort';
+  }
+  return null;
+}
+function tutResult() {
+  const R = BRIEF_COPY.result, lae = S.players.axis.airbases.some((f) => S.cards[f.uid] === 'lae'), mor = S.players.allied.airbases.some((f) => S.cards[f.uid] === 'moresby');
+  const st = S.stats || {}, k = (sd) => Object.values((st[sd] || {}).kills || {}).reduce((a, b) => a + b, 0);
+  return `${lae ? R.laeHeld : R.laeDown} ${mor ? R.moresbyHeld : R.moresbyDown} ${R.kills.replace('{n}', k('allied')).replace('{m}', k('axis'))}`;
+}
+function statRows(uid) {
+  const d = D(uid), C = BRIEF_COPY.stats;
+  const rows = [['A2A', d.a2a], ['BMB', d.bomb], ['CAR', d.car], ['CNV', d.conv], ['DEF', d.def]];
+  return `<div class="bf-stats">${rows.map(([k, v]) => `<div class="bf-stat"><b class="${v ? '' : 'z'}">${k}<i>${v || '–'}</i></b><span>${esc(C[k])}${v ? '' : ' ' + esc(C.none)}</span></div>`).join('')}</div>`;
+}
+function officerHead(side, sub, title) {
+  const img = ART['brief-' + side];
+  return `<header class="hdr bf-hdr"><div class="hdr-bar">
+      <button class="iconbtn" data-btn="rules" aria-label="How to play">${ico('book', 24)}</button>
+      <div class="logo">${LOGO}</div>
+      <button class="iconbtn" data-btn="menu" aria-label="Menu">${ico('more', 22)}</button></div></header>
+    <div class="bf-band ${side}">${img ? `<img src="${img}" alt="The operations officer in the briefing room">` : ''}
+      <div class="bf-cap"><h2>${esc(title)}</h2><span>${esc(sub)}</span></div></div>`;
+}
+function briefHTML() {
+  if (brief.kind === 'guard') {
+    const g = BRIEF_COPY.guard[brief.key], img = ART['officer-allied'];
+    return `<div class="bf-wrap"><div class="bf-dlg" role="alertdialog" aria-label="${esc(g.title)}"><div class="bf-ring allied">${img ? `<img src="${img}" alt="">` : ''}</div>
+      <h3>${esc(g.title)}</h3><div class="bf-txt">${briefMd(g.text)}</div>${btn('briefClose', 'Change my orders', { cls: 'go' })}</div></div>`;
+  }
+  if (brief.kind === 'scen') {
+    const id = briefKey(), side = human() || 'allied', B = BRIEF_COPY.scenarios[id][side], H = BRIEF_COPY.scenarioHeads;
+    const sc = scen() || { name: BRIEF_COPY.campaignHead.title, date: BRIEF_COPY.campaignHead.sub };
+    return `<div class="brief">${officerHead(side, sc.date, sc.name)}
+      <main class="bf-body">${Object.keys(H).map((k) => B[k] ? `<h4>${esc(H[k])}</h4>${briefMd(B[k])}` : '').join('')}</main>
+      <footer class="bf-foot">${btn('briefClose', 'To your post', { cls: 'go' })}</footer></div>`;
+  }
+  const pages = BRIEF_COPY.training[brief.group], pg = pages[brief.i];
+  const n = TUT_ORDER.slice(0, TUT_ORDER.indexOf(brief.group)).reduce((a, g) => a + BRIEF_COPY.training[g].length, 0) + brief.i + 1;
+  const cards = (pg.show || []).map(uidOf).filter(Boolean);
+  const text = pg.text.replace('{result}', () => over() ? tutResult() : '');
+  const last = brief.i === pages.length - 1;
+  return `<div class="brief">${officerHead('allied', pg.sub, pg.title)}
+    <main class="bf-body">${briefMd(text)}${cards.length ? `<div class="bf-cards n${cards.length}">${cards.map((u) => cardHTML(u, { noView: true, noKills: true })).join('')}</div>` : ''}
+      ${pg.stats && cards[0] ? statRows(cards[0]) : ''}${pg.after ? briefMd(pg.after) : ''}</main>
+    <footer class="bf-foot"><span class="bf-prog">${n} / ${TUT_TOTAL}</span>${brief.i > 0 ? btn('briefBack', 'Back') : ''}${btn('briefNext', last ? pg.btn || 'Go' : pg.btn || 'Next', { cls: 'go' })}</footer></div>`;
+}
+/* The briefing due now, if any; called from render with the fight popup and reports that are waiting. */
+/* The briefing for this game type (a scenario, or the Campaign), or null. */
+const briefKey = () => (!S ? null : S.options.mode === 'campaign' ? 'campaign' : scen() && !scen().tutorial ? S.options.scenario : null);
+function briefDue(pf, reps) {
+  if (brief || !S) return;
+  const g = tutGroup(pf, reps);
+  if (g) { brief = { kind: 'tut', group: g, i: 0 }; tut.last = g; return; }
+  // Every new game opens with its briefing (vs the computer), before the first move.
+  const k = briefKey();
+  // Only a game just created here has its briefing due; a game already under way never gets one.
+  if (k && BRIEF_COPY.scenarios[k] && human() && !over() && tut.gid === S.gid && tut.briefDue) brief = { kind: 'scen' };
+}
+function briefBtn(id) {
+  if (id === 'briefBack') { brief.i = Math.max(0, brief.i - 1); return; }
+  if (id === 'briefClose') {
+    if (brief.kind === 'scen') { tut.briefDue = false; save(); }
+    brief = null; return;
+  }
+  // briefNext
+  const pages = BRIEF_COPY.training[brief.group];
+  if (brief.i < pages.length - 1) { brief.i++; return; }
+  const g = brief.group, replay = brief.replay; brief = null;
+  if (replay) return;
+  tut.done[g] = true; save();
+  if (g === 'debrief') { prefs.trainingDone = true; savePrefs(); if (newOpts.scenario === 'training') { newOpts.scenario = 'coralsea'; applyBalance(); } showNew = true; }
 }
 
 /* ---------------------------------------------------------------- render */
@@ -4706,7 +5142,7 @@ function reportText() {
 }
 function archive() {
   // Finished games are kept on this device so several can be exported together.
-  if (!over()) return;
+  if (!over() || isTraining()) return;
   const gid = S.gid || `g${S.rng}-${S.log.length}`; // games started before ids existed
   const h = loadHist(); if (h.some((x) => x.gid === gid)) return;
   try { if ((JSON.parse(localStorage.getItem(HKEY + '-cleared')) || []).includes(gid)) return; } catch (e) {} // cleared by the player
@@ -4755,7 +5191,7 @@ function menuHTML() {
   const inGame = S && S.phase && !showNew && !startScreen;
   return `<div class="sheet-wrap" data-btn="closeMenu"><div class="sheet" role="dialog" aria-label="Menu"><h3>${inGame ? esc(modeName()) : 'Options'}</h3>
     ${inGame ? `<p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer` : 'Pass and play'} · turn ${S.turnNo}</p>
-    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${btn('toStart', 'Main menu')}${btn('openNew', 'New game')}` : ''}
+    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${isTraining() ? btn('tutReplay', 'Repeat the last briefing', { dis: !tut.last }) : briefKey() && BRIEF_COPY.scenarios[briefKey()] && human() ? btn('scenBrief', S.options.mode === 'campaign' ? 'Campaign briefing' : 'Scenario briefing') : ''}${btn('toStart', isTraining() ? 'Leave training' : 'Main menu')}${btn('openNew', 'New game')}` : ''}
     <div class="label" style="margin-top:6px">Game options</div>
     ${btn('animToggle', `<span class="optrow"><span>Battle animations</span><span>${prefs.anim ? 'On' : 'Off'}</span></span>`)}
     ${newOptsHTML()}
@@ -4779,6 +5215,9 @@ function render() {
   if (!prefs.anim && S) fightSeen = S.log.length;
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
+  const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; const bb = app.querySelector('.bf-body'); if (bb) bb.scrollTop = 0; };
+  if (brief && brief.kind !== 'guard') { briefFull(); return; }
+  if (pf) { briefDue(pf, null); if (brief) { briefFull(); return; } }
   if (pf) { app.innerHTML = frame('Orders', null, '', { overlay: fightHTML(pf) }); app.dataset.tab = 'fight'; return; }
   const v = viewer();
   if (human()) shownFor = human();
@@ -4787,6 +5226,8 @@ function render() {
   // In the middle of an air battle the fight popups already told the story: hold the reports until the battle is over.
   const midBattle = prefs.anim && S.combat && ['intercept', 'combat', 'respond'].includes(S.phase);
   const reps = !over() && shownFor && !midBattle && (!aiTurn() || ownTurnOver) ? unseen(shownFor).filter((r) => !aiTurn() || r.summary !== undefined || r.who === human()) : [];
+  briefDue(null, reps);
+  if (brief && brief.kind !== 'guard') { briefFull(); return; }
   // Pass and play: the previous player finishes reading their reports before handing over.
   if (reps.length && shownFor !== v) {
     const now = reps.filter((r) => r.summary === undefined);
@@ -4815,7 +5256,7 @@ function render() {
   const badges = { orders: reps.length || mustAct ? true : 0, reports: !over() && unreadN && tab !== 'orders' ? unreadN : 0 };
   let html;
   archive();
-  const o = { badges, overlay: menuHTML() + exportHTML() + viewHTML() };
+  const o = { badges, overlay: menuHTML() + exportHTML() + viewHTML() + (brief && brief.kind === 'guard' ? briefHTML() : '') };
   // Your battle-card decision is made on the fight popup (Long Range Fighters keeps the full Orders screen).
   if (prefs.anim && S.phase === 'respond' && !over() && !aiTurn() && E.actorOf(S) === v && !(S.combat.eng.tgt.side === v && E.lrfOptions(S).cards.length))
     o.overlay += preFightHTML();
@@ -4841,9 +5282,15 @@ function render() {
 /* ---------------------------------------------------------------- input */
 function onBtn(id, arg) {
   const c = S && S.combat;
+  if (id === 'briefNext' || id === 'briefBack' || id === 'briefClose') { briefBtn(id); render(); return; }
+  { const g = !brief && tutGuard(id); if (g) { brief = { kind: 'guard', key: g }; render(); return; } }
   switch (id) {
+    case 'startTraining': startScreen = false; showNew = false; menu = false;
+      newGame({ mode: 'scenario', scenario: 'training', ai: { side: 'axis', profile: 'balanced' }, expansion1942: true, drawKeep: true, convoyDiscards: 2, indestructibleHome: true }); break;
+    case 'scenBrief': menu = false; brief = { kind: 'scen' }; break;
+    case 'tutReplay': menu = false; if (tut.last) brief = { kind: 'tut', group: tut.last, i: 0, replay: true }; break;
     case 'newMode': newOpts.mode = arg; applyBalance(); break;
-    case 'newSide': newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; break;
+    case 'newSide': if (newOpts.mode === 'scenario' && E.SCENARIOS[newOpts.scenario] && E.SCENARIOS[newOpts.scenario].tutorial) break; newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; break;
     case 'tab': tab = arg; menu = false; break;
     case 'sub': sub[tab] = arg; break;
     case 'menu': menu = true; clearAsk = false; break;
