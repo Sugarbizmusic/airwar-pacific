@@ -658,6 +658,18 @@ html:not(.mobile) .bf-foot { padding-bottom: 26px; }
   font: 600 10.5px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; opacity: 0; transition: opacity .2s; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
 .main.scroll-more > .actions::before, .main.scroll-more > .actions::after, .brief.scroll-more .bf-foot::before, .brief.scroll-more .bf-foot::after { opacity: 1; }
 .bf-foot { position: relative; }
+
+/* 1941–43 Campaign production schedule (Strategy › Situation report) */
+.prod { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 6px; }
+.prod-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.prod-h b { font: 600 11px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; }
+.prod-h span { font-size: 12px; color: var(--muted); }
+.prod ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.prod li { display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: baseline; font-size: 13px; line-height: 1.3; }
+.prod li small { display: block; color: var(--muted); font-size: 11.5px; }
+.prod .pt { font: 600 11px/1 var(--f-mono); color: var(--signal); }
+.prod li.in { opacity: .6; } .prod li.in .pt { color: var(--ok); }
+.prod li.late .pt { color: var(--kill); }
 </style>
 
 </head>
@@ -823,18 +835,75 @@ for (const [id, d] of Object.entries(CARD_DB)) { d.id = id; d.abilities = d.abil
 const CAMPAIGNS = {
   '1942': { name: '1941 Campaign', expansion: false },
   '1943': { name: '1942 Campaign', expansion: true },
-  dynamic: { name: '1941–43 Campaign', expansion: false, waves: [
-    { turn: 9, title: 'Mid-1942: new types reach the front',
-      allied: { p40e: 1, f4f4: 1, tbf: 1, b17: 1, b26: 1, yorktown: 1, parafrag: 1 }, axis: { oscar: 1, tojo: 1, hamp: 1, betty: 1, akagi: 1, aaa: 1 } },
-    { turn: 17, title: '1943: the new generation',
-      allied: { f4u: 1, p38: 1 }, axis: { tony: 1, frances: 1, peggy: 1 } },
-  ] },
+  dynamic: { name: '1941–43 Campaign', expansion: false,
+    // Production schedule: the expansion's aircraft and cards reach each side in named groups at their (compressed)
+    // historical debut. Turn 1 = December 1941, about six weeks a turn; everything is out by turn 15 (mid-1943).
+    // Industry damage slows a side's production: every PROD_DELAY_PER points it has taken push all of its
+    // not-yet-released groups back one turn (at most PROD_DELAY_MAX).
+    // December 1941 forces only: the opening hands use early types, and the base deck's later aircraft (holdBack)
+    // are taken out and come back in their group. Group counts are the total copies that arrive.
+    presets: { allied: ['moresby', 'f4f3', 'p40b', 'sbd', 'a20'], axis: ['wewak', 'zero', 'zero', 'val', 'lily'] },
+    holdBack: { allied: { p38: 1, b25: 2, b26: 2, beaufort: 2, f4f4: 2, p39: 2, p400: 1 }, axis: { hamp: 2, tojo: 1, nick: 2 } },
+    schedule: {
+      allied: [
+        { turn: 2, title: 'Early 1942 reinforcements', cards: { b17: 1, p40e: 1, yorktown: 1 } },
+        { turn: 4, title: 'Spring 1942: Mitchells and Airacobras', cards: { b25: 2, p39: 2, p400: 1, f4f4: 2 } },
+        { turn: 5, title: 'Coral Sea and Midway', cards: { f4f4: 1, b26: 3, tbf: 1 } },
+        { turn: 6, title: 'RAAF Beauforts', cards: { beaufort: 2 } },
+        { turn: 8, title: 'Kenney’s Para-Frags', cards: { parafrag: 1 } },
+        { turn: 10, title: 'The P-38 Lightning', cards: { p38: 2 } },
+        { turn: 12, title: 'The F4U Corsair', cards: { f4u: 1 } },
+      ],
+      axis: [
+        { turn: 2, title: 'The Southern Operation', cards: { akagi: 1, oscar: 1, betty: 1 } },
+        { turn: 5, title: '1942 production: Hamps and Tojos', cards: { hamp: 3, tojo: 2 } },
+        { turn: 8, title: 'Air defense and the Nick', cards: { aaa: 1, nick: 2 } },
+        { turn: 13, title: 'The Ki-61 Tony', cards: { tony: 1 } },
+        { turn: 15, title: 'New bombers', cards: { frances: 1, peggy: 1 } },
+      ],
+    },
+    // Games started before the schedule existed keep the old two waves.
+    waves: [
+      { turn: 9, title: 'Mid-1942: new types reach the front',
+        allied: { p40e: 1, f4f4: 1, tbf: 1, b17: 1, b26: 1, yorktown: 1, parafrag: 1 }, axis: { oscar: 1, tojo: 1, hamp: 1, betty: 1, akagi: 1, aaa: 1 } },
+      { turn: 17, title: '1943: the new generation', allied: { f4u: 1, p38: 1 }, axis: { tony: 1, frances: 1, peggy: 1 } },
+    ] },
 };
 const campaignOf = (s) => (s.options.mode === 'campaign' && CAMPAIGNS[s.options.campaign]) || null;
-/* Dynamic Campaign: add each wave whose turn has come (once), shuffled into both decks. */
+const PROD_DELAY_PER = 8, PROD_DELAY_MAX = 6;
+/* Production delay of a side in the 1941–43 Campaign: one turn per PROD_DELAY_PER Industry damage taken (capped). */
+const prodDelay = (s, side) => Math.min(PROD_DELAY_MAX, Math.floor((s.players[side].industry || 0) / PROD_DELAY_PER));
+/* Turn numbers count each side's turn (turn 1 is the first mover's, turn 2 the other's...). A group scheduled for turn t
+   reaches a side on that side's first turn at or after t. */
+function ownTurn(s, side, t) {
+  const odd = side === (s.firstSide || 'axis');
+  return (t % 2 === 1) === odd ? t : t + 1;
+}
+/* The side's release groups with when each arrives (or arrived); base = its on-time turn for that side. */
+function prodSchedule(s, side) {
+  const cp = campaignOf(s); if (!cp || !cp.schedule || s.wavesIn) return [];
+  const got = (s.released || {})[side] || {}, d = prodDelay(s, side);
+  return cp.schedule[side].map((g, i) => { const base = ownTurn(s, side, g.turn);
+    return { i, title: g.title, cards: Object.keys(g.cards), base, due: got[i] != null ? got[i] : base + 2 * d, released: got[i] != null }; });
+}
+/* At the start of a side's turn, release its groups whose (delayed) turn has come, shuffled into its deck. */
 function reinforce(s) {
-  const cp = campaignOf(s); if (!cp || !cp.waves) return;
-  s.wavesIn = s.wavesIn || [];
+  const cp = campaignOf(s); if (!cp) return;
+  if (s.wavesIn && cp.waves) return legacyWaves(s, cp);
+  if (!cp.schedule) return;
+  const side = s.active, p = s.players[side], d = prodDelay(s, side);
+  s.released = s.released || { allied: {}, axis: {} };
+  cp.schedule[side].forEach((g, i) => {
+    if (s.released[side][i] != null || s.turnNo < ownTurn(s, side, g.turn) + 2 * d) return; // each delay = one of this side's turns
+    s.released[side][i] = s.turnNo;
+    const names = [];
+    for (const [id, n] of Object.entries(g.cards)) for (let k = 0; k < n; k++) { const uid = 'c' + s.nextUid++; s.cards[uid] = id; p.deck.push(uid); names.push(CARD_DB[id].name); }
+    shuffle(s, p.deck);
+    const late = Math.round((s.turnNo - ownTurn(s, side, g.turn)) / 2); // in this side's own turns
+    log(s, `${SIDE[side]} production: ${g.title}. Shuffled into the ${SIDE[side]} deck: ${names.join(', ')}.${late > 0 ? ` (${late} turn${late > 1 ? 's' : ''} late: Industry damage.)` : ''}`, 'turn');
+  });
+}
+function legacyWaves(s, cp) {
   cp.waves.forEach((w, i) => {
     if (s.turnNo < w.turn || s.wavesIn.includes(i)) return;
     s.wavesIn.push(i);
@@ -1110,6 +1179,7 @@ function newGame(opts) {
   { const cp = campaignOf(s); if (cp) s.options.expansion1942 = cp.expansion; }
   if (sc) s.active = sc.first;
   else if (s.options.first) s.active = s.options.first;
+  s.firstSide = s.active;
   const mk = (id) => { const uid = 'c' + s.nextUid++; s.cards[uid] = id; return uid; };
   for (const side of ['axis', 'allied']) {
     const deck = DECKS[side];
@@ -1128,7 +1198,11 @@ function newGame(opts) {
     const homeId = sc ? sc.sides[side].home : deck.home;
     for (const id of sc ? sc.sides[side].inPlay : [deck.home]) facs(p, CARD_DB[id].kind).push({ uid: take(id), landed: [], war: [], hits: 0, home: id === homeId, fort: (sc && sc.fortify && sc.fortify[id]) || 0,
       secret: CARD_DB[id].abilities && CARD_DB[id].abilities.includes('secret') || undefined });
-    if (mode === 'basic' || mode === 'campaign') p.hand.push(...BASIC[side].map(take));
+    const cpg = mode === 'campaign' && CAMPAIGNS[s.options.campaign];
+    if (mode === 'basic' || mode === 'campaign') p.hand.push(...((cpg && cpg.presets) || BASIC)[side].map(take));
+    if (cpg && cpg.holdBack) for (const [id, n] of Object.entries(cpg.holdBack[side])) for (let k = 0; k < n; k++) {
+      const i = p.deck.findIndex((u) => s.cards[u] === id); if (i >= 0) delete s.cards[p.deck.splice(i, 1)[0]];
+    }
     if (sc) {
       // Scenario cards start in hand, unless listed in specialInDeck: those are shuffled into the deck to be drawn.
       const inDeck = new Set(sc.sides[side].specialInDeck || []);
@@ -2431,7 +2505,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { CAMPAIGNS, campaignOf, reinforceForTest: reinforce, convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { CAMPAIGNS, campaignOf, reinforceForTest: reinforce, prodSchedule, prodDelay, PROD_DELAY_PER, PROD_DELAY_MAX, convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -3550,7 +3624,7 @@ const BALANCE = {
   campaign: { surpriseAttack: true, axis: 1 },   // (older saves without a campaign choice)
   campaign1942: { surpriseAttack: true, axis: 3 },    // 51.1%: base deck only
   campaign1943: { surpriseAttack: true, axis: 2 },    // 51.2%: with the expansion
-  campaigndynamic: { surpriseAttack: true, axis: 2 }, // 49.1%: expansion cards join on turns 9 and 17
+  campaigndynamic: { surpriseAttack: true, axis: 1 }, // 52.4/51.9/52.5%: Dec 1941 decks, production schedule delayed by Industry damage
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
   guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
@@ -3570,7 +3644,7 @@ const MODES = {
 const CAMPAIGN_TEXT = {
   '1942': 'The early war, with the base deck: Wildcats, Warhawks and Dauntlesses against Zeros, Vals and Bettys.',
   '1943': 'Both decks from the start, expansion included: Corsairs, Lightnings and Avengers against Tonys, Franceses and Peggys.',
-  dynamic: 'Starts as the 1941 Campaign. On turn 9 the mid-1942 types join both decks, and on turn 17 the 1943 generation.',
+  dynamic: 'December 1941 forces only. New aircraft reach each side on a production schedule through mid-1943, and Industry damage pushes them back: bomb their factories and their Corsairs or Tonys arrive late.',
 };
 /* Enemy skill levels (ai.js profiles). Older saved games may name a former style; those still play. */
 const SKILLS = [
@@ -4568,7 +4642,14 @@ function sitRep(side) {
   return `<section class="sit ${side}"><div class="sit-h"><h3>${SIDE[side]} sit rep</h3><span class="flags">${sideFlags(side)}</span><span class="note">Deck ${p.deck.length}<br>Hand ${p.hand.length}</span></div>
     <div class="mets" style="grid-template-columns:repeat(${mets.length},minmax(0,1fr))">${mets.map((m) => `<div class="met"><span class="ml"${m.label.length > 9 && !m.label.includes(' ') ? ' style="font-size:13px"' : ''}>${esc(m.label)}</span><div class="viz">${m.viz}</div><span class="mv">${m.value}<small>${esc(m.sub)}</small></span></div>`).join('')}</div>
     ${aces.length ? `<div class="aces"><span class="ace">ACE${aces.length > 1 ? 'S' : ''}</span>${aces.map((u) => `${nm(u)} (${killsOf(u).length}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}
-    ${vets.length ? `<div class="aces"><span class="ace">VETERAN${vets.length > 1 ? 'S' : ''}</span>${vets.map((u) => `${nm(u)} (${plural(missionsOf(u), 'mission')}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}</section>`;
+    ${vets.length ? `<div class="aces"><span class="ace">VETERAN${vets.length > 1 ? 'S' : ''}</span>${vets.map((u) => `${nm(u)} (${plural(missionsOf(u), 'mission')}${(S.downed || []).includes(u) ? ', shot down' : ''})`).join(' · ')}</div>` : ''}${prodHTML(side)}</section>`;
+}
+/* 1941–43 Campaign: this side's production schedule. Industry damage pushes what hasn't arrived back. */
+function prodHTML(side) {
+  const sch = E.prodSchedule(S, side); if (!sch.length) return '';
+  const d = E.prodDelay(S, side), ind = S.players[side].industry || 0, next = E.PROD_DELAY_PER * (d + 1) - ind;
+  return `<div class="prod"><div class="prod-h"><b>Production</b><span>${d ? `${plural(d, 'turn')} behind (Industry damage ${ind})` : 'On schedule'}${d < E.PROD_DELAY_MAX ? ` · next delay at ${E.PROD_DELAY_PER * (d + 1)} damage` : ' · maximum delay'}</span></div>
+    <ul>${sch.map((g) => `<li class="${g.released ? 'in' : g.due > g.base ? 'late' : ''}"><span class="pt">${g.released ? `T${g.due} ✓` : `T${g.due}`}</span><span><b>${esc(g.title)}</b><small>${g.cards.map((c) => esc(E.CARD_DB[c].name)).join(', ')}${!g.released && g.due > g.base ? ` · due turn ${g.base}, ${plural((g.due - g.base) / 2, 'turn')} late` : g.released && g.due > g.base ? ` · arrived ${plural(Math.round((g.due - g.base) / 2), 'turn')} late` : ''}</small></span></li>`).join('')}</ul></div>`;
 }
 function clockHTML() {
   const sc = scen();
@@ -4767,7 +4848,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 132;
+const APP_VERSION = 133;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -5176,17 +5257,17 @@ Dismissed, and good hunting.` },
     },
     campaigndynamic: {
       allied: {
-        situation: 'From Pearl Harbor to 1943. You start with the early-war aircraft, Wildcats, Warhawks and Dauntlesses, holding Midway with Port Moresby in your opening hand. New types reach the front as the war goes on.',
+        situation: '7 December 1941, and the war will run into 1943. You start with what was in the Pacific that morning: Buffalos, F3 Wildcats, Warhawks, Devastators and Dauntlesses, holding Midway with Port Moresby in your opening hand. Everything newer has to come from the factories at home.',
         win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
-        rules: 'The Japanese move first with **two extra cards**, and on turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Kittyhawks, Avengers, B-17s, Yorktown, Para-Frags; Oscars, Tojos, Akagi, Heavy AAA), and on turn 17 the 1943 generation (Corsairs and Lightnings; Tonys, Franceses and Peggys). A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected.',
-        cards: 'At the start: **Ace: Joe Foss** (+1 Defense to a Wildcat) and **Thatch Weave** (+2 Defense to a fighter). From turn 9, **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields. From turn 17, the **Corsair** and **Lightning** outfight almost anything.',
-        strategy: 'Survive the early war; the reinforcements are worth more to whoever still has fields to fly them from. Keep your airfields alive and spread out, and keep pressure on their Convoy until the heavy hitters arrive.' },
+        rules: 'The Japanese move first with **one extra card**, and on turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **Production:** new aircraft are shuffled into each deck on a schedule, at the start of that side’s turn. Ours: B-17s, Kittyhawks and Yorktown turn 2; Mitchells, Airacobras and F4F-4 Wildcats turn 4; Marauders and Avengers turn 5; Beauforts turn 6; Para-Frags turn 8; Lightnings turn 10; Corsairs turn 12. **Every 8 Industry damage a side has taken pushes everything it hasn’t received back one turn**, up to 6 turns. Both schedules are in Strategy › Situation report. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected.',
+        cards: 'At the start: **Ace: Joe Foss** (+1 Defense to a Wildcat) and **Thatch Weave** (+2 Defense to a fighter). Para-Frags from turn 8 make a B-25, B-26 or A-20 deadly against airfields. Theirs: Akagi, Oscars and Bettys turn 2; Hamps and Tojos turn 5; Heavy AAA and Nicks turn 8; the **Tony** turn 13; Franceses and Peggys turn 15.',
+        strategy: 'The first months are theirs, and their surprise attack will likely hit our Industry and slow our factories. Protect it: every 8 points of damage delays our new aircraft a turn. Then hit back at their Industry. It is the victory track and their factory, and every 8 points delays their Tonys and new bombers.' },
       axis: {
-        situation: 'From Pearl Harbor to 1943. We start with the Zeros, Vals and Kates that won the opening battles, with Lae as our home base and Wewak in the opening hand. Both sides get new types as the war goes on.',
+        situation: '7 December 1941, and the war will run into 1943. We start with the forces that opened the war: Zeros, Nates, Vals, Kates and Bettys, with Lae as our home base and Wewak in the opening hand. Both sides get new types as production allows.',
         win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
-        rules: 'We move first with **two extra cards**, and on turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Oscars, Tojos, Hamps, Bettys, Akagi, Heavy AAA; Kittyhawks, Avengers, B-17s, Yorktown), and on turn 17 the 1943 generation (Tonys, Franceses and Peggys; Corsairs and Lightnings). A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected.',
-        cards: 'At the start: the **Tainan Kokutai**, **Ace: Nishizawa** (+1 Air to Air to a Zero) and **Long Range Fighters**. From turn 9, **Heavy AAA** can cover our Industry or Convoy. From turn 17, the **Tony** joins the fight, and the Americans get Corsairs.',
-        strategy: 'The early turns are ours: the Zero rules the sky until the Americans’ new types arrive. Press their Industry hard before turn 17, and keep our own fields alive to fly the reinforcements.' },
+        rules: 'We move first with **one extra card**, and on turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **Production:** new aircraft are shuffled into each deck on a schedule, at the start of that side’s turn. Ours: Akagi, Oscars and Bettys turn 2; Hamps and Tojos turn 5; Heavy AAA and Nicks turn 8; Tonys turn 13; Franceses and Peggys turn 15. **Every 8 Industry damage a side has taken pushes everything it hasn’t received back one turn**, up to 6 turns. Both schedules are in Strategy › Situation report. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected.',
+        cards: 'At the start: the **Tainan Kokutai**, **Ace: Nishizawa** (+1 Air to Air to a Zero) and **Long Range Fighters**. From turn 8, **Heavy AAA** can cover our Industry, which also protects our production. Theirs: B-17s, Kittyhawks and Yorktown turn 2; Mitchells and Airacobras turn 4; Marauders and Avengers turn 5; **Lightnings** turn 10; **Corsairs** turn 12.',
+        strategy: 'Use the surprise on their Industry: it is the victory track and their factory, and every 8 points delays their new aircraft by a turn. Keep hitting it before the Lightnings and Corsairs arrive. Cover our own Industry with Heavy AAA when it comes, so the Tony arrives on time.' },
     },
   },
   campaignHead: { title: 'The Campaign', sub: 'The long war, to 60 Industry' },
