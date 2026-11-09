@@ -54,6 +54,7 @@ html.mobile #app { background: var(--sea); }
 /* Home-screen app: an opaque status bar (set in the GitHub page head) keeps the page below it; just match the background. */
 html.standalone, html.standalone body { background: var(--sea); }
 html.mobile .frame { width: 100%; height: 100%; transform: none; border-radius: 0; box-shadow: none; }
+html.mobile.tablet .frame { position: absolute; left: 0; top: 0; width: var(--fw); height: var(--fh); transform: scale(var(--tk)); transform-origin: 0 0; }
 
 .hdr { padding: calc(10px + env(safe-area-inset-top, 0px)) var(--gut-r) 10px var(--gut-l); display: grid; gap: 6px; }
 html:not(.mobile) .hdr { padding-top: 26px; }
@@ -574,6 +575,7 @@ label.tog select { font: 500 14px/1.2 var(--f-body); background: var(--sea-2); c
 html:not(.mobile) .start-btns { padding-bottom: 30px; }
 /* Same buttons as the action bar elsewhere (height, colours, type); a soft shadow keeps them clear of the art. */
 .start-btns button { box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.start-ver { justify-self: center; font: 500 10px/1 var(--f-mono); letter-spacing: .08em; color: rgba(255,255,255,.7); text-shadow: 0 1px 3px rgba(0,0,0,.8); margin-top: 2px; }
 .start-sub { text-align: center; font: 600 10.5px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); margin-bottom: 2px; }
 .result h2 { margin: 0; font: 800 44px/.95 var(--f-display); text-transform: uppercase; color: var(--signal); }
 .empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
@@ -616,6 +618,19 @@ html:not(.mobile) .bf-foot { padding-bottom: 26px; }
 .bf-dlg h3 { margin: 0; font: 800 26px/1 var(--f-display); text-transform: uppercase; color: var(--signal); }
 .bf-dlg .bf-txt p { margin: 0 0 8px; font-size: 15px; line-height: 1.42; } .bf-dlg .bf-txt b { color: #fff; }
 .bf-dlg button { width: 100%; min-height: 46px; }
+
+/* ---------------- atmosphere art (art/bg-*.jpg) */
+.main.has-atm { position: relative; }
+.main.has-atm > * { position: relative; z-index: 1; }
+.main.has-atm > .atm { position: absolute; z-index: 0; top: 0; left: 0; right: 0; height: 330px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(14,26,33,.38) 0, rgba(14,26,33,.58) 45%, rgba(14,26,33,.9) 78%, var(--sea) 100%), var(--atm) center 35% / cover no-repeat; }
+.main.has-atm .stg-rib { background: color-mix(in srgb, var(--sea) 72%, transparent); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.main.has-atm .ord-head h2, .main.has-atm .ord-head p { text-shadow: 0 1px 4px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.5); }
+.main.has-atm .ord-head p { color: #f2efe6; }
+.main.has-atm .ord-head .label, .main.has-atm .ord-head > div, .main.has-atm > .note, .main.has-atm > .label { color: #e8e2d2; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
+.fwrap.atm-pop { background: radial-gradient(ellipse at 50% 45%, rgba(3,8,10,.30), rgba(3,8,10,.62) 80%), var(--atm) center / cover no-repeat, #03080a; }
+.fwrap.atm-pop .fight-h h3, .fwrap.atm-pop .fvs, .fwrap.atm-pop .ftext { text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6); }
+.fwrap.atm-pop .after { background: rgba(3,8,10,.72); border-radius: 8px; padding: 10px 12px; }
 </style>
 
 </head>
@@ -776,6 +791,35 @@ Object.assign(CARD_DB, {
 for (const [id, d] of Object.entries(CARD_DB)) { d.id = id; d.abilities = d.abilities || []; }
 
 /* Basic rules: these 5 cards start in hand (taken from the player's own deck), plus 2 random draws. */
+/* The three campaigns. 1942: the base deck only. 1943: base + expansion. Dynamic: starts as 1942, and the expansion's
+   aircraft and cards join both decks in waves at set turns, as new types reached the front (shuffled into the deck). */
+const CAMPAIGNS = {
+  '1942': { name: '1942 Campaign', expansion: false },
+  '1943': { name: '1943 Campaign', expansion: true },
+  dynamic: { name: 'Dynamic Campaign', expansion: false, waves: [
+    { turn: 9, title: 'Mid-1942: new types reach the front',
+      allied: { p40e: 1, f4f4: 1, tbf: 1, b17: 1, b26: 1, yorktown: 1, parafrag: 1 }, axis: { oscar: 1, tojo: 1, hamp: 1, betty: 1, akagi: 1, aaa: 1 } },
+    { turn: 17, title: '1943: the new generation',
+      allied: { f4u: 1, p38: 1 }, axis: { tony: 1, frances: 1, peggy: 1 } },
+  ] },
+};
+const campaignOf = (s) => (s.options.mode === 'campaign' && CAMPAIGNS[s.options.campaign]) || null;
+/* Dynamic Campaign: add each wave whose turn has come (once), shuffled into both decks. */
+function reinforce(s) {
+  const cp = campaignOf(s); if (!cp || !cp.waves) return;
+  s.wavesIn = s.wavesIn || [];
+  cp.waves.forEach((w, i) => {
+    if (s.turnNo < w.turn || s.wavesIn.includes(i)) return;
+    s.wavesIn.push(i);
+    const names = {};
+    for (const side of ['allied', 'axis']) {
+      const p = s.players[side]; names[side] = [];
+      for (const [id, n] of Object.entries(w[side])) for (let k = 0; k < n; k++) { const uid = 'c' + s.nextUid++; s.cards[uid] = id; p.deck.push(uid); names[side].push(CARD_DB[id].name); }
+      shuffle(s, p.deck);
+    }
+    log(s, `${w.title}. Shuffled into the decks: Allied ${names.allied.join(', ')}; Axis ${names.axis.join(', ')}.`, 'turn');
+  });
+}
 const BASIC = {
   allied: ['moresby', 'f4f4', 'p40b', 'sbd', 'a20'],
   axis: ['wewak', 'zero', 'hamp', 'val', 'lily'],
@@ -1036,6 +1080,7 @@ function newGame(opts) {
   if (mode === 'scenario' && !sc) fail('Unknown scenario.');
   if (sc && sc.needs1942) s.options.expansion1942 = true;
   if (sc && sc.forceOptions) Object.assign(s.options, JSON.parse(JSON.stringify(sc.forceOptions)));
+  { const cp = campaignOf(s); if (cp) s.options.expansion1942 = cp.expansion; }
   if (sc) s.active = sc.first;
   else if (s.options.first) s.active = s.options.first;
   const mk = (id) => { const uid = 'c' + s.nextUid++; s.cards[uid] = id; return uid; };
@@ -1100,6 +1145,7 @@ function draw(s, side, n, quiet) {
 function beginTurn(s, first) {
   const p = s.players[s.active];
   log(s, `— Turn ${s.turnNo}: ${SIDE[s.active]} —`, 'turn');
+  reinforce(s);
   if (!first) {
     if (!p.deck.length) log(s, `The ${SIDE[s.active]} deck is empty: no cards to draw.`, 'minor');
     else if (s.options.drawKeep) {
@@ -2358,7 +2404,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { CAMPAIGNS, campaignOf, reinforceForTest: reinforce, convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -2393,6 +2439,14 @@ const PROFILES = {
    bombers, attack only when resistance is light or a kill is sure, and save everything for one big combined
    strike at the end (or, for the side holding out, a convoy strike that ends the battle early). */
 PROFILES.waiting = Object.assign({}, PROFILES.balanced, { waiting: true });
+/* Enemy skill levels (the New game menu). Yamamoto is the full AI above and keeps getting better.
+   Medium plans raids the plain way: no all-in endgame strikes, no Wewak morning/afternoon doctrine, no convoy
+   finishers or fighter sweeps, a thinner home guard and less caution about the enemy's fighters.
+   Easy is Medium that also blunders (easyBlunder): lets raids through, picks fights at random, skips turns,
+   never plays battle cards. */
+PROFILES.yamamoto = Object.assign({}, PROFILES.balanced, { skill: 'yamamoto' });
+PROFILES.medium = Object.assign({}, PROFILES.balanced, { skill: 'medium', homeGuard: 2, cautious: false, carrierThreat: false, winGamble: 0, lastStand: null });
+PROFILES.easy = Object.assign({}, PROFILES.medium, { skill: 'easy' });
 
 /* ------------------------------------------------------------------ what the AI knows about the enemy
    Only public information: fighters it has seen face up (in combat or landed on the table), which of those
@@ -3369,11 +3423,59 @@ function trainingMove(s, side) {
   return null;
 }
 
+/* Easy's mistakes: a fair share of its decisions are made badly on purpose (always legal). null = play normally. */
+function easyBlunder(s, side) {
+  const p = s.players[side], c = s.combat, pick = (a) => a[Math.floor(rnd() * a.length)];
+  switch (s.phase) {
+    case 'respond': return { type: 'respond', battle: null }; // never thinks to play a battle card
+    case 'choice': {
+      const pc = s.pending[0];
+      if (pc.kind === 'keepTwo' && rnd() < 0.5) return { type: 'choose', uids: [...pc.options].sort(() => rnd() - 0.5).slice(0, 2) };
+      return null;
+    }
+    case 'mobilize': return rnd() < 0.3 ? { type: 'endMobilization' } : null; // forgets to deploy
+    case 'attack': {
+      const r = rnd();
+      if (r < 0.2) return { type: 'skipStage' };
+      if (r < 0.45) { // a poorly chosen raid: random target, random aircraft
+        const el = p.hand.filter((u) => E.launchEligible(s, u)), cap = E.availCap(s, p, E.launchKind(s)), tg = E.attackTargets(s);
+        if (!el.length || !cap || !tg.length) return null;
+        let cards = el.filter(() => rnd() < 0.5).slice(0, cap); if (!cards.length) cards = [el[0]];
+        return { type: 'launch', target: pick(tg), cards };
+      }
+      return null;
+    }
+    case 'intercept': {
+      if (rnd() >= 0.4) return null;
+      const el = p.hand.filter((u) => E.interceptEligible(s, u));
+      let cards = el.filter(() => rnd() < 0.4).slice(0, 6);
+      while (cards.length && !E.planIntercept(s, cards)) cards.pop();
+      return { type: 'intercept', cards };
+    }
+    case 'combat': {
+      if (side === c.att) return rnd() < 0.4 ? { type: 'yield' } : null;
+      if (c.mustGo || rnd() >= 0.5) return null; // a fighter that must press on does so normally
+      const mine = c.intercept.filter((e) => E.canInitiate(s, e));
+      if (!mine.length) return null;
+      const own = pick(mine).uid;
+      const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
+      const strikes = c.mission.filter((e) => E.strikeable(s, e));
+      if (hidden.length && (!strikes.length || rnd() < 0.6)) return { type: 'engage', mode: 'intercept', own, slot: pick(hidden) };
+      if (strikes.length) return { type: 'engage', mode: 'strike', own, target: pick(strikes).uid };
+      return null;
+    }
+  }
+  return null;
+}
+
 function chooseAction(s, profile) {
   const side = E.actorOf(s);
-  const prof = typeof profile === 'string' ? PROFILES[profile] : (profile || PROFILES.balanced);
+  const prof = typeof profile === 'string' ? (PROFILES[profile] || PROFILES.balanced) : (profile || PROFILES.balanced);
   { const sc = s.options.mode === 'scenario' && E.SCENARIOS[s.options.scenario];
     if (sc && sc.tutorial && side === 'axis') { const a = trainingMove(s, side); if (a) return a; } }
+  const skill = prof.skill || 'yamamoto';
+  if (skill === 'easy') { const b = easyBlunder(s, side); if (b) return b; }
+  if (s.phase === 'attack' && skill !== 'yamamoto') return planRaid(s, side, prof) || { type: 'skipStage' };
   switch (s.phase) {
     case 'setup': return pickOpening(s, side);
     case 'mobilize': return mobilize(s, side, prof);
@@ -3411,21 +3513,24 @@ const PKEY = 'awp-prefs';
 let prefs = (() => { try { return Object.assign({ anim: true }, JSON.parse(localStorage.getItem(PKEY)) || {}); } catch (e) { return { anim: true }; } })();
 const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify(prefs)); } catch (e) {} }; // expanded aircraft card; Orders stage key (scroll to top when it changes)
 /* Artwork for the expanded card, by card id (e.g. ART.f4f3 = 'data:image/jpeg;base64,...'). Empty until the art is in. */
-const ART = {"a20":"art/a20.jpg","akagi":"art/akagi.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","blacksheep":"art/blacksheep.jpg","boram":"art/boram.jpg","brief-allied":"art/brief-allied.png","brief-axis":"art/brief-axis.png","but":"art/but.jpg","claude":"art/claude.jpg","convoy":"art/convoy.jpg","dagua":"art/dagua.jpg","darwin":"art/darwin.jpg","dobodura":"art/dobodura.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","guadalcanal":"art/guadalcanal.jpg","hamp":"art/hamp.jpg","industry":"art/industry.jpg","k204":"art/k204.jpg","k68":"art/k68.jpg","kate":"art/kate.jpg","kavieng":"art/kavieng.jpg","lae":"art/lae.jpg","lexington":"art/lexington.jpg","leyte":"art/leyte.jpg","lily":"art/lily.jpg","midway":"art/midway.jpg","milne":"art/milne.jpg","moresby":"art/moresby.jpg","nadzab":"art/nadzab.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","officer-allied":"art/officer-allied.png","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","p47":"art/p47.jpg","p47x":"art/p47x.jpg","peggy":"art/peggy.jpg","rabaul":"art/rabaul.jpg","sally":"art/sally.jpg","saratoga":"art/saratoga.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","shoho":"art/shoho.jpg","shokaku":"art/shokaku.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","tsili":"art/tsili.jpg","val":"art/val.jpg","wewak":"art/wewak.jpg","yorktown":"art/yorktown.jpg","zero":"art/zero.jpg","zuikaku":"art/zuikaku.jpg"};
+const ART = {"a20":"art/a20.jpg","akagi":"art/akagi.jpg","b17":"art/b17.jpg","b25":"art/b25.jpg","b26":"art/b26.jpg","beaufort":"art/beaufort.jpg","betty":"art/betty.jpg","bg-air":"art/bg-air.jpg","bg-am-ij-am":"art/bg-am-ij-am.jpg","bg-am-ij":"art/bg-am-ij.jpg","bg-am-sol-us":"art/bg-am-sol-us.jpg","bg-am-us":"art/bg-am-us.jpg","bg-am-wew-am-us":"art/bg-am-wew-am-us.jpg","bg-am-wew-pm-ij":"art/bg-am-wew-pm-ij.jpg","bg-am-wew-pm-us":"art/bg-am-wew-pm-us.jpg","bg-cs-ij":"art/bg-cs-ij.jpg","bg-cs-us":"art/bg-cs-us.jpg","bg-dmg-airfield":"art/bg-dmg-airfield.jpg","bg-dmg-industry":"art/bg-dmg-industry.jpg","bg-dmg-sea":"art/bg-dmg-sea.jpg","bg-room-ij":"art/bg-room-ij.jpg","bg-room-us":"art/bg-room-us.jpg","blacksheep":"art/blacksheep.jpg","boram":"art/boram.jpg","brief-allied":"art/brief-allied.png","brief-axis":"art/brief-axis.png","but":"art/but.jpg","claude":"art/claude.jpg","convoy":"art/convoy.jpg","dagua":"art/dagua.jpg","darwin":"art/darwin.jpg","dobodura":"art/dobodura.jpg","f2a":"art/f2a.jpg","f4f3":"art/f4f3.jpg","f4f4":"art/f4f4.jpg","f4u":"art/f4u.jpg","frances":"art/frances.jpg","guadalcanal":"art/guadalcanal.jpg","hamp":"art/hamp.jpg","industry":"art/industry.jpg","k204":"art/k204.jpg","k68":"art/k68.jpg","kate":"art/kate.jpg","kavieng":"art/kavieng.jpg","lae":"art/lae.jpg","lexington":"art/lexington.jpg","leyte":"art/leyte.jpg","lily":"art/lily.jpg","midway":"art/midway.jpg","milne":"art/milne.jpg","moresby":"art/moresby.jpg","nadzab":"art/nadzab.jpg","nate":"art/nate.jpg","nell":"art/nell.jpg","nick":"art/nick.jpg","officer-allied":"art/officer-allied.png","oscar":"art/oscar.jpg","p38":"art/p38.jpg","p39":"art/p39.jpg","p400":"art/p400.jpg","p40b":"art/p40b.jpg","p40e":"art/p40e.jpg","p40ft":"art/p40ft.jpg","p47":"art/p47.jpg","p47x":"art/p47x.jpg","peggy":"art/peggy.jpg","rabaul":"art/rabaul.jpg","sally":"art/sally.jpg","saratoga":"art/saratoga.jpg","sb2u":"art/sb2u.jpg","sbd":"art/sbd.jpg","shoho":"art/shoho.jpg","shokaku":"art/shokaku.jpg","tainan":"art/tainan.jpg","tbd":"art/tbd.jpg","tbf":"art/tbf.jpg","tojo":"art/tojo.jpg","tony":"art/tony.jpg","tsili":"art/tsili.jpg","val":"art/val.jpg","wewak":"art/wewak.jpg","yorktown":"art/yorktown.jpg","zero":"art/zero.jpg","zuikaku":"art/zuikaku.jpg"};
 const ART_SAME = { blacksheep: 'f4u', k204: 'hamp' }; // elite units without their own art use their base model's
-let newOpts = { ai: null, indestructibleHome: true, singleMobilization: false, expansion1942: true, mode: 'scenario', scenario: 'coralsea', drawKeep: true, convoyDiscards: 2 };
+let newOpts = { ai: null, indestructibleHome: true, singleMobilization: false, expansion1942: true, mode: 'scenario', scenario: 'coralsea', campaign: '1942', drawKeep: true, convoyDiscards: 2 };
 /* Balance defaults per mode, from computer self-play (Axis win rate in brackets). Every option can still be changed. */
 const BALANCE = {
   basic:    { surpriseAttack: true, axis: 1 },   // 50%
   pointbuy: { surpriseAttack: true, axis: 0 },   // 52%
-  campaign: { surpriseAttack: true, axis: 1 },   // not balanced yet: same as Basic for now
+  campaign: { surpriseAttack: true, axis: 1 },   // (older saves without a campaign choice)
+  campaign1942: { surpriseAttack: true, axis: 3 },    // 51.1%: base deck only
+  campaign1943: { surpriseAttack: true, axis: 2 },    // 51.2%: with the expansion
+  campaigndynamic: { surpriseAttack: true, axis: 2 }, // 49.1%: expansion cards join on turns 9 and 17
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
   coralsea: { surpriseAttack: false, axis: 3 },  // 52% with the 15-turn clock
   guadalcanal: { surpriseAttack: false, axis: 0 }, // 52-53%: 14 turns, 13-kill air war, Rabaul Defense 13, one B-17
   wewak: { surpriseAttack: false, axis: 0 },       // 50.7 / 51.0%, 12 turns, 15-turn limit so the Allies move last; Moresby 16, 3 extra P-47s; mixed-up computer tactics (68th presses on vs fighter-bombers): fields Defense 9, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
 };
 function applyBalance() {
-  const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode];
+  const b = BALANCE[newOpts.mode === 'scenario' ? newOpts.scenario : newOpts.mode === 'campaign' ? 'campaign' + (newOpts.campaign || '1942') : newOpts.mode];
   if (!b) return;
   newOpts.surpriseAttack = b.surpriseAttack;
   newOpts.bonusCards = b.axis ? { axis: b.axis } : undefined;
@@ -3433,16 +3538,21 @@ function applyBalance() {
 applyBalance();
 const MODES = {
   scenario: { name: 'Scenario', text: 'A short historical battle with its own forces, special cards and victory conditions.' },
-  campaign: { name: 'Campaign', text: `The long war, fought to 60 Industry. Home base, 5 set cards, ${E.CAMPAIGN_BUY.picks} picks for up to ${E.CAMPAIGN_BUY.budget} points, then ${E.CAMPAIGN_BUY.draws} draws. Still being balanced.` },
+  campaign: { name: 'Campaign', text: `Home base, 5 set cards, ${E.CAMPAIGN_BUY.picks} picks for up to ${E.CAMPAIGN_BUY.budget} points, then ${E.CAMPAIGN_BUY.draws} draws.` },
 };
-/* Computer opponent styles (ai.js profiles). Industry only makes sense where there is an Industry track. */
-const STYLES = [
-  ['balanced', 'Mixed', 'Attacks whenever the numbers look good.'],
-  ['waiting', 'Waiting', 'Sits back and defends to rack up kills, breaks off fighter sweeps, and only strikes when resistance is light, a kill is sure, or near the end of the battle.'],
-  ['convoy', 'Convoy raider', 'Goes after your Convoy.'],
-  ['industry', 'Industrial bomber', 'Goes after your Industry (Campaign).'],
+const CAMPAIGN_TEXT = {
+  '1942': 'The early war, with the base deck: Wildcats, Warhawks and Dauntlesses against Zeros, Vals and Bettys.',
+  '1943': 'Both decks from the start, expansion included: Corsairs, Lightnings and Avengers against Tonys, Franceses and Peggys.',
+  dynamic: 'Starts as the 1942 Campaign. On turn 9 the mid-1942 types join both decks, and on turn 17 the 1943 generation.',
+};
+/* Enemy skill levels (ai.js profiles). Older saved games may name a former style; those still play. */
+const SKILLS = [
+  ['easy', 'Easy', 'Makes plenty of mistakes: lets raids through, picks fights at random, sometimes sits a turn out.'],
+  ['medium', 'Medium', 'Plans straightforward raids, without the advanced tactics.'],
+  ['yamamoto', 'Yamamoto', 'Expert. Plays the full strategy.'],
 ];
-const styleName = (id) => (STYLES.find((x) => x[0] === id) || [id, id])[1];
+const OLD_STYLES = { balanced: 'Yamamoto', waiting: 'Waiting', convoy: 'Convoy raider', industry: 'Industrial bomber' };
+const styleName = (id) => (SKILLS.find((x) => x[0] === id) || [id, OLD_STYLES[id] || id])[1];
 const OLD_MODES = { basic: 'Basic rules', pointbuy: 'Point buy', classic: 'Original rules' };
 
 function fresh() { return { sel: [], target: null, own: null, slot: null, strike: null, battle: null, sub: null, split: {}, special: null }; }
@@ -3468,8 +3578,18 @@ function newGame(opts) {
 
 /* ---------------------------------------------------------------- fit: full screen on phones, a scaled phone on desktop */
 function fit() {
-  const mob = innerWidth <= 600 || (matchMedia('(pointer: coarse)').matches && innerWidth <= 1024 && innerHeight > innerWidth);
+  const touchPortrait = matchMedia('(pointer: coarse)').matches && innerHeight > innerWidth;
+  // A tablet held upright (an iPad in portrait): the phone layout, scaled up to fill the screen.
+  const tablet = touchPortrait && innerWidth > 600;
+  const mob = innerWidth <= 600 || touchPortrait;
   document.documentElement.classList.toggle('mobile', mob);
+  document.documentElement.classList.toggle('tablet', tablet);
+  if (tablet) {
+    const w = Math.max(430, innerWidth * 720 / innerHeight), tk = innerWidth / w;
+    document.documentElement.style.setProperty('--tk', tk.toFixed(4));
+    document.documentElement.style.setProperty('--fw', w.toFixed(1) + 'px');
+    document.documentElement.style.setProperty('--fh', (innerHeight / tk).toFixed(1) + 'px');
+  }
   const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
   document.documentElement.classList.toggle('standalone', standalone);
   const f = document.querySelector('.frame');
@@ -3706,7 +3826,7 @@ function fightHTML(f) {
   const done = fightDone[fdKey(f.i)];
   if (!done) { const k = fdKey(f.i); setTimeout(() => { fightDone[k] = true; }, 2900); }
   const more = (() => { for (let i = f.i + 1; i < S.log.length; i++) if (S.log[i].duel || S.log[i].strike) return true; return false; })();
-  return `<div class="fwrap"><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
+  return `<div class="fwrap atm-pop"${atmStyle('bg-air')}><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
     <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage, d.half)}</div>
     ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null })}
     <div class="fvs"><span class="tracer up"></span><span class="tracer up t2"></span><span class="tracer down t3"></span>${d.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(d.target))}</div>
@@ -3715,6 +3835,41 @@ function fightHTML(f) {
       <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
   </div></div>`;
 }
+/* Atmosphere art behind the Orders header during an Attack Mission or Carrier Strike, and behind the battle popups.
+   Always the airfield (or flight deck) of the side you command, whoever is attacking; the fights: the open sky.
+   Solomons and Wewak have their own airfields, Wewak by morning and afternoon. */
+function atmKey() {
+  if (!S || over()) return null;
+  if (['combat', 'respond', 'allocate'].includes(S.phase)) return 'bg-air';
+  const c = S.combat, side = viewer(), us = side === 'allied';
+  const stage = c ? c.stage : S.stage, half = c ? c.half : S.half;
+  if (stage === 'carrier') return us ? 'bg-cs-us' : 'bg-cs-ij';
+  const sc = S.options.mode === 'scenario' ? S.options.scenario : null;
+  if (sc === 'wewak') return half === 'pm' ? (us ? 'bg-am-wew-pm-us' : 'bg-am-wew-pm-ij') : (us ? 'bg-am-wew-am-us' : 'bg-am-ij-am');
+  if (sc === 'guadalcanal') return us ? 'bg-am-sol-us' : 'bg-am-ij-am';
+  return us ? 'bg-am-us' : 'bg-am-ij';
+}
+/* Load this game's atmosphere art ahead of time, so a background never pops in late. */
+let atmLoaded = null;
+function preloadAtm() {
+  if (!S || atmLoaded === S.gid) return; atmLoaded = S.gid;
+  const keep = window.__atmImgs = [];
+  const save = { s: S.phase, a: S.active, st: S.stage, h: S.half, c: S.combat };
+  const keys = new Set(['bg-air', 'bg-dmg-airfield', 'bg-dmg-sea', 'bg-dmg-industry', viewer() === 'axis' ? 'bg-room-ij' : 'bg-room-us']);
+  try { for (const [stage, half] of [['airbase', 'am'], ['airbase', 'pm'], ['carrier', 'am']]) { S.phase = 'attack'; S.stage = stage; S.half = half; S.combat = null; const k = atmKey(); if (k) keys.add(k); } }
+  finally { S.phase = save.s; S.active = save.a; S.stage = save.st; S.half = save.h; S.combat = save.c; }
+  for (const k of keys) if (ART[k]) { const im = new Image(); im.decoding = 'async'; im.src = ART[k]; keep.push(im); }
+}
+/* One background layer kept across re-renders: the same element is moved into each new page, and its picture
+   changes only when the picture does. (A fresh element per render could show a blank or stale frame on a phone.) */
+let atmEl = null, atmCur = null;
+function placeAtm(mn, key) {
+  if (!mn || !key || !ART[key]) return;
+  if (!atmEl) { atmEl = document.createElement('div'); atmEl.className = 'atm'; atmEl.setAttribute('aria-hidden', 'true'); }
+  if (atmCur !== key) { atmEl.style.setProperty('--atm', `url('${ART[key]}')`); atmCur = key; }
+  mn.insertBefore(atmEl, mn.firstChild);
+}
+const atmStyle = (key, shade) => (ART[key] ? ` style="--atm:url('${ART[key]}')${shade ? `;--atm-shade:${shade}` : ''}"` : '');
 /* Bombing popup: the formation that reached the target, bombs falling, then what it did to the target. */
 function strikeHTML(f) {
   const k = f.l.strike, mine = me();
@@ -3754,7 +3909,8 @@ function strikeHTML(f) {
   const title = { destroyed: `${tname} destroyed`, sunk: `${tname} sunk`, crippled: `${tname} crippled`, wiped: `${tname} wiped out`, hit: `${tname} hit for ${k.raid}` }[k.res] || `${tname} held`;
   const good = k.att === mine ? red || k.res === 'hit' : !(red || k.res === 'hit');
   const sub = [`${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
-  return `<div class="fwrap"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s">
+  const bgk = k.kind === 'industry' ? 'bg-dmg-industry' : k.kind === 'airbase' ? 'bg-dmg-airfield' : 'bg-dmg-sea';
+  return `<div class="fwrap atm-pop"${atmStyle(bgk)}><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s">
     <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage, k.half)}</div>
     <div class="fzone"><div class="formation fgrid" style="--cols:${nAll <= 3 ? Math.max(1, nAll) : nAll <= 6 ? 3 : 4};--mw:${nAll <= 6 ? 'min(118px, 13.5dvh)' : 'min(88px, 10.5dvh)'}">${ld}${k.planes.map(mini).join('')}</div>${flak}</div>
     ${k.aaa ? `<span class="aaachip">Heavy AAA −${k.aaa} damage</span>` : ''}
@@ -4386,7 +4542,7 @@ function clockHTML() {
   return `<div class="clock"><div class="clock-top"><b>Turn ${S.turnNo} of ${lim}</b><span class="label">Then ${SIDE[sc.timeoutWinner]} win${sc.timeoutWinner === 'axis' ? 's' : ''}</span></div>
     <div class="ticks" style="grid-template-columns:repeat(${lim},minmax(0,1fr))">${t}</div></div>`;
 }
-const modeName = () => { const sc = scen(); return sc ? sc.name : MODES[S.options.mode] ? MODES[S.options.mode].name : OLD_MODES[S.options.mode] || 'Game'; };
+const modeName = () => { const sc = scen(), cp = S && E.campaignOf(S); return sc ? sc.name : cp ? cp.name : MODES[S.options.mode] ? MODES[S.options.mode].name : OLD_MODES[S.options.mode] || 'Game'; };
 function liveDef(id) {
   for (const side of ['axis', 'allied']) { const f = S.players[side].airbases.find((x) => S.cards[x.uid] === id); if (f) return E.facDef(S, f); }
   const sc = scen(); return (sc && sc.defs && sc.defs[id]) || E.CARD_DB[id].def;
@@ -4574,6 +4730,8 @@ function reportsPage(mode) {
 /* ---------------------------------------------------------------- start screen */
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
+/* Bump with every publish: shown small on the start screen to tell builds apart. */
+const APP_VERSION = 126;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -4581,7 +4739,7 @@ function startHTML() {
     <div class="start-btns">${cont ? `<div class="start-sub">${what}</div>` : ''}
       ${cont ? btn('startContinue', over() ? 'View last game' : 'Continue game', { cls: 'go' }) : ''}
       ${btn('startNewGame', 'New game', { cls: cont ? '' : 'go' })}
-      ${btn('startTraining', 'Basic training')}</div></div>`;
+      ${btn('startTraining', 'Basic training')}<div class="start-ver">v${APP_VERSION}</div></div></div>`;
 }
 /* ---------------------------------------------------------------- how to play */
 function scenarioWins(sc) {
@@ -4714,21 +4872,22 @@ function rulesPage(t) {
 const PNP_ON_NEW = false;
 function newHTML() {
   const sc = E.SCENARIOS[newOpts.scenario], isScen = newOpts.mode === 'scenario';
-  if (!PNP_ON_NEW && !newOpts.ai) newOpts.ai = { side: 'axis', profile: 'balanced' };
+  if (!PNP_ON_NEW && !newOpts.ai) newOpts.ai = { side: 'axis', profile: 'yamamoto' };
   const segBtns = (id, cur, list) => `<div class="pick2">${list.map(([v, l]) => btn(id, l, { arg: v, cls: cur === v ? 'on' : '' })).join('')}</div>`;
   const scList = Object.entries(E.SCENARIOS).sort((a, b) => (b[1].tutorial ? 1 : 0) - (a[1].tutorial ? 1 : 0) || a[1].name.localeCompare(b[1].name));
   const isTut = isScen && sc && sc.tutorial;
-  if (isTut) newOpts.ai = { side: 'axis', profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' };
+  if (isTut) newOpts.ai = { side: 'axis', profile: (newOpts.ai && newOpts.ai.profile) || 'yamamoto' };
   const info = isScen
     ? `<div class="ng-card"><label class="ng-pick"><span class="sr">Scenario</span><select id="opt-scen">${scList.map(([id, x]) => `<option value="${id}" ${newOpts.scenario === id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev', 18)}</label>
         <div class="opt-date">${esc(sc.date)} · ${SIDE[sc.first]} moves first · ${sc.turnLimit} turns</div><p>${esc(sc.blurb)}</p></div>`
-    : `<div class="ng-card"><h4>Campaign</h4><p>${esc(MODES.campaign.text)}</p></div>`;
+    : `<div class="ng-card"><label class="ng-pick"><span class="sr">Campaign</span><select id="opt-camp">${Object.entries(E.CAMPAIGNS).map(([id, x]) => `<option value="${id}" ${newOpts.campaign === id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>${ico('chev', 18)}</label>
+        <div class="opt-date">Axis moves first · to 60 Industry</div><p>${esc(CAMPAIGN_TEXT[newOpts.campaign] || CAMPAIGN_TEXT['1942'])} ${esc(MODES.campaign.text)}</p></div>`;
   const oppV = newOpts.ai ? newOpts.ai.side : '';
   const sides = [['axis', 'Allied'], ['allied', 'Axis']].concat(PNP_ON_NEW ? [['', 'Pass and play']] : []);
-  const style = newOpts.ai ? (() => { const list = STYLES.filter(([v]) => v !== 'industry' || !isScen);
-    if (!list.some(([v]) => v === newOpts.ai.profile)) newOpts.ai.profile = 'balanced';
-    const cur = STYLES.find(([v]) => v === newOpts.ai.profile);
-    return `<label class="tog sel"><span>Computer's style<small>${esc(cur[2])}</small></span><select id="opt-style">${list
+  const style = newOpts.ai ? (() => { const list = SKILLS;
+    if (!list.some(([v]) => v === newOpts.ai.profile)) newOpts.ai.profile = 'yamamoto';
+    const cur = SKILLS.find(([v]) => v === newOpts.ai.profile);
+    return `<label class="tog sel"><span>Enemy skill level<small>${esc(cur[2])}</small></span><select id="opt-style">${list
       .map(([v, l]) => `<option value="${v}" ${newOpts.ai.profile === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`; })() : '';
   return `<div class="label">Game type</div>${segBtns('newMode', newOpts.mode, [['scenario', 'Scenario'], ['campaign', 'Campaign']])}
     ${info}
@@ -4748,7 +4907,8 @@ function newOptsHTML() {
     <label class="tog"><input type="checkbox" id="opt-home" ${newOpts.indestructibleHome ? 'checked' : ''}><span>Protected home airbase<small>A hit wipes what is on it instead of destroying it.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-convoy" ${newOpts.convoyDiscards === 1 ? 'checked' : ''}><span>Lighter convoy losses<small>A sunk convoy costs 1 card instead of 2.</small></span></label>
     <label class="tog"><input type="checkbox" id="opt-single" ${newOpts.singleMobilization ? 'checked' : ''}><span>Single mobilization per turn</span></label>
-    <label class="tog"><input type="checkbox" id="opt-exp" ${newOpts.expansion1942 || forced ? 'checked' : ''} ${forced ? 'disabled' : ''}><span>Include the 1942 expansion<small>${forced ? 'Required by this scenario.' : 'Adds 9 cards to each deck.'}</small></span></label>`;
+    ${newOpts.mode === 'campaign' ? `<label class="tog"><input type="checkbox" id="opt-exp" ${E.CAMPAIGNS[newOpts.campaign] && E.CAMPAIGNS[newOpts.campaign].expansion ? 'checked' : ''} disabled><span>Include the 1942 expansion<small>Set by the campaign you pick.</small></span></label>`
+      : `<label class="tog"><input type="checkbox" id="opt-exp" ${newOpts.expansion1942 || forced ? 'checked' : ''} ${forced ? 'disabled' : ''}><span>Include the 1942 expansion<small>${forced ? 'Required by this scenario.' : 'Adds 9 cards to each deck.'}</small></span></label>`}`;
 }
 
 /* ---------------------------------------------------------------- briefings: Basic Training and first-time scenario briefings
@@ -4955,16 +5115,19 @@ Dismissed, and good hunting.` },
         win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
         rules: 'The Japanese move first and draw an extra card. On turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected: a hit wipes what is on it instead of destroying it.',
         cards: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Heavy AAA** (theirs) can cover their Industry: −2 on every attack on it. **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields.',
+        cards_1942: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Ace: Joe Foss** gives a Wildcat +1 Defense, and **Thatch Weave** keeps a fighter alive in a close fight. Their **Tainan Kokutai** can attack and still intercept in the same turn.',
         strategy: 'Weather the first blow: don’t over-commit before the enemy shows his hand. Their Industry is the target; every bomber that reaches it brings the end closer. Their Convoy is a cheaper way to hurt them, and carriers let you strike from somewhere they don’t expect.' },
       axis: {
         situation: 'December 1941. The Navy strikes first, and the Southern Resource Area is ours to take. Hold Lae as our home base, with Wewak in the opening hand.',
         win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
         rules: 'We move first and draw an extra card. On turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected: a hit wipes what is on it instead of destroying it.',
         cards: 'Spend your 5 points where they count: carriers give a second strike every turn. **Heavy AAA** can cover our Industry or Convoy: −2 on every attack on it. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play.',
+        cards_1942: 'Spend your 5 points where they count: carriers give a second strike every turn. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play. **Ace: Nishizawa** gives a Zero +1 Air to Air, and **Long Range Fighters** let an escort take a bomber\u2019s place.',
         strategy: 'Use the surprise: the first turn is free, so hit hard. American production will tell in a long war, so press their Industry early and guard our own. Their Convoy is the soft target.' },
     },
   },
   campaignHead: { title: 'The Campaign', sub: 'The long war, to 60 Industry' },
+  dynamicRule: '**New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Kittyhawks, Avengers, B-17s, Yorktown, Para-Frags; Oscars, Tojos, Akagi, Heavy AAA), and on turn 17 the 1943 generation (Corsairs and Lightnings; Tonys, Franceses and Peggys).',
   scenarioHeads: { situation: 'The situation', win: 'How to win', rules: 'Special rules', cards: 'Special cards', strategy: 'Strategy' },
 };
 const TUT_ORDER = ['intro', 'mobilize', 'attack', 'escort', 'target', 'report', 'landing', 'scramble', 'defend', 'debrief'];
@@ -5041,9 +5204,10 @@ function briefHTML() {
   }
   if (brief.kind === 'scen') {
     const id = briefKey(), side = human() || 'allied', B = BRIEF_COPY.scenarios[id][side], H = BRIEF_COPY.scenarioHeads;
-    const sc = scen() || { name: BRIEF_COPY.campaignHead.title, date: BRIEF_COPY.campaignHead.sub };
+    const cp = E.campaignOf(S), sc = scen() || { name: cp ? cp.name : BRIEF_COPY.campaignHead.title, date: BRIEF_COPY.campaignHead.sub };
+    const camp = cp ? S.options.campaign : null;
     return `<div class="brief">${officerHead(side, sc.date, sc.name)}
-      <main class="bf-body">${Object.keys(H).map((k) => B[k] ? `<h4>${esc(H[k])}</h4>${briefMd(B[k])}` : '').join('')}</main>
+      <main class="bf-body">${Object.keys(H).map((k) => { const t = (camp && B[k + '_' + camp]) || B[k] || ''; const extra = camp === 'dynamic' && k === 'rules' ? ' ' + BRIEF_COPY.dynamicRule : ''; return t ? `<h4>${esc(H[k])}</h4>${briefMd(t + extra)}` : ''; }).join('')}</main>
       <footer class="bf-foot">${btn('briefClose', 'To your post', { cls: 'go' })}</footer></div>`;
   }
   const pages = BRIEF_COPY.training[brief.group], pg = pages[brief.i];
@@ -5106,7 +5270,7 @@ function frame(title, segs, body, o) {
         ${o.noMenu ? '<span></span>' : `<button class="iconbtn" data-btn="menu" aria-label="Menu">${ico('more', 22)}</button>`}</div>
       <div class="hdr-top"><span class="status">${o.noStatus ? `${esc(modeName())}` : statusHTML()}</span></div>
       <h1 class="ptitle">${title}</h1></header>
-    ${segH}<main class="main${o.stage ? ` stg stg-${o.stage}` : ''}" id="main">${o.stage ? `<div class="stg-rib"><span>${o.stage === 'carrier' ? 'Carrier Stage' : o.stage === 'pm' ? 'Afternoon' : two() ? 'Morning' : 'Airbase Stage'}</span><span>${two() ? `Mission ${o.stage === 'pm' ? 2 : 1} of 2` : `Stage ${o.stage === 'carrier' ? 2 : 1} of 2`}</span></div>` : ''}${body}</main>${nav}${o.overlay || ''}</div>`;
+    ${segH}<main class="main${o.stage ? ` stg stg-${o.stage}` : ''}${o.atm ? ' has-atm' : ''}" id="main">${o.stage ? `<div class="stg-rib"><span>${o.stage === 'carrier' ? 'Carrier Stage' : o.stage === 'pm' ? 'Afternoon' : two() ? 'Morning' : 'Airbase Stage'}</span><span>${two() ? `Mission ${o.stage === 'pm' ? 2 : 1} of 2` : `Stage ${o.stage === 'carrier' ? 2 : 1} of 2`}</span></div>` : ''}${body}</main>${nav}${o.overlay || ''}</div>`;
 }
 /* ---------------------------------------------------------------- export: a plain-text game report */
 const HKEY = 'awp-history';
@@ -5118,7 +5282,7 @@ function reportText() {
   const now = new Date(), d2 = (n) => String(n).padStart(2, '0');
   L.push('AIRWAR PACIFIC! GAME REPORT', `Exported ${now.getFullYear()}-${d2(now.getMonth() + 1)}-${d2(now.getDate())} ${d2(now.getHours())}:${d2(now.getMinutes())}`, '');
   L.push(`Game: ${modeName()}${sc ? ' (scenario)' : ''}`);
-  L.push(`Players: ${aiSide() ? `human ${SIDE[human()]} vs computer ${SIDE[aiSide()]} (${styleName(o.ai.profile)} style)` : 'pass and play'}`);
+  L.push(`Players: ${aiSide() ? `human ${SIDE[human()]} vs computer ${SIDE[aiSide()]} (${styleName(o.ai.profile)} skill)` : 'pass and play'}`);
   L.push(`Options: Axis +${(o.bonusCards || {}).axis || 0} cards; surprise attack ${o.surpriseAttack ? 'on' : 'off'}; draw 3 keep 2 ${o.drawKeep ? 'on' : 'off'}; protected home ${o.indestructibleHome ? 'on' : 'off'}; convoy discards ${o.convoyDiscards ?? 2}${o.singleMobilization ? '; single mobilization' : ''}`);
   L.push(full ? `Result: ${S.winner === 'draw' ? 'Draw' : SIDE[S.winner] + ' victory'} on turn ${S.turnNo}. ${S.endReason || ''}` : `In progress: turn ${S.turnNo}${sc && sc.turnLimit ? ' of ' + E.clockLimit(S) : ''}, ${SIDE[S.active]} to play.`);
   L.push('');
@@ -5215,6 +5379,7 @@ function render() {
   if (!prefs.anim && S) fightSeen = S.log.length;
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
+  preloadAtm();
   const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; const bb = app.querySelector('.bf-body'); if (bb) bb.scrollTop = 0; };
   if (brief && brief.kind !== 'guard') { briefFull(); return; }
   if (pf) { briefDue(pf, null); if (brief) { briefFull(); return; } }
@@ -5263,6 +5428,11 @@ function render() {
   // Attack Mission / Carrier Strike screens take the stage colour.
   const stgPh = ['attack', 'intercept', 'combat', 'respond', 'allocate'].includes(S.phase) && !over() && !reps.length;
   if (tab === 'orders' && stgPh) o.stage = S.combat ? stk(S.combat.stage, S.combat.half) : stk(S.stage, S.half);
+  // Atmosphere art: your airfield / flight deck / the sky while you fly or fight; the briefing room for everything else
+  // on Orders (picking cards, mobilization, reports, the computer's move) and on Reports.
+  const room = viewer() === 'axis' ? 'bg-room-ij' : 'bg-room-us';
+  if (tab === 'orders') o.atm = stgPh && !aiTurn() ? atmKey() : room;
+  else if (tab === 'reports') o.atm = room;
   if (tab === 'orders') html = frame('Orders', null, ordersPage(reps), o);
   else if (tab === 'strategy') html = frame('Strategy', [['sit', 'Situation report'], ['vc', 'Victory conditions']],
     sub.strategy === 'sit' ? clockHTML() + sitRep(m) + sitRep(E.other(m)) : victoryHTML(), Object.assign(o, { seg: sub.strategy }));
@@ -5272,6 +5442,7 @@ function render() {
   app.innerHTML = html;
   app.dataset.tab = tab + '|' + (sub[tab] || '');
   const mn = document.getElementById('main');
+  placeAtm(mn, o.atm);
   // Each new stage or step of the turn starts at the top of the page; otherwise keep the reader's place.
   const grp = { respond: 'combat' }[S.phase] || S.phase;
   const sk = tab + '|' + S.turnNo + '|' + S.stage + '|' + grp + '|' + (S.raidNo || 0) + '|' + (S.pending[0] ? S.pending[0].kind : '') + '|' + reps.length;
@@ -5290,7 +5461,7 @@ function onBtn(id, arg) {
     case 'scenBrief': menu = false; brief = { kind: 'scen' }; break;
     case 'tutReplay': menu = false; if (tut.last) brief = { kind: 'tut', group: tut.last, i: 0, replay: true }; break;
     case 'newMode': newOpts.mode = arg; applyBalance(); break;
-    case 'newSide': if (newOpts.mode === 'scenario' && E.SCENARIOS[newOpts.scenario] && E.SCENARIOS[newOpts.scenario].tutorial) break; newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; break;
+    case 'newSide': if (newOpts.mode === 'scenario' && E.SCENARIOS[newOpts.scenario] && E.SCENARIOS[newOpts.scenario].tutorial) break; newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'yamamoto' } : null; break;
     case 'tab': tab = arg; menu = false; break;
     case 'sub': sub[tab] = arg; break;
     case 'menu': menu = true; clearAsk = false; break;
@@ -5400,10 +5571,11 @@ document.addEventListener('change', (e) => {
   if (e.target.id === 'opt-home') newOpts.indestructibleHome = e.target.checked;
   if (e.target.id === 'opt-single') newOpts.singleMobilization = e.target.checked;
   if (e.target.id === 'opt-exp') newOpts.expansion1942 = e.target.checked;
+  if (e.target.id === 'opt-camp') { newOpts.campaign = e.target.value; applyBalance(); render(); }
   if (e.target.id === 'opt-keep') newOpts.drawKeep = e.target.checked;
   if (e.target.id === 'opt-convoy') newOpts.convoyDiscards = e.target.checked ? 1 : 2;
   if (e.target.name === 'mode') { newOpts.mode = e.target.value; applyBalance(); render(); }
-  if (e.target.name === 'opp') { newOpts.ai = e.target.value ? { side: e.target.value, profile: (newOpts.ai && newOpts.ai.profile) || 'balanced' } : null; render(); }
+  if (e.target.name === 'opp') { newOpts.ai = e.target.value ? { side: e.target.value, profile: (newOpts.ai && newOpts.ai.profile) || 'yamamoto' } : null; render(); }
   if (e.target.id === 'opt-style' && newOpts.ai) { newOpts.ai.profile = e.target.value; render(); }
   if (e.target.id === 'opt-surprise') newOpts.surpriseAttack = e.target.checked;
   if (e.target.id === 'opt-bonus') newOpts.bonusCards = +e.target.value ? { axis: +e.target.value } : undefined;
