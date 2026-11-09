@@ -263,7 +263,8 @@ p { margin: 0; }
 .fight .ftext { color: var(--fg); font: 500 14px/1.4 var(--f-body); background: var(--sea-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
 .fight .ftext h4 { margin: 0 0 4px; font: 800 19px/1.05 var(--f-display); text-transform: uppercase; color: var(--signal); }
 .fight .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.fight .actions { position: static; padding: 0; background: none; display: flex; gap: 8px; }
+.fight .actions { position: static; padding: 0; margin: 0; background: none; display: flex; gap: 8px; }
+.fight .actions::before, .fight .actions::after { content: none; }
 .fight .actions button { flex: 1; }
 .fight .predict { color: var(--muted); font: 500 12.5px/1.35 var(--f-mono); }
 .fight .predict .k { color: var(--kill); } .fight .predict .s { color: var(--ok); }
@@ -403,8 +404,8 @@ p { margin: 0; }
 .ord-head p { font-size: 14px; }
 .est { font: 500 12px/1.45 var(--f-mono); background: var(--sea-2); padding: 8px 10px; border-radius: 4px; }
 .est b { color: var(--signal); }
-.actions { position: sticky; bottom: -18px; margin: auto calc(-1 * var(--gut-r)) -18px calc(-1 * var(--gut-l)); padding: 12px var(--gut-r) 14px var(--gut-l);
-  background: linear-gradient(to bottom, transparent, var(--sea) 14px); display: flex; flex-wrap: wrap; gap: 8px; z-index: 2; }
+.actions { position: sticky; bottom: -18px; margin: auto calc(-1 * var(--gut-r)) -18px calc(-1 * var(--gut-l)); padding: 8px var(--gut-r) 8px var(--gut-l);
+  background: var(--sea); display: flex; flex-wrap: wrap; gap: 8px; z-index: 2; }
 .actions button { flex: 1 1 140px; }
 .actions button.go { flex-grow: 2; }
 .trows { display: grid; gap: 6px; }
@@ -622,6 +623,7 @@ html:not(.mobile) .bf-foot { padding-bottom: 26px; }
 /* ---------------- atmosphere art (art/bg-*.jpg) */
 .main.has-atm { position: relative; }
 .main.has-atm > * { position: relative; z-index: 1; }
+.main.has-atm > .actions { position: sticky; z-index: 5; } /* keep the action bar pinned above the nav */
 .main.has-atm > .atm { position: absolute; z-index: 0; top: 0; left: 0; right: 0; height: 330px; pointer-events: none;
   background: linear-gradient(180deg, rgba(14,26,33,.38) 0, rgba(14,26,33,.58) 45%, rgba(14,26,33,.9) 78%, var(--sea) 100%), var(--atm) center 35% / cover no-repeat; }
 .main.has-atm .stg-rib { background: color-mix(in srgb, var(--sea) 72%, transparent); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -630,7 +632,32 @@ html:not(.mobile) .bf-foot { padding-bottom: 26px; }
 .main.has-atm .ord-head .label, .main.has-atm .ord-head > div, .main.has-atm > .note, .main.has-atm > .label { color: #e8e2d2; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
 .fwrap.atm-pop { background: radial-gradient(ellipse at 50% 45%, rgba(3,8,10,.30), rgba(3,8,10,.62) 80%), var(--atm) center / cover no-repeat, #03080a; }
 .fwrap.atm-pop .fight-h h3, .fwrap.atm-pop .fvs, .fwrap.atm-pop .ftext { text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6); }
-.fwrap.atm-pop .after { background: rgba(3,8,10,.72); border-radius: 8px; padding: 10px 12px; }
+
+/* ---------------- ••• menu: drops from the top */
+.mnu-wrap { position: absolute; inset: 0; z-index: 40; background: rgba(3,8,10,.66); display: flex; flex-direction: column; animation: mnuFade .18s ease-out; }
+.mnu { max-height: 92%; display: flex; flex-direction: column; background: var(--sea-2); border-bottom: 1px solid var(--line); border-radius: 0 0 14px 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.55); animation: mnuDrop .22s cubic-bezier(.2,.8,.2,1); }
+.mnu-h { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(26px + env(safe-area-inset-top, 0px)) var(--gut-r) 12px var(--gut-l); border-bottom: 1px solid var(--line); }
+.mnu-h h3 { flex: 1; min-width: 0; margin: 0; font: 800 22px/1.05 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere; }
+.mnu-btn { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 8px 11px 8px 7px; min-height: 40px; background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--fg); font: 600 12px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; }
+.mnu-btn i { display: inline-flex; } .mnu-btn i.rot { transform: rotate(90deg); }
+.mnu-b { overflow-y: auto; padding: 12px var(--gut-r) calc(16px + env(safe-area-inset-bottom, 0px)) var(--gut-l); display: grid; gap: 8px; }
+.mnu-b button { width: 100%; text-align: left; }
+.mnu-b .optrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.mrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 50px; }
+.mrow > span { display: grid; gap: 2px; } .mrow small { font-size: 11.5px; color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.mchev { display: inline-flex; transform: rotate(-90deg); color: var(--muted); }
+@keyframes mnuDrop { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes mnuFade { from { background: rgba(3,8,10,0); } }
+@media (prefers-reduced-motion: reduce) { .mnu, .mnu-wrap { animation: none; } }
+/* ---------------- "more below": a stronger shadow and a small tab above the button bar while the page has more to scroll */
+.main > .actions::before, .bf-foot::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 34px; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(0,0,0,.55)); opacity: 0; transition: opacity .2s; }
+.main > .actions::after, .bf-foot::after { content: 'More \25BE'; position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); pointer-events: none;
+  padding: 4px 10px 5px; border-radius: 999px; background: rgba(14,26,33,.92); border: 1px solid var(--line); color: var(--signal);
+  font: 600 10.5px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; opacity: 0; transition: opacity .2s; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.main.scroll-more > .actions::before, .main.scroll-more > .actions::after, .brief.scroll-more .bf-foot::before, .brief.scroll-more .bf-foot::after { opacity: 1; }
+.bf-foot { position: relative; }
 </style>
 
 </head>
@@ -3500,7 +3527,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = API; else 
 const E = window.AWP;
 const SIDE = E.SIDE;
 const KEY = 'awp-table-v2';
-let S, hist = [], ui = fresh(), shownFor = null, err = '', showNew = false, menu = false;
+let S, hist = [], ui = fresh(), shownFor = null, err = '', showNew = false, menu = false, menuPage = 'main';
 let seen = { axis: 0, allied: 0 }; // how far into the log each player has read the after-action reports
 // What each player knows about enemy aircraft: when it was last seen face up, and where it landed when that can be deduced.
 let intel = { axis: {}, allied: {} };
@@ -3862,6 +3889,15 @@ function preloadAtm() {
 }
 /* One background layer kept across re-renders: the same element is moved into each new page, and its picture
    changes only when the picture does. (A fresh element per render could show a blank or stale frame on a phone.) */
+/* Mark a scrolling area's host with .scroll-more while there is content below the fold (re-checked as it scrolls and as
+   images load). */
+function moreCue(el, host) {
+  if (!el || !host) return;
+  const upd = () => host.classList.toggle('scroll-more', el.scrollHeight - el.scrollTop - el.clientHeight > 12);
+  upd(); el.addEventListener('scroll', upd, { passive: true });
+  el.querySelectorAll('img').forEach((im) => { if (!im.complete) im.addEventListener('load', upd, { once: true }); });
+  setTimeout(upd, 250);
+}
 let atmEl = null, atmCur = null;
 function placeAtm(mn, key) {
   if (!mn || !key || !ART[key]) return;
@@ -4731,7 +4767,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 126;
+const APP_VERSION = 130;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -5350,16 +5386,42 @@ function toggleFullscreen() {
 }
 document.addEventListener('fullscreenchange', () => { fit(); render(); });
 document.addEventListener('webkitfullscreenchange', () => { fit(); render(); });
+/* The ••• menu: drops from the top, with a close button that stays in its header. Two sub-pages (Options, Report
+   Logs) have a Back button. */
 function menuHTML() {
   if (!menu) return '';
   const inGame = S && S.phase && !showNew && !startScreen;
-  return `<div class="sheet-wrap" data-btn="closeMenu"><div class="sheet" role="dialog" aria-label="Menu"><h3>${inGame ? esc(modeName()) : 'Options'}</h3>
-    ${inGame ? `<p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer` : 'Pass and play'} · turn ${S.turnNo}</p>
-    ${btn('undo', 'Undo last move', { dis: !hist.length || over() })}${btn('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}${btn('exportGame', over() ? 'Copy game report' : 'Copy game report so far')}${loadHist().length ? btn('exportAll', `Copy reports of all finished games (${loadHist().length})`) + btn('clearHist', clearAsk ? `Tap again to delete ${plural(loadHist().length, 'saved report')}` : `Clear saved game reports (${loadHist().length})`, { cls: clearAsk ? 'danger' : '' }) : ''}${isTraining() ? btn('tutReplay', 'Repeat the last briefing', { dis: !tut.last }) : briefKey() && BRIEF_COPY.scenarios[briefKey()] && human() ? btn('scenBrief', S.options.mode === 'campaign' ? 'Campaign briefing' : 'Scenario briefing') : ''}${btn('toStart', isTraining() ? 'Leave training' : 'Main menu')}${btn('openNew', 'New game')}` : ''}
-    <div class="label" style="margin-top:6px">Game options</div>
-    ${btn('animToggle', `<span class="optrow"><span>Battle animations</span><span>${prefs.anim ? 'On' : 'Off'}</span></span>`)}
-    ${newOptsHTML()}
-    ${btn('closeMenu', 'Close', { cls: 'go' })}</div></div>`;
+  const name = inGame ? modeName() : 'Airwar Pacific!';
+  const row = (id, label, o = {}) => `<button class="mrow ${o.cls || ''}" data-btn="${id}" ${o.arg ? `data-arg="${o.arg}"` : ''} ${o.dis ? 'disabled' : ''}><span>${label}${o.sub ? `<small>${o.sub}</small>` : ''}</span>${o.next ? `<i class="mchev">${ico('chev', 18)}</i>` : ''}</button>`;
+  let title = 'Game Menu', body = '', back = false;
+  if (menuPage === 'options') {
+    title = 'Options'; back = true;
+    body = `${inGame ? `<div class="label">This game</div>${row('undo', 'Undo last move', { dis: !hist.length || over() })}` : ''}
+      ${row('fullscreen', fsEl() ? 'Exit full screen' : 'Full screen')}
+      ${btn('animToggle', `<span class="optrow"><span>Battle animations</span><span>${prefs.anim ? 'On' : 'Off'}</span></span>`)}
+      ${newOptsHTML()}`;
+  } else if (menuPage === 'logs') {
+    title = 'Report Logs'; back = true;
+    const n = loadHist().length;
+    body = `<p class="note">Game reports are plain text you can paste anywhere: every turn, fight and strike.</p>
+      ${row('exportLast', 'Copy report of last game', { dis: !n, sub: n ? 'The most recent finished game' : 'No finished games yet' })}
+      ${inGame && !over() ? row('exportGame', 'Copy game report so far') : ''}
+      ${row('exportAll', 'Copy reports of all finished games', { dis: !n, sub: n ? plural(n, 'saved game') : 'No finished games yet' })}
+      ${n ? row('clearHist', clearAsk ? `Tap again to delete ${plural(n, 'saved report')}` : 'Clear saved game reports', { cls: clearAsk ? 'danger' : '' }) : ''}`;
+  } else {
+    const bk = inGame && (isTraining() ? (tut.last ? 'tutReplay' : null) : briefKey() && BRIEF_COPY.scenarios[briefKey()] && human() ? 'scenBrief' : null);
+    body = `${inGame ? `<p class="note">${aiSide() ? `You (${SIDE[human()]}) vs the computer, ${esc(styleName(S.options.ai.profile))}` : 'Pass and play'} · turn ${S.turnNo}</p>` : ''}
+      ${row('toStart', 'Main menu', { sub: isTraining() ? 'Leaves Basic Training' : '' })}
+      ${row('openNew', 'New game')}
+      ${bk ? row(bk, `${esc(name)} Briefing`, { sub: isTraining() ? 'Repeats the last briefing' : '' }) : ''}
+      ${row('menuPage', inGame ? `${esc(name)} Options` : 'Options', { arg: 'options', next: true })}
+      ${row('menuPage', 'Report Logs', { arg: 'logs', next: true })}`;
+  }
+  return `<div class="mnu-wrap" data-btn="closeMenu"><div class="mnu" role="dialog" aria-label="${esc(title)}">
+    <div class="mnu-h"><h3>${esc(title)}</h3>
+      ${back ? `<button class="mnu-btn" data-btn="menuPage" data-arg="main"><i class="rot">${ico('chev', 18)}</i>Back</button>` : ''}
+      <button class="mnu-btn" data-btn="closeMenu" aria-label="Close menu"><i>${ico('close', 16)}</i>Close</button></div>
+    <div class="mnu-b">${body}</div></div></div>`;
 }
 function setThemeColor(c) {
   let m = document.querySelector('meta[name="theme-color"]');
@@ -5380,7 +5442,7 @@ function render() {
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
   preloadAtm();
-  const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; const bb = app.querySelector('.bf-body'); if (bb) bb.scrollTop = 0; };
+  const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; const bb = app.querySelector('.bf-body'); if (bb) { bb.scrollTop = 0; moreCue(bb, bb.closest('.brief')); } };
   if (brief && brief.kind !== 'guard') { briefFull(); return; }
   if (pf) { briefDue(pf, null); if (brief) { briefFull(); return; } }
   if (pf) { app.innerHTML = frame('Orders', null, '', { overlay: fightHTML(pf) }); app.dataset.tab = 'fight'; return; }
@@ -5443,6 +5505,7 @@ function render() {
   app.dataset.tab = tab + '|' + (sub[tab] || '');
   const mn = document.getElementById('main');
   placeAtm(mn, o.atm);
+  moreCue(mn, mn);
   // Each new stage or step of the turn starts at the top of the page; otherwise keep the reader's place.
   const grp = { respond: 'combat' }[S.phase] || S.phase;
   const sk = tab + '|' + S.turnNo + '|' + S.stage + '|' + grp + '|' + (S.raidNo || 0) + '|' + (S.pending[0] ? S.pending[0].kind : '') + '|' + reps.length;
@@ -5464,7 +5527,8 @@ function onBtn(id, arg) {
     case 'newSide': if (newOpts.mode === 'scenario' && E.SCENARIOS[newOpts.scenario] && E.SCENARIOS[newOpts.scenario].tutorial) break; newOpts.ai = arg ? { side: arg, profile: (newOpts.ai && newOpts.ai.profile) || 'yamamoto' } : null; break;
     case 'tab': tab = arg; menu = false; break;
     case 'sub': sub[tab] = arg; break;
-    case 'menu': menu = true; clearAsk = false; break;
+    case 'menu': menu = true; menuPage = 'main'; clearAsk = false; break;
+    case 'menuPage': menuPage = arg || 'main'; clearAsk = false; break;
     case 'clearHist': if (clearAsk) { clearHistory(); clearAsk = false; } else clearAsk = true; break;
     case 'rules': rules = !rules; menu = false; break;
     case 'startContinue': startScreen = false; break;
@@ -5478,6 +5542,7 @@ function onBtn(id, arg) {
     case 'pfPick': ui.battle = ui.battle === arg ? null : arg; break;
     case 'animToggle': prefs.anim = !prefs.anim; savePrefs(); if (!prefs.anim && S) fightSeen = S.log.length; break;
     case 'exportGame': { const nmf = modeName().replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, ''); exportText(reportText(), `airwar-${nmf}-turn${S.turnNo}.txt`); return; }
+    case 'exportLast': { const h = loadHist(); if (h.length) exportText(h[h.length - 1].text, 'airwar-last-game.txt'); return; }
     case 'exportAll': exportText(loadHist().map((x) => x.text).join('\n' + '='.repeat(60) + '\n\n'), `airwar-games-${loadHist().length}.txt`); return;
     case 'closeExport': exportBox = null; break;
     case 'fullscreen': toggleFullscreen(); return;
@@ -5546,7 +5611,7 @@ function onPick(el) {
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-btn]');
-  if (b && b.classList.contains('sheet-wrap') && e.target !== b) { /* clicks inside the sheet fall through to its buttons */ }
+  if (b && (b.classList.contains('sheet-wrap') || b.classList.contains('mnu-wrap')) && e.target !== b) { /* clicks inside the panel fall through to its buttons */ }
   if (b && !b.disabled && !(b.classList.contains('sheet-wrap') && e.target !== b)) return onBtn(b.dataset.btn, b.dataset.arg);
   if (longPressed) { longPressed = false; return; }
   const v = e.target.closest('[data-view]'); if (v) { viewCard = v.dataset.view; return render(); }
