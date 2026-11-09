@@ -621,15 +621,19 @@ html:not(.mobile) .bf-foot { padding-bottom: 26px; }
 .bf-dlg button { width: 100%; min-height: 46px; }
 
 /* ---------------- atmosphere art (art/bg-*.jpg) */
-.main.has-atm { position: relative; }
+.main.has-atm { position: relative; z-index: 1; background: transparent; }
 .main.has-atm > * { position: relative; z-index: 1; }
 .main.has-atm > .actions { position: sticky; z-index: 5; } /* keep the action bar pinned above the nav */
-.main.has-atm > .atm { position: absolute; z-index: 0; top: 0; left: 0; right: 0; height: 330px; pointer-events: none;
+/* The art layer sits in the frame behind the scrolling area (top set from JS), so it stays still while the page scrolls. */
+.frame > .atm { position: absolute; z-index: 0; left: 0; right: 0; height: 330px; pointer-events: none;
   background: linear-gradient(180deg, rgba(14,26,33,.38) 0, rgba(14,26,33,.58) 45%, rgba(14,26,33,.9) 78%, var(--sea) 100%), var(--atm) center 35% / cover no-repeat; }
+.frame > .atm.dim { background: linear-gradient(180deg, rgba(14,26,33,.72) 0, rgba(14,26,33,.8) 45%, rgba(14,26,33,.94) 78%, var(--sea) 100%), var(--atm) center 35% / cover no-repeat; }
+.frame > .atm.tall { height: 560px; background: linear-gradient(180deg, rgba(14,26,33,.4) 0, rgba(14,26,33,.55) 50%, rgba(14,26,33,.85) 82%, var(--sea) 100%), var(--atm) center 40% / cover no-repeat; }
 .main.has-atm .stg-rib { background: color-mix(in srgb, var(--sea) 72%, transparent); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 .main.has-atm .ord-head h2, .main.has-atm .ord-head p { text-shadow: 0 1px 4px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.5); }
 .main.has-atm .ord-head p { color: #f2efe6; }
 .main.has-atm .ord-head .label, .main.has-atm .ord-head > div, .main.has-atm > .note, .main.has-atm > .label { color: #e8e2d2; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
+.main.has-atm > .sec-h, .main.has-atm > p.note, .main.has-atm > .empty, .main.has-atm > .label, .main.has-atm > .ng-sect > .label { color: #f2efe6; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.9); }
 .fwrap.atm-pop { background: radial-gradient(ellipse at 50% 45%, rgba(3,8,10,.30), rgba(3,8,10,.62) 80%), var(--atm) center / cover no-repeat, #03080a; }
 .fwrap.atm-pop .fight-h h3, .fwrap.atm-pop .fvs, .fwrap.atm-pop .ftext { text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6); }
 
@@ -3939,6 +3943,13 @@ function fightHTML(f) {
 /* Atmosphere art behind the Orders header during an Attack Mission or Carrier Strike, and behind the battle popups.
    Always the airfield (or flight deck) of the side you command, whoever is attacking; the fights: the open sky.
    Solomons and Wewak have their own airfields, Wewak by morning and afternoon. */
+/* A side's airfield picture for this scenario (Wewak uses its morning view). */
+function airfieldKey(side) {
+  const us = side === 'allied', sc = S && S.options.mode === 'scenario' ? S.options.scenario : null;
+  if (sc === 'wewak') return us ? 'bg-am-wew-am-us' : 'bg-am-ij-am';
+  if (sc === 'guadalcanal') return us ? 'bg-am-sol-us' : 'bg-am-ij-am';
+  return us ? 'bg-am-us' : 'bg-am-ij';
+}
 function atmKey() {
   if (!S || over()) return null;
   if (['combat', 'respond', 'allocate'].includes(S.phase)) return 'bg-air';
@@ -3956,7 +3967,7 @@ function preloadAtm() {
   if (!S || atmLoaded === S.gid) return; atmLoaded = S.gid;
   const keep = window.__atmImgs = [];
   const save = { s: S.phase, a: S.active, st: S.stage, h: S.half, c: S.combat };
-  const keys = new Set(['bg-air', 'bg-dmg-airfield', 'bg-dmg-sea', 'bg-dmg-industry', viewer() === 'axis' ? 'bg-room-ij' : 'bg-room-us']);
+  const keys = new Set(['bg-air', 'bg-dmg-airfield', 'bg-dmg-sea', 'bg-dmg-industry', viewer() === 'axis' ? 'bg-room-ij' : 'bg-room-us', airfieldKey('allied'), airfieldKey('axis')]);
   try { for (const [stage, half] of [['airbase', 'am'], ['airbase', 'pm'], ['carrier', 'am']]) { S.phase = 'attack'; S.stage = stage; S.half = half; S.combat = null; const k = atmKey(); if (k) keys.add(k); } }
   finally { S.phase = save.s; S.active = save.a; S.stage = save.st; S.half = save.h; S.combat = save.c; }
   for (const k of keys) if (ART[k]) { const im = new Image(); im.decoding = 'async'; im.src = ART[k]; keep.push(im); }
@@ -3973,11 +3984,14 @@ function moreCue(el, host) {
   setTimeout(upd, 250);
 }
 let atmEl = null, atmCur = null;
-function placeAtm(mn, key) {
+function placeAtm(mn, key, look) {
   if (!mn || !key || !ART[key]) return;
-  if (!atmEl) { atmEl = document.createElement('div'); atmEl.className = 'atm'; atmEl.setAttribute('aria-hidden', 'true'); }
+  if (!atmEl) { atmEl = document.createElement('div'); atmEl.setAttribute('aria-hidden', 'true'); }
   if (atmCur !== key) { atmEl.style.setProperty('--atm', `url('${ART[key]}')`); atmCur = key; }
-  mn.insertBefore(atmEl, mn.firstChild);
+  atmEl.className = 'atm' + (look ? ' ' + look : '');
+  // Behind the scrolling area (not inside it), so the page scrolls over a still picture.
+  mn.parentElement.insertBefore(atmEl, mn);
+  atmEl.style.top = mn.offsetTop + 'px';
 }
 const atmStyle = (key, shade) => (ART[key] ? ` style="--atm:url('${ART[key]}')${shade ? `;--atm-shade:${shade}` : ''}"` : '');
 /* Bombing popup: the formation that reached the target, bombs falling, then what it did to the target. */
@@ -4848,7 +4862,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 133;
+const APP_VERSION = 135;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -5543,7 +5557,7 @@ function render() {
   if (rules) { app.innerHTML = frame('How to play', [['basics', 'Basics'], ['turn', 'Your turn'], ['combat', 'Combat'], ['modes', 'Game types']], rulesPage(rulesTab),
     { noNav: true, noMenu: true, noStatus: !S || startScreen, seg: rulesTab, segBtn: 'rtab' }); const mn = document.getElementById('main'); if (mn) mn.scrollTop = 0; return; }
   if (startScreen) { app.innerHTML = startHTML(); return; }
-  if (showNew) { app.innerHTML = frame('New game', null, newHTML(), { noNav: true, noStatus: true, overlay: menuHTML() }); return; }
+  if (showNew) { app.innerHTML = frame('New game', null, newHTML(), { noNav: true, noStatus: true, overlay: menuHTML(), atm: 'bg-air' }); placeAtm(document.getElementById('main'), 'bg-air', 'tall'); moreCue(document.getElementById('main'), document.getElementById('main')); return; }
   if (!prefs.anim && S) fightSeen = S.log.length;
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
@@ -5600,7 +5614,9 @@ function render() {
   // on Orders (picking cards, mobilization, reports, the computer's move) and on Reports.
   const room = viewer() === 'axis' ? 'bg-room-ij' : 'bg-room-us';
   if (tab === 'orders') o.atm = stgPh && !aiTurn() ? atmKey() : room;
-  else if (tab === 'reports') o.atm = room;
+  else if (tab === 'reports' || tab === 'strategy') o.atm = room;
+  else if (tab === 'bases') o.atm = 'bg-dmg-airfield';
+  else if (tab === 'planes') o.atm = airfieldKey(sub.planes === 'allied' || sub.planes === 'axis' ? sub.planes : viewer());
   if (tab === 'orders') html = frame('Orders', null, ordersPage(reps), o);
   else if (tab === 'strategy') html = frame('Strategy', [['sit', 'Situation report'], ['vc', 'Victory conditions']],
     sub.strategy === 'sit' ? clockHTML() + sitRep(m) + sitRep(E.other(m)) : victoryHTML(), Object.assign(o, { seg: sub.strategy }));
@@ -5610,7 +5626,7 @@ function render() {
   app.innerHTML = html;
   app.dataset.tab = tab + '|' + (sub[tab] || '');
   const mn = document.getElementById('main');
-  placeAtm(mn, o.atm);
+  placeAtm(mn, o.atm, tab === 'strategy' ? 'dim' : '');
   moreCue(mn, mn);
   // Each new stage or step of the turn starts at the top of the page; otherwise keep the reader's place.
   const grp = { respond: 'combat' }[S.phase] || S.phase;
