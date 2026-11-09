@@ -821,9 +821,9 @@ for (const [id, d] of Object.entries(CARD_DB)) { d.id = id; d.abilities = d.abil
 /* The three campaigns. 1942: the base deck only. 1943: base + expansion. Dynamic: starts as 1942, and the expansion's
    aircraft and cards join both decks in waves at set turns, as new types reached the front (shuffled into the deck). */
 const CAMPAIGNS = {
-  '1942': { name: '1942 Campaign', expansion: false },
-  '1943': { name: '1943 Campaign', expansion: true },
-  dynamic: { name: 'Dynamic Campaign', expansion: false, waves: [
+  '1942': { name: '1941 Campaign', expansion: false },
+  '1943': { name: '1942 Campaign', expansion: true },
+  dynamic: { name: '1941–43 Campaign', expansion: false, waves: [
     { turn: 9, title: 'Mid-1942: new types reach the front',
       allied: { p40e: 1, f4f4: 1, tbf: 1, b17: 1, b26: 1, yorktown: 1, parafrag: 1 }, axis: { oscar: 1, tojo: 1, hamp: 1, betty: 1, akagi: 1, aaa: 1 } },
     { turn: 17, title: '1943: the new generation',
@@ -3570,7 +3570,7 @@ const MODES = {
 const CAMPAIGN_TEXT = {
   '1942': 'The early war, with the base deck: Wildcats, Warhawks and Dauntlesses against Zeros, Vals and Bettys.',
   '1943': 'Both decks from the start, expansion included: Corsairs, Lightnings and Avengers against Tonys, Franceses and Peggys.',
-  dynamic: 'Starts as the 1942 Campaign. On turn 9 the mid-1942 types join both decks, and on turn 17 the 1943 generation.',
+  dynamic: 'Starts as the 1941 Campaign. On turn 9 the mid-1942 types join both decks, and on turn 17 the 1943 generation.',
 };
 /* Enemy skill levels (ai.js profiles). Older saved games may name a former style; those still play. */
 const SKILLS = [
@@ -4767,7 +4767,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 131;
+const APP_VERSION = 132;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -5145,25 +5145,51 @@ Dismissed, and good hunting.` },
         cards: 'The **68th Sentai** (Ki-61) must attack again after it shoots down a fighter on a bombing raid. **Nango** gives an Oscar +1. **Dispersal** saves the aircraft on a field that falls. **Radar** and **Light AAA** guard the fields. Beware the **348th Fighter Group**: it strafes everything parked where it hits.',
         strategy: 'Time is ours. Don’t throw everything at a small morning raid: the afternoon is when the bombers come. Keep the Ki-61s for what you have seen, and guard the convoy.' },
     },
-    campaign: {
+    // Campaign briefings: one per campaign (internal ids 1942 = the 1941 Campaign, 1943 = the 1942 Campaign, dynamic = 1941–43).
+    campaign1942: {
       allied: {
-        situation: 'December 1941. The Pacific war begins with a Japanese surprise attack, and it will be a long one. You hold Midway as your home base, with Port Moresby in your opening hand.',
+        situation: '7 December 1941. The Japanese have struck Pearl Harbor and are sweeping south. You hold Midway, with Port Moresby in your opening hand, and you fight with the early-war aircraft: Wildcats, Warhawks, Dauntlesses and Havocs. Nothing better is coming. Win with what you have.',
         win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
-        rules: 'The Japanese move first and draw an extra card. On turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected: a hit wipes what is on it instead of destroying it.',
-        cards: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Heavy AAA** (theirs) can cover their Industry: −2 on every attack on it. **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields.',
-        cards_1942: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Ace: Joe Foss** gives a Wildcat +1 Defense, and **Thatch Weave** keeps a fighter alive in a close fight. Their **Tainan Kokutai** can attack and still intercept in the same turn.',
+        rules: 'The Japanese move first with **three extra cards**, and on turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'Spend your 5 points where they count: a field adds room for aircraft, and the Wildcats and SBDs can fly from carriers. **Ace: Joe Foss** gives a Wildcat +1 Defense, and **Thatch Weave** keeps a fighter alive in a close fight. Their **Tainan Kokutai** can attack and still intercept in the same turn, and **Long Range Fighters** let a Zero take a bomber’s place.',
+        strategy: 'Survive the opening. They have three extra cards and a free first turn, so spread your aircraft across your fields and don’t trade bombers for nothing. A Zero beats a Warhawk one on one; pick fights where numbers or a battle card swing it. When their Industry is well guarded, go after the Convoy.' },
+      axis: {
+        situation: '7 December 1941. The fleet has struck Pearl Harbor; now the drive south begins. Lae is our home base, with Wewak in the opening hand, and the Zero is the finest fighter in the Pacific.',
+        win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'We move first with **three extra cards**, and on turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'Spend your 5 points where they count: carriers give a second strike every turn. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play. **Ace: Nishizawa** gives a Zero +1 Air to Air, and **Long Range Fighters** let an escort take a bomber’s place. Beware **Thatch Weave**: it keeps a Wildcat alive.',
+        strategy: 'Strike hard while the advantage is ours: the surprise turn and three extra cards. Our Zeros win most fights against what the Americans fly now, so press their Industry before their numbers tell, and guard our Convoy.' },
+    },
+    campaign1943: {
+      allied: {
+        situation: 'The Pacific war with everything in the fight from the first turn: Corsairs, Lightnings, Avengers and B-17s alongside the Wildcats and Warhawks. You hold Midway, with Port Moresby in your opening hand.',
+        win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'The Japanese move first with **two extra cards**, and on turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck (both decks complete, expansion included) for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'The **F4U Corsair** and **P-38 Lightning** outfight almost anything they meet. **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields. Watch for their **Heavy AAA**: it can cover their Industry, −2 on every attack on it. They have **Tonys**, **Franceses** and **Peggys** in the deck.',
         strategy: 'Weather the first blow: don’t over-commit before the enemy shows his hand. Their Industry is the target; every bomber that reaches it brings the end closer. Their Convoy is a cheaper way to hurt them, and carriers let you strike from somewhere they don’t expect.' },
       axis: {
-        situation: 'December 1941. The Navy strikes first, and the Southern Resource Area is ours to take. Hold Lae as our home base, with Wewak in the opening hand.',
+        situation: 'The Pacific war with everything in the fight from the first turn. The Americans have Corsairs and Lightnings; we have Tonys, Franceses and Peggys alongside the Zeros. Lae is our home base, with Wewak in the opening hand.',
         win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
-        rules: 'We move first and draw an extra card. On turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected: a hit wipes what is on it instead of destroying it.',
-        cards: 'Spend your 5 points where they count: carriers give a second strike every turn. **Heavy AAA** can cover our Industry or Convoy: −2 on every attack on it. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play.',
-        cards_1942: 'Spend your 5 points where they count: carriers give a second strike every turn. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play. **Ace: Nishizawa** gives a Zero +1 Air to Air, and **Long Range Fighters** let an escort take a bomber\u2019s place.',
+        rules: 'We move first with **two extra cards**, and on turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck (both decks complete, expansion included) for up to 5 points, then draws two. Bombers that reach the enemy’s **Industry** add their BMB to its damage. A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected: a hit wipes what is on it instead of destroying it.',
+        cards: 'Spend your 5 points where they count: carriers give a second strike every turn. **Heavy AAA** can cover our Industry or Convoy: −2 on every attack on it. The **Tainan Kokutai** can attack and still intercept in the same turn while Lae or Rabaul is in play. Beware their **Corsairs** and **Para-Frags**.',
         strategy: 'Use the surprise: the first turn is free, so hit hard. American production will tell in a long war, so press their Industry early and guard our own. Their Convoy is the soft target.' },
+    },
+    campaigndynamic: {
+      allied: {
+        situation: 'From Pearl Harbor to 1943. You start with the early-war aircraft, Wildcats, Warhawks and Dauntlesses, holding Midway with Port Moresby in your opening hand. New types reach the front as the war goes on.',
+        win: 'Bring Japanese **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'The Japanese move first with **two extra cards**, and on turn 1 they have **surprise**: we cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Kittyhawks, Avengers, B-17s, Yorktown, Para-Frags; Oscars, Tojos, Akagi, Heavy AAA), and on turn 17 the 1943 generation (Corsairs and Lightnings; Tonys, Franceses and Peggys). A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Midway** is protected.',
+        cards: 'At the start: **Ace: Joe Foss** (+1 Defense to a Wildcat) and **Thatch Weave** (+2 Defense to a fighter). From turn 9, **Para-Frags** make a B-25, B-26 or A-20 deadly against airfields. From turn 17, the **Corsair** and **Lightning** outfight almost anything.',
+        strategy: 'Survive the early war; the reinforcements are worth more to whoever still has fields to fly them from. Keep your airfields alive and spread out, and keep pressure on their Convoy until the heavy hitters arrive.' },
+      axis: {
+        situation: 'From Pearl Harbor to 1943. We start with the Zeros, Vals and Kates that won the opening battles, with Lae as our home base and Wewak in the opening hand. Both sides get new types as the war goes on.',
+        win: 'Bring Allied **Industry** damage to **60**. If ours reaches 60 first, we lose. A side whose deck runs out and can no longer attack also loses.',
+        rules: 'We move first with **two extra cards**, and on turn 1 we have **surprise**: the Americans cannot intercept. Both sides start with a home base and five set cards, then each secretly picks two more from its deck for up to 5 points, then draws two. **New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Oscars, Tojos, Hamps, Bettys, Akagi, Heavy AAA; Kittyhawks, Avengers, B-17s, Yorktown), and on turn 17 the 1943 generation (Tonys, Franceses and Peggys; Corsairs and Lightnings). A sunk **Convoy** (15 damage) costs that side 4 Industry and 2 cards. **Lae** is protected.',
+        cards: 'At the start: the **Tainan Kokutai**, **Ace: Nishizawa** (+1 Air to Air to a Zero) and **Long Range Fighters**. From turn 9, **Heavy AAA** can cover our Industry or Convoy. From turn 17, the **Tony** joins the fight, and the Americans get Corsairs.',
+        strategy: 'The early turns are ours: the Zero rules the sky until the Americans’ new types arrive. Press their Industry hard before turn 17, and keep our own fields alive to fly the reinforcements.' },
     },
   },
   campaignHead: { title: 'The Campaign', sub: 'The long war, to 60 Industry' },
-  dynamicRule: '**New aircraft arrive:** on turn 9 the mid-1942 types are shuffled into both decks (Kittyhawks, Avengers, B-17s, Yorktown, Para-Frags; Oscars, Tojos, Akagi, Heavy AAA), and on turn 17 the 1943 generation (Corsairs and Lightnings; Tonys, Franceses and Peggys).',
   scenarioHeads: { situation: 'The situation', win: 'How to win', rules: 'Special rules', cards: 'Special cards', strategy: 'Strategy' },
 };
 const TUT_ORDER = ['intro', 'mobilize', 'attack', 'escort', 'target', 'report', 'landing', 'scramble', 'defend', 'debrief'];
@@ -5241,9 +5267,8 @@ function briefHTML() {
   if (brief.kind === 'scen') {
     const id = briefKey(), side = human() || 'allied', B = BRIEF_COPY.scenarios[id][side], H = BRIEF_COPY.scenarioHeads;
     const cp = E.campaignOf(S), sc = scen() || { name: cp ? cp.name : BRIEF_COPY.campaignHead.title, date: BRIEF_COPY.campaignHead.sub };
-    const camp = cp ? S.options.campaign : null;
     return `<div class="brief">${officerHead(side, sc.date, sc.name)}
-      <main class="bf-body">${Object.keys(H).map((k) => { const t = (camp && B[k + '_' + camp]) || B[k] || ''; const extra = camp === 'dynamic' && k === 'rules' ? ' ' + BRIEF_COPY.dynamicRule : ''; return t ? `<h4>${esc(H[k])}</h4>${briefMd(t + extra)}` : ''; }).join('')}</main>
+      <main class="bf-body">${Object.keys(H).map((k) => B[k] ? `<h4>${esc(H[k])}</h4>${briefMd(B[k])}` : '').join('')}</main>
       <footer class="bf-foot">${btn('briefClose', 'To your post', { cls: 'go' })}</footer></div>`;
   }
   const pages = BRIEF_COPY.training[brief.group], pg = pages[brief.i];
@@ -5258,7 +5283,7 @@ function briefHTML() {
 }
 /* The briefing due now, if any; called from render with the fight popup and reports that are waiting. */
 /* The briefing for this game type (a scenario, or the Campaign), or null. */
-const briefKey = () => (!S ? null : S.options.mode === 'campaign' ? 'campaign' : scen() && !scen().tutorial ? S.options.scenario : null);
+const briefKey = () => (!S ? null : S.options.mode === 'campaign' ? 'campaign' + (S.options.campaign || (S.options.expansion1942 ? '1943' : '1942')) : scen() && !scen().tutorial ? S.options.scenario : null);
 function briefDue(pf, reps) {
   if (brief || !S) return;
   const g = tutGroup(pf, reps);
