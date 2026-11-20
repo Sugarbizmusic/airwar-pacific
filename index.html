@@ -4211,35 +4211,48 @@ function defenderMove(s, side, prof) {
   const strikes = c.mission.filter((m) => E.strikeable(s, m));
   const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
   const icptF = (u) => (D(s, u).interceptor || 0) > 0;
+  const holder = baseHolder(s, side);
   // Best known strike: kill it, ideally without dying, preferring bombers (they carry the damage).
-  let best = null;
+  const candidates = [];
   for (const own of mine) for (const t of strikes) {
     for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
       const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
       if (!r.killB) continue;
       let score = 10 + (dmgCapable(D(s, t.uid)) ? 5 + Math.max(D(s, t.uid).bomb, D(s, t.uid).conv) : 0) - (r.killA ? 8 : 0) - (bc ? 2 : 0);
-      // Nov 20: bomber killers (P-39) are for bombers.
-      if (icptF(own.uid) && prof && prof.saveInterceptors !== false && baseHolder(s, side)) score += D(s, t.uid).type === 'bomber' ? 2 : -3;
-      if (!best || score > best.score) best = { score, icpt: icptF(own.uid), action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
+      // Bomber killers (P-39) are for bombers; a kill on a fighter costs them more than it's worth.
+      if (icptF(own.uid) && prof && prof.saveInterceptors !== false && holder) score += D(s, t.uid).type === 'bomber' ? 2 : -3;
+      candidates.push({ score, own: own.uid, icpt: icptF(own.uid), a2a: D(s, own.uid).a2a, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } });
     }
   }
-  // Nov 20 (a playtester's tip): a bomber killer strikes last. Once it has fought it is scouted and the escorts can
-  // jump it, so while raiders are still hidden the lesser fighters go in first and soak up the escorts.
+  candidates.sort((x, y) => y.score - x.score);
+  const best = candidates[0];
   const scouts = mine.filter((e) => !icptF(e.uid));
-  const holdIcpt = !OFF.has('hold') && baseHolder(s, side) && best && best.icpt && hidden.length && scouts.length && prof && prof.saveInterceptors !== false
+  const holdIcpt0 = !OFF.has('hold') && holder && best && best.icpt && hidden.length && scouts.length && prof && prof.saveInterceptors !== false
     && !((prof.skill || 'yamamoto') === 'yamamoto' && prof.breakSweeps !== false && sweepShown(s, side));
-  if (best && best.score > 6 && !holdIcpt) return best.action;
+  // Nov 20 (a playtester's tip): a bomber killer (P-39) held back from its own best kill no longer loses that kill
+  // outright — the next fighter that can also make it (on the same target) takes it instead.
+  const cheapest = !holdIcpt0 ? best : candidates.find((x) => x.action.target === best.action.target && !x.icpt) || best;
+  const holdIcpt = cheapest === best && holdIcpt0;
+  // Nov 20 (a playtester's tip): a mid-tier fighter (4 Air-to-Air: P-40B, P-400, F4F-4) holding only a small, known
+  // kill can do better scouting on past it. If a heavier bomber turns up, a second mid-tier-or-better fighter can
+  // still finish it, and this one's known kill stays available if nothing better does.
+  const bigKill = cheapest && dmgCapable(D(s, cheapest.action.target)) && Math.max(D(s, cheapest.action.target).bomb, D(s, cheapest.action.target).conv) >= 3;
+  const spareFinishers = cheapest && mine.filter((e) => e.uid !== cheapest.own && D(s, e.uid).a2a >= 4).length;
+  const scoutPastSmallKill = !OFF.has('midTier') && holder && cheapest && !cheapest.icpt && D(s, cheapest.own).a2a === 4 && !bigKill
+    && hidden.length && spareFinishers && prof && prof.saveInterceptors !== false
+    && !((prof.skill || 'yamamoto') === 'yamamoto' && prof.breakSweeps !== false && sweepShown(s, side));
+  if (cheapest && cheapest.score > 6 && !holdIcpt && !scoutPastSmallKill) return cheapest.action;
   // Admiral level: no more blind interceptions once the raid has shown itself to be a fighter sweep.
   if ((prof && prof.skill || 'yamamoto') === 'yamamoto' && prof && prof.breakSweeps !== false && sweepShown(s, side)) return { type: 'endCombat' };
   if (hidden.length && mine.length) {
     // Scout first: with two or more fighters up, the cheapest one intercepts blind. It reveals a raider (scouted:
     // -1 Defense, so a B-26 drops within reach of an attack-5 fighter) and soaks up the escorts' strike, while the
     // best fighters wait to strike what has been revealed.
-    const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def + (prof && prof.saveInterceptors !== false && baseHolder(s, side) && icptF(e.uid) ? 4 : 0) + (baseHolder(s, side) && D(s, e.uid).elite ? 3 : 0);
+    const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def + (prof && prof.saveInterceptors !== false && holder && icptF(e.uid) ? 4 : 0) + (holder && D(s, e.uid).elite ? 3 : 0);
     const lead = prof && prof.scoutFirst === false || mine.length < 2 ? mine[0] : [...mine].sort((x, y) => worth(x) - worth(y))[0];
     return { type: 'engage', mode: 'intercept', own: lead.uid, slot: hidden[Math.floor(rnd() * hidden.length)] };
   }
-  if (best) return best.action;
+  if (cheapest) return cheapest.action;
   return { type: 'endCombat' };
 }
 
@@ -4410,7 +4423,9 @@ function interceptMove(s, side, prof) {
   // Our commander's flight: everything that can fly meets them. A rescue plane: two fighters go after it.
   // Escort missions (ferry, rescue) come in unseen in size: plan for a transport and two escorts.
   const blind = c.target.kind === 'ferry' || c.target.kind === 'rescue', seenN = blind ? 3 : c.mission.length;
-  if (c.target.kind === 'vip') mustStop = Math.max(c.mission.length + 1, 3);
+  // Nov 20 (a playtester's tip): losing our own commander's flight only costs a card draw, so it isn't worth a
+  // weak fighter traded down to save it. Scramble only fighters that stand a good chance, one per raider at most.
+  if (c.target.kind === 'vip') { usable = usable.filter((u) => D(s, u).a2a >= 4); mustStop = Math.min(c.mission.length, usable.length); }
   if (c.target.kind === 'ferry') mustStop = 3;
   // Eastern Solomons: the troop convoy and Henderson Field decide the battle.
   if ((c.target.kind === 'convoy' && E.troopConvoy(s, side)) || (tf && E.siegeBase(s, side) === tf.f)) mustStop = Math.max(mustStop, c.mission.length + 1);
@@ -6238,7 +6253,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 169;
+const APP_VERSION = 170;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
