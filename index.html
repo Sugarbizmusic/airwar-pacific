@@ -293,12 +293,15 @@ p { margin: 0; }
 .done .bcard.hit .holes circle, .done .bcard.graze .holes circle { transform: scale(1); }
 @keyframes holePunch { 0% { transform: scale(0); } 60% { transform: scale(1.5); } 100% { transform: scale(1); } }
 @keyframes splFlash { 0% { opacity: 1; transform: scale(.4); } 100% { opacity: 0; transform: scale(2.2); } }
-.bcard .boom { position: absolute; left: 50%; top: 50%; width: 140px; height: 140px; margin: -70px 0 0 -70px; opacity: 0; pointer-events: none; z-index: 3; }
-.play .bcard.lost .boom { animation: boom .9s 1.75s ease-out forwards; }
-.play .bcard.lost .smoke { animation: smoke 1.6s 2.1s ease-out forwards; } .play .bcard.lost .smoke.s2 { animation-delay: 2.25s; } .play .bcard.lost .smoke.s3 { animation-delay: 2.4s; }
-.done .bcard.lost .smoke { opacity: .55; }
-.bcard .smoke { position: absolute; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(rgba(40,40,40,.85), rgba(40,40,40,0) 70%); opacity: 0; pointer-events: none; z-index: 3; }
-.bcard .smoke.s1 { left: 42%; top: 40%; } .bcard .smoke.s2 { left: 52%; top: 46%; } .bcard .smoke.s3 { left: 47%; top: 52%; }
+/* Nov 20: the real bullet-hole artwork used on .bcard (see battleCardHTML) — positioned the same way as the
+   circles above but as plain <img> siblings of the .holes svg, not inside it.
+   NOTE: selector must out-specificity ".bcard .bart img" (line ~246, the full-bleed plane photo rule) or that
+   rule's width:100%/height:100%/inset:0 silently wins and the hole renders as a giant cover-cropped circle
+   regardless of the width set here — that was the actual bug behind every "still gigantic" report. */
+.bcard .bart img.hole { position: absolute; inset: auto; width: 9.6%; height: auto; aspect-ratio: 1; object-fit: contain; transform: translate(-50%, -50%) scale(0); pointer-events: none; z-index: 2; }
+.play .bcard.hit .hole, .play .bcard.graze .hole { animation: holePunchImg .3s var(--h, .7s) cubic-bezier(.2, 1.6, .5, 1) forwards; }
+.done .bcard.hit .hole, .done .bcard.graze .hole { transform: translate(-50%, -50%) scale(1); }
+@keyframes holePunchImg { 0% { transform: translate(-50%, -50%) scale(0); } 60% { transform: translate(-50%, -50%) scale(1.4); } 100% { transform: translate(-50%, -50%) scale(1); } }
 /* the crash: the art tilts and falls out of its frame trailing smoke and fire, then the wreck fades back in */
 .bcard .trail { position: absolute; left: 50%; top: 30%; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 3;
   background: radial-gradient(rgba(255,120,30,.9), rgba(60,50,45,.8) 40%, rgba(40,40,40,0) 72%); }
@@ -322,14 +325,13 @@ p { margin: 0; }
 .done .bcard.lost .stamp { opacity: 1; transform: translate(-50%, -50%) rotate(-11deg) scale(1); }
 .done .after { opacity: 1; visibility: visible; }
 @keyframes hitShake { 0%,100% { transform: none; } 20% { transform: translate(-5px, 2px); } 40% { transform: translate(5px, -2px); } 60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, 0); } }
-@keyframes boom { 0% { opacity: 0; transform: scale(.2); } 25% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.5); } }
-@keyframes smoke { 0% { opacity: 0; transform: translateY(0) scale(.6); } 30% { opacity: .8; } 100% { opacity: .55; transform: translateY(-34px) scale(2.2); } }
 @keyframes crash { 0% { transform: none; filter: none; } 30% { transform: rotate(-9deg) translateY(6%) scale(1.04); filter: brightness(.9); } 100% { transform: rotate(-26deg) translateY(125%) scale(.85); filter: brightness(.4); opacity: 0; } }
 @keyframes wreck { 0% { opacity: 0; filter: grayscale(1) brightness(.55); transform: rotate(-6deg) scale(1.2); } 100% { opacity: 1; filter: grayscale(1) brightness(.55); transform: rotate(-6deg) scale(1.2); } }
 @keyframes stamp { to { opacity: 1; transform: translate(-50%, -50%) rotate(-11deg) scale(1); } }
 @keyframes fadeIn { to { opacity: 1; visibility: visible; } }
-@media (prefers-reduced-motion: reduce) { .play .tracer, .play .mz, .play .bcard.lost, .play .bcard.lost .boom, .play .bcard.lost .trail, .play .holes circle, .play .holes .spl, .play .fwrap { animation: none !important; }
-  .play .bcard.hit .holes circle, .play .bcard.graze .holes circle { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .play .tracer, .play .mz, .play .bcard.lost, .play .bcard.lost .trail, .play .holes circle, .play .holes .spl, .play .hole, .play .fwrap { animation: none !important; }
+  .play .bcard.hit .holes circle, .play .bcard.graze .holes circle { transform: scale(1); }
+  .play .bcard.hit .hole, .play .bcard.graze .hole { transform: translate(-50%, -50%) scale(1); } }
 .sheet .optrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 /* Bombing popup */
 .formation { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
@@ -403,17 +405,34 @@ p { margin: 0; }
    (35 drawn frames, the 36th slot empty) played over 1.5s, about 23 fps. Two animations walk the sheet: one
    steps across the columns and repeats, the other steps down the rows once. */
 .fxs { position: absolute; pointer-events: none; aspect-ratio: 1; background-repeat: no-repeat; background-size: 600% 600%; background-position: 0 0; opacity: 0; z-index: 3; }
-.fxs.burst { background-image: url('art/fx/burst.webp'); }
-.play .fxs.burst { animation: fxCol .25s var(--fd, 0s) steps(6, end) 6, fxRow 1.5s var(--fd, 0s) steps(6, end) forwards, fxOn 1.5s var(--fd, 0s) steps(1, end) forwards; }
+/* Nov 20: a playtester's own animated WebP (24 native frames, correctly ordered and keyed) — played
+   natively by the browser rather than stepped through as a hand-timed sprite sheet. It loops in the file
+   itself, so the wrapper just holds it visible for one pass (2.0s, its real length) and fades it out. */
+/* Anchored higher than card-center (40% instead of 50%) so less of the fireball/smoke gets cut by the
+   bottom edge, and overflow is let loose on .tban while a burst is showing so the smoke plume can rise
+   past the card's own top edge instead of being clipped there too. */
+.fxs.burst { width: 78%; left: 50%; top: 40%; transform: translate(-50%, -50%); background-image: url('art/fx/burst.webp'); background-size: contain; background-position: center; }
+.play .fxs.burst { animation: fxOn2 2s linear forwards; }
+.tban:has(.fxs.burst) { overflow: visible; }
+/* Nov 20: a shot-down plane's chain-reaction bursts — three copies of pburst.webp, each appended directly
+   (see battleCardHTML) with its own position/size already set inline. The clip itself dissolves to fully
+   transparent by its last frame, so unlike .burst there's no opacity keyframe needed here; the element is
+   just removed from the DOM once its one pass is over (so it doesn't loop back to a fresh fireball). */
+.fxs.pburst { transform: translate(-50%, -50%); opacity: 1; background-size: contain; background-position: center; z-index: 4; }
+/* A soft smoke puff behind the plane's three bursts: swells through the whole hit sequence, then keeps
+   drifting and fading for about a second after the hero explosion is done (see battleCardHTML). */
+.bart .puff { position: absolute; left: 50%; top: 50%; width: 60%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; z-index: 3;
+  background: radial-gradient(rgba(70,62,55,.6), rgba(70,62,55,0) 70%); opacity: 0; transform: translate(-50%, -50%) scale(.35); }
+.bart .puff.go { animation: puffGo var(--pd, 2.8s) ease-out forwards; }
+@keyframes puffGo { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.35); } 12% { opacity: .6; } 55% { opacity: .5; transform: translate(-50%, -50%) scale(1.25); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
 @keyframes fxCol { from { background-position-x: 0%; } to { background-position-x: 120%; } }
-@keyframes fxRow { from { background-position-y: 0%; } to { background-position-y: 120%; } }
-@keyframes fxOn { 0% { opacity: 1; } 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fxOn2 { 0% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; } }
 /* A hit target keeps burning: a 6 x 4 grid of 24 frames, looping for as long as the result is on screen. */
 .fxs.fire { background-image: url('art/fx/fire.webp'); background-size: 600% 400%; z-index: 2; }
 .play .fxs.fire { animation: fxCol .375s var(--fd, 0s) steps(6, end) infinite, fxRow4 1.5s var(--fd, 0s) steps(4, end) infinite, fadeIn .5s var(--fd, 0s) forwards; }
 .done .fxs.fire { opacity: 1; animation: fxCol .375s steps(6, end) infinite, fxRow4 1.5s steps(4, end) infinite; }
 @keyframes fxRow4 { from { background-position-y: 0%; } to { background-position-y: 133.333%; } }
-.tcard .fxs.burst { transform: translate(-50%, -78%); } .tcard .fxs.fire { transform: translate(-50%, -82%); }
+.tcard .fxs.fire { transform: translate(-50%, -82%); }
 /* The target: the drawn bursts land on it, then it keeps burning. Ships also throw up water plumes. */
 .tban .splash { position: absolute; bottom: 6%; width: 14%; height: 70%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 1;
   clip-path: polygon(42% 100%, 58% 100%, 66% 70%, 84% 52%, 100% 38%, 88% 26%, 94% 8%, 72% 14%, 60% 0, 50% 10%, 38% 0, 28% 16%, 8% 6%, 14% 26%, 0 40%, 16% 54%, 34% 70%);
@@ -425,14 +444,14 @@ p { margin: 0; }
   display: flex; align-items: center; justify-content: center; border: 3px solid var(--ink); color: var(--ink); background: rgba(230,226,211,.9);
   font: 800 24px/1 var(--f-display); letter-spacing: .04em; opacity: 0; white-space: nowrap; z-index: 2; }
 .tstamp.red { border-color: #c8281a; color: #c8281a; }
-.play .tcard { animation: hitShake .45s calc(var(--t0, 0s) + 1.15s); }
-.play .tbadge .sv0 { animation: fadeOut .3s calc(var(--t0, 0s) + 1.5s) forwards; } .play .tbadge .sv1 { animation: fadeIn .3s calc(var(--t0, 0s) + 1.6s) forwards; } .play .tminus { animation: fadeIn .25s calc(var(--t0, 0s) + 1.5s) forwards; }
-.play .tcard.lost { animation: hitShake .45s calc(var(--t0, 0s) + 1.15s), hitShake .4s calc(var(--t0, 0s) + 1.7s), hitShake .4s calc(var(--t0, 0s) + 2.05s); }
-.play .tcard.lost .tban img { animation: sinkCard .8s calc(var(--t0, 0s) + 2.2s) forwards; }
-.play .tstamp { animation: tstamp .35s calc(var(--t0, 0s) + 2.45s + var(--t1, 0s)) forwards; }
+.play .tcard { animation: hitShake .45s calc(var(--t0, 0s) + var(--t2, 0s) + 1.15s); }
+.play .tbadge .sv0 { animation: fadeOut .3s calc(var(--t0, 0s) + var(--t2, 0s) + 1.5s) forwards; } .play .tbadge .sv1 { animation: fadeIn .3s calc(var(--t0, 0s) + var(--t2, 0s) + 1.6s) forwards; } .play .tminus { animation: fadeIn .25s calc(var(--t0, 0s) + var(--t2, 0s) + 1.5s) forwards; }
+.play .tcard.lost { animation: hitShake .45s calc(var(--t0, 0s) + var(--t2, 0s) + 1.15s), hitShake .4s calc(var(--t0, 0s) + var(--t2, 0s) + 1.7s), hitShake .4s calc(var(--t0, 0s) + var(--t2, 0s) + 2.05s); }
+.play .tcard.lost .tban img { animation: sinkCard .8s calc(var(--t0, 0s) + var(--t2, 0s) + 2.2s) forwards; }
+.play .tstamp { animation: tstamp .35s calc(var(--t0, 0s) + var(--t2, 0s) + 2.45s + var(--t1, 0s)) forwards; }
 .done .tbadge .sv0 { opacity: 0; } .done .tbadge .sv1, .done .tminus { opacity: 1; } .done .tstamp { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); }
 .done .tcard.lost .tban img, .done .tcard.lost .tname, .done .tcard.lost .tico { filter: grayscale(.7) brightness(.8); }
-.strike .after { } .play.strike .after { animation: fadeIn .35s calc(var(--t0, 0s) + 2.85s + var(--t1, 0s)) forwards; }
+.strike .after { } .play.strike .after { animation: fadeIn .35s calc(var(--t0, 0s) + var(--t2, 0s) + 2.85s + var(--t1, 0s)) forwards; }
 @keyframes fadeOut { to { opacity: 0; } }
 @keyframes tstamp { to { opacity: 1; transform: translate(-50%, 0) rotate(-6deg) scale(1); } }
 @keyframes sinkCard { to { filter: grayscale(.7) brightness(.8); } }
@@ -4752,6 +4771,11 @@ let viewCard = null, scrollKey = '';
 /* Fight popups: log index up to which fights have been shown on this device; animation finished per log index. */
 let fightSeen = 0; const fightDone = {};
 const fdKey = (i) => `${S.gid || S.rng}|${i}`; // per game: log positions repeat from one game to the next
+/* The burst sprite's background-image starts decoding (and looping) the instant its element exists in the
+   DOM, regardless of any CSS animation-delay on its opacity — a delay only hides it, it doesn't hold off
+   the image's own playback. So the span is kept out of the HTML entirely until the bomb-hit instant, armed
+   here by a one-shot timer per fight, instead of being rendered early and faded in late. */
+const burstArmed = {}, burstTimerSet = {};
 const PKEY = 'awp-prefs';
 let prefs = (() => { try { return Object.assign({ anim: true }, JSON.parse(localStorage.getItem(PKEY)) || {}); } catch (e) { return { anim: true }; } })();
 const savePrefs = () => { try { localStorage.setItem(PKEY, JSON.stringify(prefs)); } catch (e) {} }; // expanded aircraft card; Orders stage key (scroll to top when it changes)
@@ -5097,15 +5121,62 @@ function battleCardHTML(x, role, o) {
   const nt = (t, c) => `<span class="nt ${c || ''}">${esc(t)}</span>`;
   const notes = [role ? nt(role) : '', x.struck ? nt('Scouted −1 DEF', 'down') : '', x.icpt ? nt(`Interceptor +${x.icpt}`, 'up') : '', x.ace ? nt('Ace', 'up') : '',
     x.fs ? nt('First strike', 'up') : '', x.battle ? nt(D(x.battle).name, 'up') : '', x.lrfFor ? nt(`Long Range Fighters: took the ${shortNm(x.lrfFor)}'s place`, 'up') : ''].join('');
-  // Bullet holes stitched across the art: a full line on a plane that was shot down, a graze on one fired at that survived.
-  const HEAVY = [[16, 54], [25, 50], [34, 46], [43, 42], [52, 38], [61, 34], [70, 30], [80, 26]], GRAZE = [[58, 31], [67, 27], [76, 23]];
+  // Bullet holes stitched across the art: a full line on a plane that was shot down, a graze on one fired at
+  // that survived. Nov 20: real torn-metal artwork (3 pieces, alternated) instead of drawn circles, and the
+  // points scattered well off the diagonal — a real strafing run doesn't line up like a ruler — while still
+  // trending the same bottom-left-to-top-right direction overall. Coordinates are in the same 100x75 box as
+  // the viewBox below, which matches .bart's own 4:3 aspect ratio, so x/y convert straight to percentages.
+  // Nov 20: vertical scatter halved (each point pulled halfway back toward the straight line between the
+  // first and last hole) so the strafing line reads tighter, while keeping the same overall diagonal.
+  const HEAVY = [[14, 62], [23, 50], [37, 51], [42, 38], [53, 41], [63, 27], [71, 31], [84, 16]], GRAZE = [[55, 39], [70, 28], [74, 34]];
+  const HOLE_IMG = ['art/fx/hole1.png', 'art/fx/hole2.png', 'art/fx/hole3.png'];
   const pts = o.lost ? HEAVY : o.fired ? GRAZE : [];
-  const holes = pts.length ? `<svg class="holes" viewBox="0 0 100 75" aria-hidden="true">${pts.map(([x, y], i) => { const jx = x + ((i * 7) % 3) - 1, jy = y + ((i * 5) % 3) - 1, dl = ((o.lost ? 0.5 : 0.9) + i * 0.16).toFixed(2);
-    return `<circle class="spl" cx="${jx}" cy="${jy}" r="4" style="--h:${dl}s"/><circle class="rim" cx="${jx}" cy="${jy}" r="${o.lost ? 2.9 : 2.1}" style="--h:${dl}s"/><circle class="core" cx="${jx}" cy="${jy}" r="${o.lost ? 2.1 : 1.4}" style="--h:${dl}s"/>`; }).join('')}</svg>` : '';
+  const holes = pts.length ? `<svg class="holes" viewBox="0 0 100 75" aria-hidden="true">${pts.map(([x, y], i) => { const dl = ((o.lost ? 0.5 : 0.9) + i * 0.16).toFixed(2);
+    return `<circle class="spl" cx="${x}" cy="${y}" r="4" style="--h:${dl}s"/>`; }).join('')}</svg>${pts.map(([x, y], i) => { const dl = ((o.lost ? 0.5 : 0.9) + i * 0.16).toFixed(2);
+    return `<img class="hole" src="${HOLE_IMG[i % 3]}" alt="" style="left:${x}%;top:${(y / 75 * 100).toFixed(2)}%;--h:${dl}s">`; }).join('')}` : '';
+  // Nov 20: a shot-down plane gets three of the new explosion clips instead of the old flat SVG star —
+  // two smaller hits tracing the same bottom-left-to-top-right line as the bullet holes (rotated so each
+  // looks like its own impact, not a copy-pasted twin), then a bigger centered "hero" burst once both have
+  // landed. Same arm-on-timer + direct-DOM-append approach as the ground burst (see there for why):
+  // withheld from the HTML until the right instant, each with its own cache-busted URL so the overlapping
+  // copies don't fight over one shared decoded-image timeline.
+  if (o.lost && o.fid && !burstTimerSet[o.fid]) {
+    burstTimerSet[o.fid] = true;
+    const PBURST = [
+      { dx: -18, dy: 10, sz: 100, rot: 90, delay: 0 },    // first hit: left and down slightly, like the bullet path's near end
+      { dx: 16, dy: -9, sz: 100, rot: 180, delay: 140 },   // second hit: right and up, the bullet path's far end
+      { dx: 0, dy: 0, sz: 200, rot: 0, delay: 280 },       // hero: centered, 2x the others, triggers last
+    ];
+    const PBURST_MS = 1152; // must match the actual length of art/fx/pburst.webp
+    const heroEnd = 280 + PBURST_MS;
+    PBURST.forEach((p, i) => {
+      setTimeout(() => {
+        const host = document.querySelector(`.bart[data-fid="${CSS.escape(o.fid)}"]`);
+        if (!host) return;
+        const span = document.createElement('span');
+        span.className = 'fxs pburst';
+        span.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);background-image:url('art/fx/pburst.webp?s=${o.fid.replace(/[^a-z0-9]/gi, '')}_${i}')`;
+        host.appendChild(span);
+        setTimeout(() => span.remove(), PBURST_MS + 150);
+      }, 1750 + p.delay);
+    });
+    // A soft puff of smoke behind the bursts: builds up through the whole sequence, then keeps
+    // dissipating for about a second after the hero explosion has finished.
+    setTimeout(() => {
+      const host = document.querySelector(`.bart[data-fid="${CSS.escape(o.fid)}"]`);
+      if (!host) return;
+      const puff = document.createElement('span');
+      puff.className = 'puff go';
+      const pd = heroEnd + 1000;
+      puff.style.cssText = `--pd:${pd}ms`;
+      host.insertBefore(puff, host.firstChild);
+      setTimeout(() => puff.remove(), pd + 150);
+    }, 1750);
+  }
   return `<div class="bcard ${d.side} ${o.lost ? 'lost hit' : ''} ${!o.lost && o.fired ? 'graze' : ''} ${o.won ? 'won' : ''}">
     <div class="brail top">${flag(natOf(x.uid), 22)}<span class="bn">${esc(d.name)}</span>${icons}</div>
-    <div class="bart"><div class="plane">${a ? `<img src="${a}" alt="">` : ico('planes', 40)}${holes}</div>
-      ${BOOMSVG('boom')}<span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span><span class="stamp">SHOT DOWN</span>
+    <div class="bart" data-fid="${esc(o.fid || '')}"><div class="plane">${a ? `<img src="${a}" alt="">` : ico('planes', 40)}${holes}</div>
+      <span class="stamp">SHOT DOWN</span>
       ${o.won ? `<span class="vic">VICTORY${flag(natOf(o.won), 33)}</span>` : ''}</div>
     <div class="brail bot"><b>${x.a2a} ATT | ${x.def} DEF</b>${notes}</div></div>`;
 }
@@ -5129,9 +5200,9 @@ function fightHTML(f) {
   const fire = (isF(bot) ? burst('up') : '') + (isF(top) ? burst('down') : '');
   return `<div class="fwrap atm-pop"${atmStyle('bg-air')}><div class="fight ${done ? 'done' : 'play'}" role="dialog" aria-label="Air combat">
     <div class="fight-h"><h3>Air combat</h3>${opTag(d.stage, d.half)}</div>
-    ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null, fired: isF(bot) })}
+    ${battleCardHTML(top, role(top), { lost: top.dead, won: !top.dead && bot.dead ? bot.uid : null, fired: isF(bot), fid: `${fdKey(f.i)}|${top.uid}` })}
     <div class="fvs">${fire}${d.mode === 'intercept' ? 'blind intercept' : 'strike'} · over ${esc(placeNm(d.target))}</div>
-    ${battleCardHTML(bot, role(bot), { lost: bot.dead, won: !bot.dead && top.dead ? top.uid : null, fired: isF(top) })}
+    ${battleCardHTML(bot, role(bot), { lost: bot.dead, won: !bot.dead && top.dead ? top.uid : null, fired: isF(top), fid: `${fdKey(f.i)}|${bot.uid}` })}
     <div class="after"><div class="ftext"><h4 style="${good === false ? 'color:var(--kill)' : good ? 'color:var(--ok)' : ''}">${esc(title)}</h4>${esc(pubMsg(f.l))}</div>
       <div class="actions" style="margin-top:8px">${btn('fightNext', more ? 'Next' : 'Continue', { cls: 'go' })}</div></div>
   </div></div>`;
@@ -5192,7 +5263,6 @@ function placeAtm(mn, key, look) {
 }
 const atmStyle = (key, shade) => (ART[key] ? ` style="--atm:url('${ART[key]}')${shade ? `;--atm-shade:${shade}` : ''}"` : '');
 /* Bombing popup: the formation that reached the target, bombs falling, then what it did to the target. */
-const BOOMSVG = (cls) => `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#f0b23a"/><polygon points="50,18 57,38 78,32 64,48 82,58 60,60 66,80 50,66 34,80 40,60 18,58 36,48 22,32 43,38" fill="#fff3c4"/></svg>`;
 function strikeHTML(f) {
   const k = f.l.strike, mine = me();
   const done = fightDone[fdKey(f.i)];
@@ -5243,33 +5313,66 @@ function strikeHTML(f) {
   const good = k.att === mine ? win : !win;
   const sub = [k.kind === 'ferry' ? `${SIDE[k.att]} commander’s flight` : `${SIDE[k.side]} ${kindName.toLowerCase()}`, ...(k.notes || []).filter((x) => x !== 'carrier-launched ×2')];
   const bgk = k.kind === 'industry' || k.kind === 'fuel' ? 'bg-dmg-industry' : k.kind === 'airbase' || k.kind === 'ferry' ? 'bg-dmg-airfield' : k.kind === 'vip' ? 'bg-air' : 'bg-dmg-sea';
+  // The last bomb's own drop animation (see `bombs` below: delay .15s + (n-1)*.12s + .18s, then a .75s
+  // fall) tells us exactly when it visually lands. The explosion/shake used to fire at a flat t0+0.9s,
+  // which is fine for one bomber but lands mid-air for a bigger raid — so derive it from the actual
+  // last bomb instead, plus half a second of buffer so the bombs are clearly down before the burst goes.
+  const bombLast = bombers.length ? 0.15 + (bombers.length - 1) * 0.12 + 0.18 : 0;
+  const bombFall = 0.75; // matches the .fall keyframe duration in CSS
+  const burstAt = bombLast + bombFall + 0.5;
   // Screen shake when the bombs land: more and longer for more bombs, hardest when the target goes.
   const nb = bombers.length * 2, qa = Math.min(3 + nb * 0.9 + (red ? 4 : 0), 14), qd = Math.min(0.5 + nb * 0.14 + (red ? 0.6 : 0), 2.6);
   const quakeOn = !done && nb && k.kind !== 'ferry' && k.kind !== 'rescue';
-  const wrapStyle = (ART[bgk] ? `--atm:url('${ART[bgk]}');` : '') + (quakeOn ? `--qa:${qa.toFixed(1)}px;--qd:${qd.toFixed(2)}s;--qt:${(t0 + 0.9).toFixed(2)}s;` : '');
+  const wrapStyle = (ART[bgk] ? `--atm:url('${ART[bgk]}');` : '') + (quakeOn ? `--qa:${qa.toFixed(1)}px;--qd:${qd.toFixed(2)}s;--qt:${(t0 + burstAt).toFixed(2)}s;` : '');
   const tier = red ? 'lost' : (k.total || k.raid) ? 'dmg' : 'none';
-  // the hand-drawn burst (and two smaller ones when the target goes) sits on the target card and rises above it
-  const t1 = (red ? 0.8 : 0) + Math.max(0, bombers.length - 1) * 0.12; // the bursts walk across the target; one more when it goes
+  // One explosion plays on the target card, 0.5s longer than the old hand-timed sprite (2.0s vs 1.5s) — push
+  // the stamp/result reveal back to match. t2 shifts every post-impact beat (hit shake, badge update,
+  // stamp, sinking, etc. — all tuned around the old flat 0.9s impact) to stay in sync with the real one.
+  const t1 = 0.5, t2 = burstAt - 0.9;
   if (!done) { const key = fdKey(f.i); setTimeout(() => { fightDone[key] = true; }, 3400 + (t0 + t1) * 1000); }
-  const nbm = bombers.length, bw = nbm <= 1 ? 70 : nbm === 2 ? 60 : nbm <= 4 ? 52 : 44; // burst width in cqw: smaller with more planes
-  const sprites = k.kind === 'ferry' || k.kind === 'rescue' || !nbm ? '' : bombers.map((p, i) => { const x = ((i + 0.5) / nbm) * 100, y = 26 + ((i * 7) % 3) * 3;
-    return `<span class="fxs burst" style="width:${bw}cqw;left:${x.toFixed(1)}%;top:calc(14px + ${y}cqw);--fd:${(t0 + 0.9 + i * 0.12).toFixed(2)}s"></span>`; }).join('')
-    + (red ? `<span class="fxs burst" style="width:${bw}cqw;left:${(nbm > 1 ? 30 : 50)}%;top:calc(14px + 24cqw);--fd:${(t0 + 1.7).toFixed(2)}s"></span>` : '');
+  const nbm = bombers.length;
+  // Nov 20: one explosion, centered on the target card, playing once — not one per bomber.
+  // The sprite is withheld from the HTML entirely until the bomb-hit instant (burstArmed flips via
+  // a one-shot timer below), then rendered with a cache-busting URL unique to this fight. Both of
+  // those matter: rendering it early and relying on a CSS animation-delay to hide it doesn't work,
+  // because the browser starts decoding (and looping) the WebP the moment the element exists —
+  // delaying only the opacity reveal means you see whatever point mid-loop it has reached by then.
+  // And reusing the exact same URL across different fights means a *later* strike can pick up that
+  // same already-running loop mid-cycle too.
+  const burstKey = fdKey(f.i);
+  const showBurst = k.kind !== 'ferry' && k.kind !== 'rescue' && nbm;
+  if (showBurst && !burstTimerSet[burstKey]) {
+    burstTimerSet[burstKey] = true;
+    // Insert the sprite by patching the DOM directly rather than calling the normal render() — a full
+    // re-render replaces the whole dialog's innerHTML, which would also recreate the bomb-fall spans
+    // and the splash spans with fresh inline animation-delays, restarting (not continuing) their
+    // already-running CSS animations. A targeted append leaves everything else alone.
+    setTimeout(() => {
+      burstArmed[burstKey] = true;
+      const host = document.querySelector(`.tban[data-fid="${CSS.escape(burstKey)}"]`);
+      if (host && !host.querySelector('.fxs.burst')) {
+        const span = document.createElement('span');
+        span.className = 'fxs burst';
+        span.style.backgroundImage = `url('art/fx/burst.webp?s=${burstKey.replace(/[^a-z0-9]/gi, '')}')`;
+        host.appendChild(span);
+      }
+    }, (t0 + burstAt) * 1000);
+  }
+  const sprites = showBurst && burstArmed[burstKey] ? `<span class="fxs burst" style="background-image:url('art/fx/burst.webp?s=${burstKey.replace(/[^a-z0-9]/gi, '')}')"></span>` : '';
   // what is left burning once the bursts die down: one fire on a damaged target, three on one that is gone
-  const FIRES = red ? [[50, 40, 1], [27, 36, 0.62], [73, 38, 0.7]] : [[50, 38, 0.66]];
-  const fires = k.kind === 'ferry' || k.kind === 'rescue' || tier === 'none' || !nbm ? ''
-    : FIRES.map(([x, y, sc], i) => `<span class="fxs fire" style="width:${(42 * sc).toFixed(0)}cqw;left:${x}%;top:calc(14px + ${y}cqw);--fd:${(t0 + 1.5 + t1 + i * 0.25).toFixed(2)}s"></span>`).join('');
-  return `<div class="fwrap atm-pop${quakeOn ? ' quake' : ''}" style="${wrapStyle}"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s;--t1:${t1}s">
+  // (Nov 20: parked while the new burst art is being tuned — no lingering fire for now.)
+  const fires = '';
+  return `<div class="fwrap atm-pop${quakeOn ? ' quake' : ''}" style="${wrapStyle}"><div class="fight strike ${done ? 'done' : 'play'}" role="dialog" aria-label="Bombing results" style="--t0:${t0}s;--t1:${t1}s;--t2:${t2.toFixed(2)}s">
     <div class="fight-h"><h3>Over the target</h3>${opTag(k.stage, k.half)}</div>
     <div class="fzone${k.laaa && k.laaa.small ? ' small' : ''}"><div class="formation fgrid" style="--cols:${nAll <= 3 ? Math.max(1, nAll) : nAll <= 6 ? 3 : 4};--mw:${nAll <= 6 ? 'min(118px, 13.5dvh)' : 'min(88px, 10.5dvh)'}">${ld}${k.planes.map(mini).join('')}</div>${flak}${gfire}</div>
     ${k.aaa ? `<span class="aaachip">${esc((k.notes || []).filter((x) => /AAA|screen/.test(x)).join(' · ') || `Heavy AAA −${k.aaa}`)} damage</span>` : ''}
     <div class="dropzone">${bombs}</div>
     <div class="tzone"><div class="tcard ${tier} hasmap">${(() => { const a = k.kind === 'fuel' ? ART.fuel || ART.industry : k.kind === 'destroyers' ? ART.destroyers || ART.convoy : k.kind === 'rescue' ? ART.rescue || ART.convoy : k.kind === 'vip' ? ART[k.art] : k.kind === 'ferry' ? k.uid && ART[S.cards[k.uid]] : isFac ? k.uid && ART[S.cards[k.uid]] : ART[k.kind === 'industry' ? 'industry' : 'convoy'];
       const esc_ = k.kind === 'ferry' || k.kind === 'rescue'; // escort missions: no explosion or smoke, just the stamp
-      const fx = esc_ ? `<span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span>` : `${ship && bombers.length ? ['w1', 'w2', 'w3', 'w4'].slice(0, Math.min(4, 1 + bombers.length)).map((c, i) => `<span class="splash ${c}" style="--d:${(t0 + 0.95 + i * 0.22).toFixed(2)}s"></span>`).join('') : ''}
+      const fx = esc_ ? `<span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span>` : `${ship && bombers.length ? ['w1', 'w2', 'w3', 'w4'].slice(0, Math.min(4, 1 + bombers.length)).map((c, i) => `<span class="splash ${c}" style="--d:${(t0 + burstAt + 0.05 + i * 0.22).toFixed(2)}s"></span>`).join('') : ''}${sprites}
         <span class="tstamp ${red ? 'red' : ''}">${esc(stampTxt)}</span>`;
-      return a ? `<div class="tban"><img src="${a}" alt="" decoding="async">${fx}</div>` : `<div class="tban ph res">${ico(isFac ? (k.kind === 'carrier' ? 'carrier' : 'airbase') : k.kind === 'industry' ? 'industry' : 'convoy', 56)}${fx}</div>`; })()}<div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' || k.kind === 'destroyers' ? 'convoy' : k.kind === 'industry' || k.kind === 'fuel' ? 'industry' : 'airbase', 34)}</div>
-      <div class="tname"><b>${esc(tname)}</b><small>${esc(sub.join(' · '))}</small></div>${badge}${sprites}${fires}
+      return a ? `<div class="tban" data-fid="${esc(burstKey)}"><img src="${a}" alt="" decoding="async">${fx}</div>` : `<div class="tban ph res" data-fid="${esc(burstKey)}">${ico(isFac ? (k.kind === 'carrier' ? 'carrier' : 'airbase') : k.kind === 'industry' ? 'industry' : 'convoy', 56)}${fx}</div>`; })()}<div class="tico">${ico(k.kind === 'carrier' ? 'carrier' : k.kind === 'convoy' || k.kind === 'destroyers' ? 'convoy' : k.kind === 'industry' || k.kind === 'fuel' ? 'industry' : 'airbase', 34)}</div>
+      <div class="tname"><b>${esc(tname)}</b><small>${esc(sub.join(' · '))}</small></div>${badge}${fires}
 </div></div>
     <div class="after"><div class="ftext"><h4 style="color:${good ? 'var(--ok)' : 'var(--kill)'}">${esc(title)}</h4>${esc(pubMsg(f.l))}${f.l.detail ? `<br><small style="color:var(--muted)">${esc(f.l.detail)}</small>` : ''}
       ${isFac && k.stacks && k.res === 'held' && k.total ? '<br><small style="color:var(--muted)">Damage adds up until the end of this turn.</small>' : ''}</div>
@@ -6253,7 +6356,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 170;
+const APP_VERSION = 187;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
