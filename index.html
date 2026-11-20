@@ -3852,7 +3852,8 @@ function planSweep(s, side, prof) {
     .sort((x, y) => (land ? (E.carrierCapable(D(s, x)) ? 1 : 0) - (E.carrierCapable(D(s, y)) ? 1 : 0) : 0) || strength(y) - strength(x));
   const squall = p.hand.some((u) => D(s, u).special === 'rainSquall');
   const guards = (u) => { const d = D(s, u); return d.a2a >= 3 && (E.carrierCapable(d) || E.has(d, 'patrol')); };
-  const reserve = squall || !p.carriers.length ? 0 : (prof.carrierDefenders ?? 1) + p.carriers.length;
+  // A weather card stops one strike, not both, so it lowers the home guard by one instead of removing it.
+  const reserve = !p.carriers.length ? 0 : Math.max(0, (prof.carrierDefenders ?? 1) + p.carriers.length - (squall ? 1 : 0));
   // A base we must hold keeps one fighter at home.
   const sc = s.options.mode === 'scenario' && E.SCENARIOS[s.options.scenario];
   const holdId = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
@@ -3867,7 +3868,8 @@ function planSweep(s, side, prof) {
     if (k < 1) continue;
     let sweep = fighters.slice(0, Math.min(cap, k + 1, fighters.length));
     // Fighters left at home must cover the carriers (reserve) and the base we must hold (homeKeep).
-    const ok = (sw) => { const left = p.hand.filter((u) => isFighter(D(s, u)) && D(s, u).a2a >= 3 && !sw.includes(u));
+    // Tainan Kokutai returns to hand after a sweep, so it still counts as home defense.
+    const ok = (sw) => { const left = p.hand.filter((u) => isFighter(D(s, u)) && D(s, u).a2a >= 3 && (!sw.includes(u) || E.has(D(s, u), 'tainan')));
       return left.filter(guards).length >= reserve && left.length >= reserve + homeKeep; };
     while (sweep.length && !ok(sweep)) sweep = sweep.slice(0, -1);
     if (sweep.length < 2) continue;
@@ -6159,7 +6161,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 167;
+const APP_VERSION = 168;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
