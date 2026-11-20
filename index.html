@@ -3397,9 +3397,17 @@ PROFILES.easy = Object.assign({}, PROFILES.medium, { skill: 'easy' });
 /* ------------------------------------------------------------------ what the AI knows about the enemy
    Only public information: fighters it has seen face up (in combat or landed on the table), which of those
    were shot down, which are landed right now (so can't intercept), the enemy's hand size, and free base capacity. */
+const OFF = new Set(((typeof process !== 'undefined' && process.env && process.env.AIOFF) || '').split(','));
 const WIN_VALUE = 500;              // a raid that wins the game outright
 const PLANE_LOSS = 3.5;           // a lost aircraft is worth about this much Industry damage
 const UNKNOWN_FIGHTER_SHARE = 0.3; // chance an unseen card in the enemy hand is a fighter
+/* Nov 20: the side holding a base until the clock runs out (the Allies at Coral Sea) plays by a playtester's tips:
+   it reads the enemy's interception limit exactly, expects interceptors to gang up on its bombers, and keeps its
+   bomber killers for the enemy's bombers. Only this side, so the other scenarios keep the balance they were tuned to. */
+function baseHolder(s, side) {
+  const sc = E.scenarioOf(s);
+  return !!(sc && sc.timeoutWinner === side && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side]);
+}
 function enemyThreat(s, side, targetKind) {
   const opp = E.other(side), op = s.players[opp];
   const seen = ((s.seen || {})[opp] || []), downed = new Set(s.downed || []);
@@ -3409,7 +3417,9 @@ function enemyThreat(s, side, targetKind) {
   // How many interceptors the enemy can actually field against this raid (free slots on the right kind of base).
   let cap;
   if (s.turnNo === 1 && s.options.surpriseAttack) cap = 0; // caught on the ground
-  else if (s.stage === 'carrier') cap = E.availCap(s, op, 'carrier') + (targetKind === 'airbase' ? E.availCap(s, op, 'airbase') : Math.round(E.availCap(s, op, 'airbase') * 0.3));
+  // Nov 20: as the engine rules it (planIntercept): Carrier Stage raids meet carrier fighters only, plus airbase fighters
+  // when the target is an airbase. (It used to add 30% of their airbase slots, which overrated the defense.)
+  else if (s.stage === 'carrier') cap = E.availCap(s, op, 'carrier') + (targetKind === 'airbase' ? E.availCap(s, op, 'airbase') : !baseHolder(s, side) || OFF.has('cap') ? Math.round(E.availCap(s, op, 'airbase') * 0.3) : 0);
   else cap = E.availCap(s, op, 'airbase') + (targetKind === 'carrier' ? E.availCap(s, op, 'carrier') : 0);
   const unknownHand = Math.max(0, op.hand.length - known.length);
   const expected = Math.min(cap, known.length + unknownHand * UNKNOWN_FIGHTER_SHARE);
@@ -3419,7 +3429,7 @@ function enemyThreat(s, side, targetKind) {
 }
 
 /* Expected result of sending these cards against this threat: damage that gets through and aircraft lost. */
-function raidOutlook(s, cards, dmgOf, threat) {
+function raidOutlook(s, cards, dmgOf, threat, gang) {
   const ds = cards.map((u) => D(s, u));
   if (!ds.length) return { delivered: 0, lost: 0 };
   let lost = 0, n = threat.n;
@@ -3433,6 +3443,24 @@ function raidOutlook(s, cards, dmgOf, threat) {
     lost += weight * pKill * (1 - answer);
   }
   lost = Math.min(lost, ds.length);
+  // Nov 20: interceptors also gang up. A blind interception that can't kill still scouts its target (-1 Defense), and
+  // the next fighter finishes it: two Zeros to scout a B-26, an A6M3 to shoot it down (a playtester's tip). Weighted
+  // half and half with the blind estimate above, since the first picks are blind.
+  if (gang && !OFF.has('gang')) {
+    const smart = (k) => { const cur = ds.map((d) => ({ def: d.def, dmg: dmgOf(d), alive: true })); let l = 0;
+      const fs = threat.fighters.slice(0, k).sort((a, b) => a.a2a - b.a2a);
+      for (const f of fs) {
+        const live = cur.filter((c) => c.alive); if (!live.length) break;
+        const kill = live.filter((c) => f.a2a >= c.def).sort((a, b) => b.dmg - a.dmg)[0];
+        if (kill) { kill.alive = false; l += 1 - (escorts.some((d) => d.a2a >= f.def - 1) ? 0.35 : 0); continue; }
+        const sc = live.filter((c) => c.dmg > 0).sort((a, b) => (a.def - f.a2a) - (b.def - f.a2a) || b.dmg - a.dmg)[0];
+        if (sc) sc.def -= 1;
+      }
+      return l; };
+    const k0 = Math.floor(threat.n), fr = threat.n - k0;
+    const sm = smart(k0) * (1 - fr) + (fr ? smart(k0 + 1) * fr : 0);
+    lost = Math.min(ds.length, Math.max(lost, (lost + sm) / 2));
+  }
   const total = ds.reduce((x, d) => x + dmgOf(d), 0);
   const carriers = ds.filter((d) => dmgOf(d) > 0).length || 1;
   const delivered = total * Math.max(0, 1 - lost / carriers * (carriers / ds.length));
@@ -3613,7 +3641,13 @@ function planRaid(s, side, prof, intelOnly) {
   const lastDay = E.clockLimit(s) && s.turnNo >= E.clockLimit(s) - 1;
   // Self-play: holding back made the computer's attacks weaker (Axis 52 -> 62% at half), so by default it doesn't (amShare 1).
   const cap = E.twoMissions(s) && E.halfOf(s) !== 'pm' && !lastDay ? Math.max(1, Math.ceil(fullCap * (prof.amShare ?? 1))) : fullCap;
-  const elig = p.hand.filter((u) => E.launchEligible(s, u));
+  const clock0 = E.clockLimit(s), sc0 = E.scenarioOf(s);
+  const finalTurns = !!(clock0 && sc0 && s.turnNo >= clock0 - 1);
+  // Nov 20: bomber killers (Interceptor fighters, the P-39) stay home to meet the enemy's bombers; their 1 Bomb isn't
+  // worth losing them to the escorts. Only the last turns, or a last stand, send them (a playtester's tip).
+  const keepIcpt = (u) => { const d = D(s, u); return prof.keepInterceptors !== false && !OFF.has('icpt') && baseHolder(s, side) && isFighter(d) && (d.interceptor || 0) > 0 && !finalTurns && s.players[side].deck.length > 0
+    && !(prof.lastStand !== false && lastStand(s, side, prof.lastStand)); };
+  const elig = p.hand.filter((u) => E.launchEligible(s, u) && !keepIcpt(u));
   if (!cap || !elig.length) return null;
   const mult = s.stage === 'carrier' ? 2 : 1;
   const convMult = s.stage === 'carrier' && s.options.convoyCarrierDouble !== false ? 2 : 1;
@@ -3661,7 +3695,8 @@ function planRaid(s, side, prof, intelOnly) {
   const lastChance = !!(clock && scc && scc.timeoutWinner !== side && s.turnNo >= clock - 1);
   const careful = prof.cautious;
   const lossW = desperate ? 1 : (prof.planeLoss || PLANE_LOSS);
-  const outlook = (cards, dmgOf, tk) => careful ? raidOutlook(s, cards, dmgOf, enemyThreat(s, side, tk))
+  const holder = baseHolder(s, side);
+  const outlook = (cards, dmgOf, tk) => careful ? raidOutlook(s, cards, dmgOf, enemyThreat(s, side, tk), holder)
     : { delivered: sum(cards, dmgOf), lost: 0 };
   const allowed = new Set(E.attackTargets(s).map((t) => t.kind));
   const troop = E.troopConvoy(s, E.other(side));
@@ -3684,7 +3719,16 @@ function planRaid(s, side, prof, intelOnly) {
     const cards = build('conv');
     const o = outlook(cards, (d) => d.conv * convMult, 'convoy');
     const dmg = Math.max(0, o.delivered - aaa('convoy'));
-    options.push({ target: { kind: 'convoy' }, cards, lost: o.lost, value: (prof.target === 'convoy' ? 1000 + dmg : dmg * w) - o.lost * (prof.planeLoss || PLANE_LOSS) });
+    // Nov 20: the side holding out (Allies, Coral Sea) shortens the battle by sinking the enemy's convoy: two turns
+    // off the clock and two cards discarded. Worth far more than its Industry rate, and it wins outright once the
+    // shorter clock has already run out. The Axis has to spend its Zeros on it too.
+    const fxC = scc && scc.convoyEffects && scc.convoyEffects[E.other(side)];
+    let cw = w, cwin = false;
+    if (fxC && fxC.clock && holdout(s, side) && prof.clockConvoy !== false) {
+      cw = Math.max(w, prof.clockConvoyW ?? 2);
+      cwin = dmg >= E.convoyMax(s) - opp.convoy && clock && s.turnNo >= clock + fxC.clock;
+    }
+    options.push({ target: { kind: 'convoy' }, cards, lost: o.lost, value: cwin ? WIN_VALUE : (prof.target === 'convoy' ? 1000 + dmg : dmg * cw) - o.lost * (prof.planeLoss || PLANE_LOSS), sure: cwin });
   }
   if (allowed.has('industry') && (prof.target === 'industry' || prof.target === 'balanced')) {
     const cards = build('bomb');
@@ -3735,7 +3779,14 @@ function planRaid(s, side, prof, intelOnly) {
         || (goal && goal.last) || (t.kind === 'carrier' && sinkN && ((s.sunk || {})[oppSide] || 0) >= sinkN - 1));
       // Carrier cover (Eastern Solomons): a carrier sunk takes its cover off every later attack on what it protects.
       const coverVal = t.kind === 'carrier' && sc && sc.carrierCover ? sc.carrierCover * (prof.coverW ?? 14) : 0;
-      const kill = wins ? WIN_VALUE : safeHome ? 0 : goal ? 30 / goal.left : (t.kind === 'carrier' ? (prof.carrierKill || 14) + coverVal : 10);
+      // Nov 20 (a playtester's tips for the side holding a base): every enemy airbase destroyed is room their big raid
+      // can't stage from and fewer fighters they can scramble. And with two carriers to sink, the first one sunk while
+      // a weak one (Shoho) remains leaves a single dive bomber to win the game.
+      const ourHold = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
+      const baseCapVal = t.kind === 'airbase' && ourHold && holdout(s, side) && prof.baseCapW !== false ? (prof.baseCapW ?? 3) * E.capOf(s, f) : 0;
+      const others = t.kind === 'carrier' && sinkN && !wins ? opp.carriers.filter((x) => x !== f && E.usable(s, x)) : [];
+      const setupVal = others.length && ((s.sunk || {})[oppSide] || 0) === sinkN - 2 && Math.min(...others.map((x) => E.damageNeeded(s, x))) <= 6 ? (prof.setupKill ?? 10) : 0;
+      const kill = wins ? WIN_VALUE : safeHome ? 0 : goal ? 30 / goal.left : (t.kind === 'carrier' ? (prof.carrierKill || 14) + coverVal + setupVal : 10 + baseCapVal);
       // Operation MO: +1 per aircraft that gets through (up to +4), or a flat bonus.
       const moD = moCard && t.kind === 'airbase' ? D(s, moCard) : null;
       const moBonus = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, Math.max(0, cards.length - Math.round(o.lost))) : (moD.boost || 4)) : 0;
@@ -3755,7 +3806,7 @@ function planRaid(s, side, prof, intelOnly) {
       }
       else if (o.delivered + moBonus >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill), mo: true, sure: o.lost <= (prof.sureLoss ?? 1.5) });
       // Our last turn on the clock: a winning raid that only works if it slips past the fighters is still the best shot.
-      else if (wins && (lastChance || E.turnDamage(s, f) > 0 || (prof.winGamble != null && (o.delivered + moBonus) / need >= prof.winGamble)) && raw + (moD ? Math.min(moD.boost || 4, cards.length) : 0) >= need)
+      else if (wins && (lastChance || E.turnDamage(s, f) > 0 || (prof.winGamble != null && (o.delivered + moBonus) / need >= (t.kind === 'carrier' ? Math.min(prof.winGamble, prof.carrierGamble ?? 0.5) : prof.winGamble))) && raw + (moD ? Math.min(moD.boost || 4, cards.length) : 0) >= need)
         options.push({ target: t, cards, lost: o.lost, value: kill * Math.max(0.2, (o.delivered + moBonus) / need), mo: !!moD, stand: true });
       else if (strafeVal >= 6) options.push({ target: t, cards, lost: o.lost, value: strafeVal - o.lost * lossW, sure: o.lost <= (prof.sureLoss ?? 1.5) });
       else if (s.stage === 'airbase' && t.kind === 'airbase' && !safeHome && E.stacks(s, f) && (!E.twoMissions(s) || E.halfOf(s) !== 'pm')) {
@@ -3804,7 +3855,9 @@ function planRaid(s, side, prof, intelOnly) {
   // overflowing or the enemy is close to collapse. Single-target profiles still respect the loss math.
   if (careful) {
     const net = o.value >= 1000 ? o.value - 1000 : o.value;
-    const handFull = p.hand.length >= 12;
+    // No hand limit: a full hand is a reason to attack only for the side racing the clock (Nov 20: it sent the
+    // side holding out on throwaway raids into waiting fighters).
+    const handFull = p.hand.length >= 12 && !baseHolder(s, side);
     const finisher = opp.industry >= 50;
     // Waiting has a shelf life: patience shrinks as the game goes on, and ends once the deck is empty,
     // so two careful players can't sit on their hands forever.
@@ -3820,6 +3873,22 @@ function planRaid(s, side, prof, intelOnly) {
       // Least useful first: the smallest hit, then the most fragile.
       const order = [...o.cards].sort((a, b) => o.trim.dmgOf(D(s, a)) - o.trim.dmgOf(D(s, b)) || D(s, a).def - D(s, b).def);
       for (const u of order) { const nx = o.cards.filter((x) => x !== u); if (ok(nx)) { o.cards = nx; cut = true; break; } }
+    }
+  }
+  // Nov 20: the side holding a base against a big raid keeps room on its airfields for the defense. Aircraft that
+  // fly now land on our airbases and fill slots our fighters need to scramble on the enemy's turn.
+  const ourObj = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
+  if (ourObj && holdout(s, side) && s.stage === 'airbase' && prof.defSlots !== false && o.value < WIN_VALUE * 0.5) {
+    const raidSoon = opp.hand.length >= (prof.raidHand ?? 11) || (clock && s.turnNo >= clock - 3);
+    const landers = (cs) => cs.filter((u) => !E.carrierCapable(D(s, u)) || !p.carriers.length).length;
+    const defenders = p.hand.filter((u) => !o.cards.includes(u) && isFighter(D(s, u)) && D(s, u).a2a >= 3 && D(s, u).basing !== 'carrier').length;
+    const need = Math.min(defenders, prof.defSlots ?? 5);
+    if (raidSoon) {
+      while (o.cards.length && E.availCap(s, p, 'airbase') - landers(o.cards) < need) {
+        const order = [...o.cards].sort((a, b) => dmgCapable(D(s, a)) - dmgCapable(D(s, b)) || Math.max(D(s, a).bomb, D(s, a).conv) - Math.max(D(s, b).bomb, D(s, b).conv));
+        o.cards = o.cards.filter((u) => u !== order[0]);
+      }
+      if (o.cards.filter((u) => dmgCapable(D(s, u))).length < 2) return null;
     }
   }
   const mo = p.hand.find((u) => D(s, u).special === 'opmo');
@@ -4141,24 +4210,32 @@ function defenderMove(s, side, prof) {
   const mine = c.intercept.filter((e) => E.canInitiate(s, e)).sort((a, b) => D(s, b.uid).a2a - D(s, a.uid).a2a);
   const strikes = c.mission.filter((m) => E.strikeable(s, m));
   const hidden = c.mission.map((m, i) => (m.alive && !m.revealed && !m.safe ? i : -1)).filter((i) => i >= 0);
+  const icptF = (u) => (D(s, u).interceptor || 0) > 0;
   // Best known strike: kill it, ideally without dying, preferring bombers (they carry the damage).
   let best = null;
   for (const own of mine) for (const t of strikes) {
     for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
       const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
       if (!r.killB) continue;
-      const score = 10 + (dmgCapable(D(s, t.uid)) ? 5 + Math.max(D(s, t.uid).bomb, D(s, t.uid).conv) : 0) - (r.killA ? 8 : 0) - (bc ? 2 : 0);
-      if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
+      let score = 10 + (dmgCapable(D(s, t.uid)) ? 5 + Math.max(D(s, t.uid).bomb, D(s, t.uid).conv) : 0) - (r.killA ? 8 : 0) - (bc ? 2 : 0);
+      // Nov 20: bomber killers (P-39) are for bombers.
+      if (icptF(own.uid) && prof && prof.saveInterceptors !== false && baseHolder(s, side)) score += D(s, t.uid).type === 'bomber' ? 2 : -3;
+      if (!best || score > best.score) best = { score, icpt: icptF(own.uid), action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
     }
   }
-  if (best && best.score > 6) return best.action;
+  // Nov 20 (a playtester's tip): a bomber killer strikes last. Once it has fought it is scouted and the escorts can
+  // jump it, so while raiders are still hidden the lesser fighters go in first and soak up the escorts.
+  const scouts = mine.filter((e) => !icptF(e.uid));
+  const holdIcpt = !OFF.has('hold') && baseHolder(s, side) && best && best.icpt && hidden.length && scouts.length && prof && prof.saveInterceptors !== false
+    && !((prof.skill || 'yamamoto') === 'yamamoto' && prof.breakSweeps !== false && sweepShown(s, side));
+  if (best && best.score > 6 && !holdIcpt) return best.action;
   // Admiral level: no more blind interceptions once the raid has shown itself to be a fighter sweep.
   if ((prof && prof.skill || 'yamamoto') === 'yamamoto' && prof && prof.breakSweeps !== false && sweepShown(s, side)) return { type: 'endCombat' };
   if (hidden.length && mine.length) {
     // Scout first: with two or more fighters up, the cheapest one intercepts blind. It reveals a raider (scouted:
     // -1 Defense, so a B-26 drops within reach of an attack-5 fighter) and soaks up the escorts' strike, while the
     // best fighters wait to strike what has been revealed.
-    const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def;
+    const worth = (e) => D(s, e.uid).a2a + D(s, e.uid).def + (prof && prof.saveInterceptors !== false && baseHolder(s, side) && icptF(e.uid) ? 4 : 0) + (baseHolder(s, side) && D(s, e.uid).elite ? 3 : 0);
     const lead = prof && prof.scoutFirst === false || mine.length < 2 ? mine[0] : [...mine].sort((x, y) => worth(x) - worth(y))[0];
     return { type: 'engage', mode: 'intercept', own: lead.uid, slot: hidden[Math.floor(rnd() * hidden.length)] };
   }
@@ -6161,7 +6238,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 168;
+const APP_VERSION = 169;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
