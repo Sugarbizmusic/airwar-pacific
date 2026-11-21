@@ -536,6 +536,12 @@ p { margin: 0; }
 .logl li { padding-left: 8px; border-left: 2px solid var(--line); color: var(--muted); }
 .logl li.side-axis { color: var(--axis-text); border-left-color: var(--axis); } .logl li.side-allied { color: var(--allied-text); border-left-color: var(--allied); }
 .logl li.dmg { font-weight: 600; }
+.land-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; text-align: center; }
+.land-vs div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; }
+.land-vs span { display: block; font-size: 12px; color: var(--muted); }
+.land-vs b { display: block; font: 700 44px/1.1 var(--f-mono); }
+.land-vs.lose div:first-child { border-color: var(--kill); } .land-vs.lose div:first-child b { color: var(--kill); }
+.land-vs.hold div:last-child { border-color: var(--ok); } .land-vs.hold div:last-child b { color: var(--ok); }
 
 /* ---------------- strategy */
 .clock { display: grid; gap: 6px; padding: 10px 12px; border-radius: 8px; background: var(--sea-2); border: 1px solid var(--line); }
@@ -700,6 +706,34 @@ html:not(.mobile) .start-btns { padding-bottom: 30px; }
 .bf-stat b.z { opacity: .55; }
 .bf-foot { flex: none; display: flex; gap: 8px; padding: 10px var(--gut-r) calc(12px + env(safe-area-inset-bottom, 0px)) var(--gut-l); background: var(--nav); border-top: 1px solid var(--line); }
 .bf-foot button { flex: 1; min-height: 46px; } .bf-foot button.go { flex: 2; }
+/* Nov 21: Dawn Strafing Run. The strafer crosses the field's map, tracers rake the tile of the chosen aircraft, which burns
+   (a shot-down strafer burns in the air instead). All times are set inline: --tt is when the strafer is over the target. */
+.sf-scene { position: relative; margin: 2px var(--gut-r) 0 var(--gut-l); aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: #1c2a2f center / cover no-repeat; box-shadow: inset 0 0 0 1px var(--line); }
+.sf-scene::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(10,16,20,.15), rgba(10,16,20,.55)); }
+.sf-scene .sf-fname { position: absolute; left: 10px; top: 8px; font: 700 11px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000; z-index: 2; }
+.sf-parked { position: absolute; left: 4%; right: 4%; bottom: 7%; display: flex; justify-content: center; gap: 2.5%; z-index: 2; }
+.sf-tile { position: relative; flex: 0 1 21%; min-width: 0; aspect-ratio: 4 / 3; border-radius: 4px; border: 1.5px solid rgba(255,255,255,.75); background: #26343a center / cover no-repeat; box-shadow: 0 3px 8px rgba(0,0,0,.55); }
+.sf-tile i { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 3px; font: 600 8px/1.1 var(--f-mono); font-style: normal; color: #fff; background: rgba(0,0,0,.6); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sf-tile.war { display: grid; place-items: center; background: #3a3426; }
+.sf-tile.war b { font: 700 9px/1.2 var(--f-mono); color: #f0e3b8; text-align: center; padding: 3px; }
+.sf-tile.hit { animation: sfHit .5s calc(var(--tt) + .3s) forwards; }
+.sf-tile.hit::after { content: "DESTROYED"; position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) rotate(-12deg); font: 800 11px/1 var(--f-display); color: #ff5a44; border: 2px solid #ff5a44; padding: 2px 4px; opacity: 0; background: rgba(0,0,0,.5); animation: fadeIn .3s calc(var(--tt) + 1.1s) forwards; }
+@keyframes sfHit { to { filter: grayscale(.85) brightness(.55); } }
+.sf-jet { position: absolute; top: 20%; left: -22%; width: 20%; z-index: 4; animation: sfFly 2.6s .4s linear forwards; }
+.sf-jet .sf-plane { position: relative; aspect-ratio: 4 / 3; border-radius: 3px; border: 1.5px solid #fff; background: #26343a center / cover no-repeat; transform: rotate(8deg); box-shadow: 0 10px 14px rgba(0,0,0,.45); }
+.sf-jet.shot { animation: sfFlyTo calc(var(--tt) - .4s) .4s linear forwards; }
+.sf-jet.shot .sf-plane { animation: sfDown .9s calc(var(--tt) + .35s) ease-in forwards; }
+@keyframes sfFlyTo { from { left: -22%; } to { left: var(--fx, 36%); } }
+@keyframes sfFly { from { left: -22%; } to { left: 108%; } }
+@keyframes sfDown { 0% { transform: rotate(8deg); opacity: 1; } 100% { transform: translate(18px, 60px) rotate(70deg) scale(.7); opacity: 0; } }
+.sf-tr { position: absolute; left: 70%; top: 85%; width: 3px; height: 70px; margin-left: -1px; transform-origin: 50% 0; border-radius: 2px; opacity: 0; z-index: 3;
+  background: linear-gradient(#ffb13a, #fff6c2 60%, rgba(255,246,194,0)); box-shadow: 0 0 6px #f0b23a; animation: sfTr .42s var(--d) linear 1; }
+@keyframes sfTr { 0% { opacity: 0; transform: translateY(0) rotate(var(--r, -12deg)) scaleY(.3); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--ty, 120px)) rotate(var(--r, -12deg)) scaleY(1); } }
+.sf-flak { position: absolute; bottom: 4%; width: 2px; height: 46px; border-radius: 2px; opacity: 0; z-index: 3; background: linear-gradient(rgba(255,246,194,0), #ffe9a8 50%, #ff9a3a); animation: sfFlak .5s var(--d) linear 2; }
+@keyframes sfFlak { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-150px); } }
+.sf-cap { margin: 10px 0 0; }
+@media (prefers-reduced-motion: reduce) { .sf-jet, .sf-tr, .sf-flak { display: none; } .sf-tile.hit { animation: none; filter: grayscale(.85) brightness(.55); } .sf-tile.hit::after { animation: none; opacity: 1; } }
+
 html:not(.mobile) .bf-foot { padding-bottom: 26px; }
 /* Training safeguard: a small dialog with the officer in a roundel */
 .bf-wrap { position: absolute; inset: 0; z-index: 60; background: rgba(3,8,10,.72); display: grid; place-items: center; padding: 24px var(--gut-r) 24px var(--gut-l); }
@@ -1832,7 +1866,7 @@ function invasionOrder(s) {
   if (!inv || s.active !== inv.side || s.turnNo < inv.from || s.invasionCalled || s.invAsked === s.turnNo) return false;
   s.invAsked = s.turnNo;
   const last = invasionLast(s);
-  if (last && s.turnNo >= last) { s.invasionCalled = s.turnNo; log(s, `The ${SIDE[inv.side]} transports can wait no longer: they go in tonight and land at the end of the ${SIDE[other(inv.side)]} turn.`, 'turn', { side: inv.side }); return false; }
+  if (last && s.turnNo >= last) { s.invasionCalled = s.turnNo; log(s, `The ${SIDE[inv.side]} transports can wait no longer: they go in tonight and land at the end of the ${SIDE[other(inv.side)]} turn.`, 'minor', { side: inv.side }); return false; }
   const hb = siegeBase(s, other(inv.side));
   s.pending.push({ player: inv.side, kind: 'invasion', strength: landingStrength(s), def: hb ? facDef(s, hb) : 0,
     reason: 'Order the landing? The transports go in during the enemy\u2019s next turn and land at the end of it.' });
@@ -2001,7 +2035,10 @@ function interceptCapacity(s) {
 }
 
 const untouchable = (s, e) => has(D(s, e.uid), 'untouchable');
-const strikeable = (s, e) => e.alive && e.revealed && !e.safe && !e.escaped && !untouchable(s, e);
+/* Nov 21 (playtest): Close Cover keeps an elite bomber (VB-3) out of the fight only while another aircraft of its raid is there to
+   take its place. Once it is the last one flying, it can be shot down like any other. */
+const lastFlying = (s, e) => { const c = s.combat; return !!c && c.mission.includes(e) && !c.mission.some((m) => m !== e && m.alive && !m.escaped && !D(s, m.uid).vip); };
+const strikeable = (s, e) => e.alive && e.revealed && (!e.safe || (has(D(s, e.uid), 'cover') && lastFlying(s, e))) && !e.escaped && !untouchable(s, e);
 /* An aircraft fights once per combat: after one engagement it is spent and only lands.
    Starting an engagement also needs an Air to Air value (a lone bomber can't strike back). */
 const canInitiate = (s, e) => e.alive && !e.spent && !e.safe && !e.escaped && D(s, e.uid).type === 'fighter' && D(s, e.uid).a2a >= 1;
@@ -2572,7 +2609,7 @@ function apply0(state, action, inPlace) {
     }
     case 'invasion': {
       if (s.phase !== 'choice' || s.pending[0].kind !== 'invasion') fail('No landing to decide.');
-      if (A_.land) { s.invasionCalled = s.turnNo; log(s, `The ${SIDE[actor]} player ordered the landing: the transports go in tonight and the troops land at the end of the ${SIDE[other(actor)]} turn. There is no calling them back.`, 'turn', { side: actor }); }
+      if (A_.land) { s.invasionCalled = s.turnNo; log(s, `The ${SIDE[actor]} player ordered the landing: the transports go in tonight and the troops land at the end of the ${SIDE[other(actor)]} turn. There is no calling them back.`, 'minor', { side: actor }); }
       else log(s, `The ${SIDE[actor]} transports wait another turn.`, 'minor', { side: actor });
       s.pending.shift(); flush(s); return s;
     }
@@ -2632,6 +2669,7 @@ function apply0(state, action, inPlace) {
         else pushDawnTarget(s, pc.player, pc.fighter, u[0]);
       } else if (pc.kind === 'dawnTarget') {
         const f = findFac(s.players[other(pc.player)], pc.field).f, x = u[0], owner = other(pc.player), op = s.players[owner];
+        s.strafeRun = { n: ((s.strafeRun && s.strafeRun.n) || 0) + 1, by: pc.player, fighter: pc.fighter, field: pc.field, parked: [...f.landed, ...f.war], target: x, shot: false };
         if (f.landed.includes(x)) {
           f.landed.splice(f.landed.indexOf(x), 1); op.discard.push(x); stats(s, owner).lost.push(x);
           setFate(s, x, 'ground', { kind: 'airbase', uid: f.uid, side: owner });
@@ -2644,6 +2682,7 @@ function apply0(state, action, inPlace) {
         if (u.length) {
           if (!pc.card) fail('You have no Light AAA in hand.');
           const ap = s.players[att], x = u[0];
+          { const ff = findFac(p, pc.field).f; s.strafeRun = { n: ((s.strafeRun && s.strafeRun.n) || 0) + 1, by: att, fighter: x, field: pc.field, parked: [...ff.landed, ...ff.war], target: null, shot: true }; }
           p.hand.splice(p.hand.indexOf(pc.card), 1); p.discard.push(pc.card); (s.publicUsed = s.publicUsed || []).push(pc.card);
           if (ap.hand.includes(x)) ap.hand.splice(ap.hand.indexOf(x), 1); else { const ff = findFac(ap, [...ap.airbases, ...ap.carriers].find((f) => f.landed.includes(x)).uid).f; ff.landed.splice(ff.landed.indexOf(x), 1); }
           ap.discard.push(x); stats(s, att).lost.push(x); const st = stats(s, pc.player); st.flak = (st.flak || 0) + 1;
@@ -3423,6 +3462,11 @@ const UNKNOWN_FIGHTER_SHARE = 0.3; // chance an unseen card in the enemy hand is
 /* Nov 20: the side holding a base until the clock runs out (the Allies at Coral Sea) plays by a playtester's tips:
    it reads the enemy's interception limit exactly, expects interceptors to gang up on its bombers, and keeps its
    bomber killers for the enemy's bombers. Only this side, so the other scenarios keep the balance they were tuned to. */
+/* Nov 21: scenarios whose computer was tuned against playtest games (Eastern Solomons, the Axis lost fighters to sweeps,
+   sent lone bombers into known P-39s and held a full hand). The fixes below apply only here until the other scenarios
+   have been played and tuned the same way; the rest keep the behaviour their balance was set with. */
+const TUNED = new Set(['eastsol']);
+const tuned = (s) => s.options.mode === 'scenario' && TUNED.has(s.options.scenario);
 function baseHolder(s, side) {
   const sc = E.scenarioOf(s);
   return !!(sc && sc.timeoutWinner === side && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side]);
@@ -3442,21 +3486,24 @@ function enemyThreat(s, side, targetKind) {
   else cap = E.availCap(s, op, 'airbase') + (targetKind === 'carrier' ? E.availCap(s, op, 'carrier') : 0);
   const unknownHand = Math.max(0, op.hand.length - known.length);
   const expected = Math.min(cap, known.length + unknownHand * UNKNOWN_FIGHTER_SHARE);
-  const list = known.map((d) => ({ a2a: d.a2a, def: d.def }));
+  const list = known.map((d) => ({ a2a: d.a2a, def: d.def, icpt: d.interceptor || 0 }));
   while (list.length < Math.ceil(expected)) list.push({ a2a: 4, def: 4 }); // a typical unseen fighter
   return { n: expected, fighters: list.slice(0, Math.ceil(expected)) };
 }
 
 /* Expected result of sending these cards against this threat: damage that gets through and aircraft lost. */
-function raidOutlook(s, cards, dmgOf, threat, gang) {
+function raidOutlook(s, cards, dmgOf, threat, gang, bonus) {
   const ds = cards.map((u) => D(s, u));
   if (!ds.length) return { delivered: 0, lost: 0 };
   let lost = 0, n = threat.n;
   const escorts = ds.filter((d) => isFighter(d) && !dmgCapable(d));
+  // Nov 21: a P-39 is +2 against bombers (an A2A of 5, not 3): it stops a Betty (Defense 5). Counted only in tuned scenarios.
+  const ib = bonus && !OFF.has('ixbonus');
+  const reach = (f, d) => f.a2a + (ib && f.icpt && d.type === 'bomber' ? f.icpt : 0);
   for (const f of threat.fighters) {
     const weight = Math.min(1, n); n -= weight; if (weight <= 0) break;
     // An interceptor picks a hidden card blind: chance it is one it can shoot down.
-    const pKill = ds.filter((d) => f.a2a >= d.def).length / ds.length;
+    const pKill = ds.filter((d) => reach(f, d) >= d.def).length / ds.length;
     // Escorts that can kill this interceptor once it is scouted take some of the sting out.
     const answer = escorts.some((d) => d.a2a >= f.def - 1) ? 0.35 : 0;
     lost += weight * pKill * (1 - answer);
@@ -3466,11 +3513,11 @@ function raidOutlook(s, cards, dmgOf, threat, gang) {
   // the next fighter finishes it: two Zeros to scout a B-26, an A6M3 to shoot it down (a playtester's tip). Weighted
   // half and half with the blind estimate above, since the first picks are blind.
   if (gang && !OFF.has('gang')) {
-    const smart = (k) => { const cur = ds.map((d) => ({ def: d.def, dmg: dmgOf(d), alive: true })); let l = 0;
+    const smart = (k) => { const cur = ds.map((d) => ({ def: d.def, dmg: dmgOf(d), alive: true, d })); let l = 0;
       const fs = threat.fighters.slice(0, k).sort((a, b) => a.a2a - b.a2a);
       for (const f of fs) {
         const live = cur.filter((c) => c.alive); if (!live.length) break;
-        const kill = live.filter((c) => f.a2a >= c.def).sort((a, b) => b.dmg - a.dmg)[0];
+        const kill = live.filter((c) => reach(f, c.d) >= c.def).sort((a, b) => b.dmg - a.dmg)[0];
         if (kill) { kill.alive = false; l += 1 - (escorts.some((d) => d.a2a >= f.def - 1) ? 0.35 : 0); continue; }
         const sc = live.filter((c) => c.dmg > 0).sort((a, b) => (a.def - f.a2a) - (b.def - f.a2a) || b.dmg - a.dmg)[0];
         if (sc) sc.def -= 1;
@@ -3715,7 +3762,8 @@ function planRaid(s, side, prof, intelOnly) {
   const careful = prof.cautious;
   const lossW = desperate ? 1 : (prof.planeLoss || PLANE_LOSS);
   const holder = baseHolder(s, side);
-  const outlook = (cards, dmgOf, tk) => careful ? raidOutlook(s, cards, dmgOf, enemyThreat(s, side, tk), holder)
+  const tn = tuned(s);
+  const outlook = (cards, dmgOf, tk) => careful ? raidOutlook(s, cards, dmgOf, enemyThreat(s, side, tk), holder || (tn && !OFF.has('gangT')), tn)
     : { delivered: sum(cards, dmgOf), lost: 0 };
   const allowed = new Set(E.attackTargets(s).map((t) => t.kind));
   const troop = E.troopConvoy(s, E.other(side));
@@ -3747,7 +3795,11 @@ function planRaid(s, side, prof, intelOnly) {
       cw = Math.max(w, prof.clockConvoyW ?? 2);
       cwin = dmg >= E.convoyMax(s) - opp.convoy && clock && s.turnNo >= clock + fxC.clock;
     }
-    options.push({ target: { kind: 'convoy' }, cards, lost: o.lost, value: cwin ? WIN_VALUE : (prof.target === 'convoy' ? 1000 + dmg : dmg * cw) - o.lost * (prof.planeLoss || PLANE_LOSS), sure: cwin });
+    // Nov 21 (Eastern Solomons playtests: four lone Bettys lost to single P-39s for nothing): a lone bomber into their
+    // fighters is a gift. Wait for a real raid (two bombers, or a bomber with escort) unless time is short.
+    const nBc = cards.filter((u) => (D(s, u).conv || 0) > 0 && !isFighter(D(s, u))).length, nEc = cards.length - nBc;
+    const thinC = tn && !OFF.has('thin') && nBc < 2 && nEc < 1 && enemyThreat(s, side, 'convoy').n >= 1 && !lastChance && !desperate;
+    if (!thinC) options.push({ target: { kind: 'convoy' }, cards, lost: o.lost, value: cwin ? WIN_VALUE : (prof.target === 'convoy' ? 1000 + dmg : dmg * cw) - o.lost * (prof.planeLoss || PLANE_LOSS), sure: cwin });
   }
   if (allowed.has('industry') && (prof.target === 'industry' || prof.target === 'balanced')) {
     const cards = build('bomb');
@@ -3876,7 +3928,9 @@ function planRaid(s, side, prof, intelOnly) {
     const net = o.value >= 1000 ? o.value - 1000 : o.value;
     // No hand limit: a full hand is a reason to attack only for the side racing the clock (Nov 20: it sent the
     // side holding out on throwaway raids into waiting fighters).
-    const handFull = p.hand.length >= 12 && !baseHolder(s, side);
+    const handFull = (p.hand.length >= 12 && !baseHolder(s, side))
+      // Nov 21 (Eastern Solomons playtests: the Allied computer passed turn after turn holding 9-11 cards while the convoy closed in).
+      || (tn && !OFF.has('alHand') && troop && p.hand.length >= (prof.hoardHand ?? 9) && net > 0 && o.lost <= (prof.hoardLoss ?? 0.8));
     const finisher = opp.industry >= 50;
     // Waiting has a shelf life: patience shrinks as the game goes on, and ends once the deck is empty,
     // so two careful players can't sit on their hands forever.
@@ -4475,6 +4529,23 @@ function interceptMove(s, side, prof) {
       const most = c.target.kind === 'carrier' ? Math.floor(keep.length / 2) : keep.length;
       keep = keep.slice(Math.min(most, Math.max(0, nowNeed - others))); }
     usable = usable.filter((u) => !keep.includes(u));
+  }
+  /* Nov 21 (Eastern Solomons playtests, games 1, 3 and 7: "sweeps too effective"): the Allies send a small raid, usually
+     fighters, in the Airbase Stage, then the Carrier Strike. Our fighters that meet the first raid land and miss the strike,
+     which is where the damage is (a 6-aircraft strike does 14; two or three aircraft do almost nothing after carrier cover
+     and Heavy AAA come off each attack). So against a raid on the troop convoy that can't hurt it much, keep carrier-capable
+     fighters back for the strike. Public information only: the enemy's hand size and free carrier slots. */
+  const softRaid = tuned(s) && !OFF.has('rsv2') && c.stage === 'airbase' && !mustStop && (c.target.kind === 'airbase' || (c.target.kind === 'carrier' && carNeed === 0));
+  if (tuned(s) && c.stage === 'airbase' && prof && prof.reserveForStrike !== false && !OFF.has('rsv') && (softRaid || (c.target.kind === 'convoy' && E.troopConvoy(s, side)))) {
+    const op = s.players[E.other(side)];
+    const follow = Math.min(op.hand.length, E.availCap(s, op, 'carrier'));
+    const cut = c.target.kind === 'convoy' ? E.carrierCover(s, side) + 2 * p.resWar.convoy.length : 0;           // taken off every attack
+    const reach = Math.max(0, c.mission.length * 3 - cut);                      // the most this raid can do (CAR 3 each)
+    if (follow >= 2 && op.carriers.length && (softRaid ? c.mission.length <= (prof.softRaid ?? 3) : reach <= (prof.reserveBelow ?? 4))) {
+      const R = Math.min(follow, prof.reserveMax ?? 3, E.availCap(s, p, 'carrier'));
+      const keep = usable.filter((u) => E.carrierCapable(D(s, u)) && D(s, u).a2a >= 3).slice(0, R);
+      usable = usable.filter((u) => !keep.includes(u));
+    }
   }
   if (E.twoMissions(s) && prof && prof.doctrine !== false) return dayIntercept(s, side, usable, mustStop, prof);
   const group = [];
@@ -6110,7 +6181,7 @@ function sitRep(side) {
   const hbase = E.siegeBase(S, side);
   if (hbase) { const mx = (sc.defs || {})[sc.siege] || D(hbase.uid).def, dv = E.facDef(S, hbase); // Eastern Solomons: Henderson Field instead of the convoy
     mets.push({ icon: 'airbase', label: 'Henderson Field', viz: pie(dv / mx, side, 64), value: `${dv}`, sub: `Defense of ${mx}` }); }
-  else if (troopC) mets.push({ icon: 'convoy', label: 'Troop convoy', viz: `<div class="tankers" title="Landing Strength ${cMax - p.convoy} of ${cMax}">${tankers}</div>`, value: `${cMax - p.convoy}`, sub: `Landing Strength of ${cMax}` });
+  else if (troopC) mets.push({ icon: 'convoy', label: 'Troop convoy', viz: pie((cMax - p.convoy) / cMax, side, 64), value: `${cMax - p.convoy}`, sub: `Landing Strength of ${cMax}` });
   else mets.push({ icon: 'convoy', label: 'Convoy', viz: `<div class="tankers" title="${p.convoy} of ${E.convoyMax(S)} lost">${tankers}</div>`, value: `${p.convoy}/${E.convoyMax(S)}`, sub: p.convoysLost ? `Lost · sunk ${p.convoysLost}×` : 'Lost' });
   const hb = sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[side];
   if (hb) {
@@ -6273,7 +6344,7 @@ function basesPage(side) {
       <div class="b-mid"><div><div class="bname">${esc(D(x.uid).name)}</div><div class="bstat"><span class="k">${x.how} on turn ${x.t}</span></div></div>${thumbHTML(x.uid)}</div></div>`).join('')}</div>` : ''; })()}
     <div class="sec-h">Convoy:</div>
     ${E.troopConvoy(S, side) ? `<div class="base ${side} wide"><div class="b-top">${ico('convoy', 18)}<span>Troop convoy</span><span class="bdef">Landing ${E.landingStrength(S)}</span></div>
-      <div class="gauge"><i style="width:${(p.convoy / E.convoyMax(S, side)) * 100}%"></i></div>
+      <div class="gauge"><i style="width:${(E.landingStrength(S) / E.convoyMax(S, side)) * 100}%"></i></div>
       <div class="bstat"><span class="m">Landing Strength ${E.landingStrength(S)} of ${E.convoyMax(S, side)} · at 0 it turns back · lands when it beats Henderson’s Defense${(() => { const h = E.siegeBase(S, E.other(side)); return h ? ` (now ${E.facDef(S, h)})` : ''; })()}</span></div></div>` : `<div class="base ${side} wide"><div class="b-top">${ico('convoy', 18)}<span>Shipping</span><span class="bdef">${p.convoy}/${E.convoyMax(S)}</span></div>
       <div class="gauge"><i style="width:${(p.convoy / E.convoyMax(S)) * 100}%"></i></div>
       <div class="bstat"><span class="m">Sinks at ${E.convoyMax(S)} damage${p.convoysLost ? ` · sunk ${p.convoysLost}× so far` : ''}</span>${rw.map((x) => `<span>${x}</span>`).join('')}</div></div>`}`;
@@ -6356,7 +6427,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 187;
+const APP_VERSION = 189;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -6997,6 +7068,18 @@ function briefHTML() {
       <h3>${esc(g.title)}</h3><div class="bf-txt">${briefMd(g.text)}</div>${btn('briefClose', 'Change my orders', { cls: 'go' })}</div></div>`;
   }
   if (brief.kind === 'op') return opBriefHTML();
+  if (brief.kind === 'strafe') return strafeHTML(brief.run);
+  if (brief.kind === 'landing') {
+    // Eastern Solomons: the transports go ashore at the end of this turn. The defender's last chance, so it takes the whole screen.
+    const side = S.active, foe = E.other(side), h = E.siegeBase(S, side), st = E.landingStrength(S), def = h ? E.facDef(S, h) : 0, gap = st - def, win = gap > 0;
+    const cut = E.carrierCover(S, foe) + 2 * S.players[foe].resWar.convoy.length;
+    const off = gap > 0 ? `**Take at least ${gap} off the convoy** with your Attack Mission and Carrier Strike, or put ${gap} back on Henderson (the Seabees). ${cut ? `Their carriers and Heavy AAA take ${cut} off each of your attacks on the convoy.` : ''}` : `Henderson is holding by **${-gap}**. Don't give it back: the convoy needs only ${def - st + 1} more to win.`;
+    return `<div class="brief">${officerHead(side, `${scen().name} · turn ${S.turnNo}`, 'Last chance to stop the landing')}
+      <main class="bf-body"><p><b>Sir, the transports went in during the night.</b> They land at the end of this turn. This is our last chance to stop the invasion.</p>
+        <div class="land-vs ${win ? 'lose' : 'hold'}"><div><span>Landing Strength</span><b>${st}</b></div><div><span>Henderson’s Defense</span><b>${def}</b></div></div>
+        <h4>${win ? 'As it stands, the troops win' : 'As it stands, Henderson holds'}</h4>${briefMd(off)}</main>
+      <footer class="bf-foot">${btn('briefClose', 'To the targets', { cls: 'go' })}</footer></div>`;
+  }
   if (brief.kind === 'scen') {
     const id = briefKey(), side = human() || 'allied', B = BRIEF_COPY.scenarios[id][side], H = BRIEF_COPY.scenarioHeads;
     const cp = E.campaignOf(S), sc = scen() || { name: cp ? cp.name : BRIEF_COPY.campaignHead.title, date: BRIEF_COPY.campaignHead.sub };
@@ -7022,10 +7105,69 @@ function briefDue(pf, reps) {
   const g = tutGroup(pf, reps);
   if (g) { brief = { kind: 'tut', group: g, i: 0 }; tut.last = g; return; }
   // Every new game opens with its briefing (vs the computer), before the first move.
+  { const sr = !pf ? strafeDue() : null; if (sr) { brief = { kind: 'strafe', run: sr }; return; } }
   const k = briefKey();
   // Only a game just created here has its briefing due; a game already under way never gets one.
   if (k && BRIEF_COPY.scenarios[k] && human() && !over() && tut.gid === S.gid && tut.briefDue) brief = { kind: 'scen' };
   else if (opPending() && !pf && !(reps && reps.length)) brief = { kind: 'op' };
+  else if (landingWarn() && !pf && !(reps && reps.length)) { brief = { kind: 'landing' }; landWarned = S.gid + ':' + S.turnNo; }
+}
+/* Eastern Solomons: the landing is ordered and this is the defender's turn, the last one before the troops go ashore. Shown once per turn. */
+let landWarned = null;
+const landingWarn = () => !!S && !over() && E.landingDue(S) && !!E.troopConvoy(S, E.other(S.active)) && human() === S.active && landWarned !== S.gid + ':' + S.turnNo;
+
+/* Dawn Strafing Run (Eastern Solomons): plays what S.strafeRun recorded. The tiles are the aircraft parked on the field. */
+const SF_FLY = 2.6, SF_T0 = 0.4, SF_X0 = -22, SF_X1 = 108;   // must match sfFly in the CSS
+function sfTile(u, hit) {
+  const d = D(u), id = S.cards[u], a = ART[id] || ART[ART_SAME[id]];
+  if (d.kind !== 'aircraft') return `<div class="sf-tile war ${hit ? 'hit' : ''}" data-su="${u}"><b>${nm(u)}</b></div>`;
+  return `<div class="sf-tile ${hit ? 'hit' : ''}" data-su="${u}" style="${a ? `background-image:url('${a}')` : ''}"><i>${nm(u)}</i></div>`;
+}
+function strafeHTML(r) {
+  const fArt = ART[S.cards[r.field]], jArt = ART[S.cards[r.fighter]] || ART[ART_SAME[S.cards[r.fighter]]];
+  const parked = r.parked.slice(0, 5), n = parked.length;
+  // where the target tile sits across the scene (0-100) decides when the strafer is over it
+  const ti = r.shot ? -1 : parked.indexOf(r.target), xc = r.shot ? 46 : (ti < 0 ? 50 : 50 + (ti - (n - 1) / 2) * 23.5);
+  const tt = SF_T0 + SF_FLY * (xc - SF_X0 - 10) / (SF_X1 - SF_X0);
+  const trs = r.shot ? '' : [0, 1, 2, 3, 4, 5].map((i) => `<span class="sf-tr" style="--d:${(tt - 0.38 + i * 0.07).toFixed(2)}s;--r:${-8 - i * 2}deg;--ty:${110 + (i % 3) * 14}px"></span>`).join('');
+  const flak = r.shot ? [0, 1, 2, 3, 4].map((i) => `<span class="sf-flak" style="left:${(xc - 12 + i * 6).toFixed(0)}%;--d:${(tt - 0.7 + i * 0.1).toFixed(2)}s"></span>`).join('') : '';
+  const text = r.shot
+    ? `**${nm(r.fighter)}** came in low over **${nm(r.field)}** at first light, but Light AAA shot it down before it could do any harm.`
+    : `**${nm(r.fighter)}** came in low over **${nm(r.field)}** at first light and destroyed **${nm(r.target)}** on the ground. It returns safely.`;
+  const key = S.gid + ':' + r.n;
+  return `<div class="brief"><header class="hdr bf-hdr"><div class="hdr-bar"><button class="iconbtn" data-btn="rules" aria-label="How to play">${ico('book', 24)}</button><div class="logo">${LOGO}</div><button class="iconbtn" data-btn="menu" aria-label="Menu">${ico('more', 22)}</button></div></header>
+    <main class="bf-body"><h4>Dawn Strafing Run</h4>
+      <div class="sf-scene" data-sf="${key}" style="--tt:${tt.toFixed(2)}s;${fArt ? `background-image:url('${fArt}')` : ''}"><div class="sf-fname">${nm(r.field)}</div>
+        <div class="sf-parked">${parked.map((u) => sfTile(u, u === r.target)).join('')}</div>${flak}
+        <div class="sf-jet ${r.shot ? 'shot' : ''}" style="--fx:${(xc - 10).toFixed(0)}%"><div class="sf-plane" style="${jArt ? `background-image:url('${jArt}')` : ''}">${trs}</div></div></div>
+      <p class="sf-cap">${briefMd(text)}</p></main>
+    <footer class="bf-foot">${btn('briefClose', 'Continue', { cls: 'go' })}</footer></div>`;
+}
+/* Fire the explosions on cue (direct DOM appends, like the shot-down plane in battleCardHTML). */
+const sfArmed = {};
+function strafeArm() {
+  const sc = document.querySelector('.sf-scene[data-sf]'); if (!sc || !brief || !brief.run) return;
+  const key = sc.dataset.sf; if (sfArmed[key]) return; sfArmed[key] = true;
+  const r = brief.run, tt = parseFloat(getComputedStyle(sc).getPropertyValue('--tt')) || 1.5, MS = 1152;
+  const host = r.shot ? sc.querySelector('.sf-jet') : sc.querySelector('.sf-tile.hit');
+  if (!host) return;
+  const P = r.shot ? [{ dx: -10, dy: 20, sz: 150, rot: 90, delay: 0 }, { dx: 10, dy: 50, sz: 150, rot: 180, delay: 140 }, { dx: 0, dy: 40, sz: 260, rot: 0, delay: 280 }]
+    : [{ dx: -18, dy: 10, sz: 100, rot: 90, delay: 0 }, { dx: 16, dy: -9, sz: 100, rot: 180, delay: 140 }, { dx: 0, dy: 0, sz: 200, rot: 0, delay: 280 }];
+  P.forEach((p, i) => setTimeout(() => {
+    if (!document.body.contains(host)) return;
+    const sp = document.createElement('span'); sp.className = 'fxs pburst';
+    sp.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);z-index:6;background-image:url('art/fx/pburst.webp?s=sf${key.replace(/[^a-z0-9]/gi, '')}_${i}')`;
+    host.appendChild(sp); setTimeout(() => sp.remove(), MS + 150);
+  }, (tt + 0.2) * 1000 + p.delay));
+}
+/* A new Dawn Strafing Run, once per run (a loaded game doesn't replay its last one). */
+const strafeSeen = {};
+function strafeDue() {
+  if (!S || !prefs.anim) return null;
+  const n = (S.strafeRun && S.strafeRun.n) || 0;
+  if (strafeSeen[S.gid] === undefined) { strafeSeen[S.gid] = n; return null; }
+  if (n > strafeSeen[S.gid]) { strafeSeen[S.gid] = n; return S.strafeRun; }
+  return null;
 }
 function briefBtn(id) {
   if (id === 'briefBack') { brief.i = Math.max(0, brief.i - 1); return; }
@@ -7204,7 +7346,7 @@ function render() {
   // An air-to-air exchange just happened: show it before anything else (hand-off screens included).
   const pf = nextFight();
   preloadAtm();
-  const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; const bb = app.querySelector('.bf-body'); if (bb) { bb.scrollTop = 0; moreCue(bb, bb.closest('.brief')); } };
+  const briefFull = () => { app.innerHTML = `<div class="frame brief-frame">${briefHTML()}${menuHTML()}</div>`; app.dataset.tab = 'brief'; if (brief.kind === 'strafe') strafeArm(); const bb = app.querySelector('.bf-body'); if (bb) { bb.scrollTop = 0; moreCue(bb, bb.closest('.brief')); } };
   if (brief && brief.kind !== 'guard') { briefFull(); return; }
   if (pf) { briefDue(pf, null); if (brief) { briefFull(); return; } }
   if (pf) { app.innerHTML = frame('Orders', null, '', { overlay: fightHTML(pf) }); app.dataset.tab = 'fight'; return; }
