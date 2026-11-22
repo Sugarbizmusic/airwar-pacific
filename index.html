@@ -5160,6 +5160,21 @@ function fit() {
   void f;
 }
 addEventListener('resize', fit);
+/* iOS home-screen apps can end up with the page painted in one place and its touch targets in another (taps land one button
+   height too high) after the app is backgrounded, the status bar changes height, or the page was scrolled by a gesture. Reset
+   the scroll and force the layout to be rebuilt whenever the app comes back or the viewport changes. */
+function resync() {
+  try { scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } catch (e) {}
+  const a = document.getElementById('app'); if (!a) return;
+  a.style.display = 'none'; void a.offsetHeight; a.style.display = '';   // force a layout pass so hit-testing matches the paint
+  fit();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(resync, 50); });
+addEventListener('pageshow', () => setTimeout(resync, 50));
+addEventListener('orientationchange', () => setTimeout(resync, 200));
+addEventListener('focus', () => setTimeout(resync, 50));
+if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(resync, 100));
+/* a tap that lands on a different button than the one it visually hit: re-sync after every tab change too */
 
 /* ---------------------------------------------------------------- moves */
 /* The thinking screen stays up 3 s once per spell (start of the enemy turn, before each later raid); further moves in the
@@ -6652,7 +6667,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 194;
+const APP_VERSION = 195;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
