@@ -411,22 +411,16 @@ p { margin: 0; }
 /* Anchored higher than card-center (40% instead of 50%) so less of the fireball/smoke gets cut by the
    bottom edge, and overflow is let loose on .tban while a burst is showing so the smoke plume can rise
    past the card's own top edge instead of being clipped there too. */
-.fxs.burst { width: 78%; left: 50%; top: 40%; transform: translate(-50%, -50%); background-image: url('art/fx/burst-sheet.webp'); background-size: 600% 400%; background-position: 0 0;
-  animation: bsX .5s steps(6, end) 4 forwards, bsY 2s steps(4, end) forwards; }
-.play .fxs.burst { animation: bsX .5s steps(6, end) 4 forwards, bsY 2s steps(4, end) forwards, fxOn2 2s linear forwards; }
+.fxs.burst { width: 78%; left: 50%; top: 40%; transform: translate(-50%, -50%); background-image: url('art/fx/burst-sheet.webp'); background-size: 600% 400%; background-position: 0 0; }
+.play .fxs.burst { animation: fxOn2 2s linear forwards; }
 /* Nov 22: the explosions are static sprite sheets stepped by CSS, not animated WebPs. Every play used to be a fresh URL, so iOS
    decoded a new 64-frame animation each time and ran out of image memory part-way through a game (fireballs missing, late or stuck). */
-@keyframes bsX { from { background-position-x: 0%; } to { background-position-x: 120%; } }
-@keyframes bsY { from { background-position-y: 0%; } to { background-position-y: 133.333%; } }
-@keyframes psX { from { background-position-x: 0%; } to { background-position-x: 114.2857%; } }
-@keyframes psY { from { background-position-y: 0%; } to { background-position-y: 133.333%; } }
 .tban:has(.fxs.burst) { overflow: visible; }
 /* Nov 20: a shot-down plane's chain-reaction bursts — three copies of pburst.webp, each appended directly
    (see battleCardHTML) with its own position/size already set inline. The clip itself dissolves to fully
    transparent by its last frame, so unlike .burst there's no opacity keyframe needed here; the element is
    just removed from the DOM once its one pass is over (so it doesn't loop back to a fresh fireball). */
-.fxs.pburst { transform: translate(-50%, -50%); opacity: 1; background-image: url('art/fx/pburst-sheet.webp'); background-size: 800% 400%; background-position: 0 0; z-index: 4;
-  animation: psX .288s steps(8, end) 4 forwards, psY 1.152s steps(4, end) forwards; }
+.fxs.pburst { transform: translate(-50%, -50%); opacity: 1; background-image: url('art/fx/pburst-sheet.webp'); background-size: 800% 400%; background-position: 0 0; z-index: 4; }
 /* A soft smoke puff behind the plane's three bursts: swells through the whole hit sequence, then keeps
    drifting and fading for about a second after the hero explosion is done (see battleCardHTML). */
 .bart .puff { position: absolute; left: 50%; top: 50%; width: 60%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; z-index: 3;
@@ -5146,6 +5140,29 @@ function newGame(opts) {
   seen = { axis: 0, allied: 0 }; intel = { axis: {}, allied: {} }; tab = 'orders'; sub = { strategy: 'sit', bases: null, planes: null, reports: 'aar' }; lastKey = ''; save();
 }
 
+
+/* Explosion sprites: the sheets are stepped from JS (one rAF loop for every sprite on screen) rather than by chained CSS
+   animations, and decoded up front so the first fight of a session already has them. */
+const SPR = { pburst: { src: 'art/fx/pburst-sheet.webp', cols: 8, rows: 4, n: 32, ms: 1152 }, burst: { src: 'art/fx/burst-sheet.webp', cols: 6, rows: 4, n: 24, ms: 2000 } };
+Object.values(SPR).forEach((d) => { const im = new Image(); im.src = d.src; if (im.decode) im.decode().catch(() => {}); });
+const sprLive = new Set();
+function sprStep(now) {
+  sprLive.forEach((e) => {
+    if (!e.isConnected) { sprLive.delete(e); return; }
+    const d = e._spr, f = Math.min(d.n - 1, Math.floor((now - e._t0) / d.ms * d.n)), c = f % d.cols, r = Math.floor(f / d.cols);
+    e.style.backgroundPosition = `${(c / (d.cols - 1) * 100).toFixed(3)}% ${(r / (d.rows - 1) * 100).toFixed(3)}%`;
+    if (f >= d.n - 1) sprLive.delete(e);
+  });
+  if (sprLive.size) requestAnimationFrame(sprStep);
+}
+function sprAdd(e) {
+  if (!e.classList || !e.classList.contains('fxs') || e._spr) return;
+  const k = e.classList.contains('pburst') ? 'pburst' : e.classList.contains('burst') ? 'burst' : null; if (!k) return;
+  e._spr = SPR[k]; e._t0 = performance.now(); e.style.backgroundPosition = '0% 0%';
+  const was = sprLive.size; sprLive.add(e); if (!was) requestAnimationFrame(sprStep);
+}
+new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1) { sprAdd(n); n.querySelectorAll && n.querySelectorAll('.fxs').forEach(sprAdd); } }))).observe(document.documentElement, { childList: true, subtree: true });
+
 /* ---------------------------------------------------------------- fit: full screen on phones, a scaled phone on desktop */
 function fit() {
   const touchPortrait = matchMedia('(pointer: coarse)').matches && innerHeight > innerWidth;
@@ -6674,7 +6691,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 196;
+const APP_VERSION = 197;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
