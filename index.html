@@ -2173,7 +2173,9 @@ function cardCouldMatter(s, side, mineCards, lrfHeld) {
     oppCards = [null, ...pool.filter((u) => battleFits(s, u, oppUid))];
   }
   // Long Range Fighters by the opponent swaps their bomber for one of their escorts.
-  const oppLrf = !(e.asked || []).includes(opp) && !e.battles[opp] && e.tgt.side === opp && D(s, e.tgt.uid).type === 'bomber' && lrfOptions(s).subs.length > 0
+  /* Nov 24 (playtester): a card that only matters if the opponent later swaps in an escort is not asked about now. If they do play Long Range
+     Fighters, the respond step asks again against the new opponent. */
+  const oppLrf = false && !(e.asked || []).includes(opp) && !e.battles[opp] && e.tgt.side === opp && D(s, e.tgt.uid).type === 'bomber' && lrfOptions(s).subs.length > 0
     && (openInfo(s) ? lrfOptions(s).cards.length > 0 : Object.keys(s.cards).some((u) => CARD_DB[s.cards[u]].side === opp && D(s, u).special === 'longRange' && !used.includes(u)));
   const tgts = [e.tgt.uid, ...(oppLrf ? lrfOptions(s).subs : [])];
   const saveB = e.battles, saveT = e.tgt.uid;
@@ -2573,6 +2575,15 @@ function apply0(state, action, inPlace) {
         if (!p.hand.includes(A_.battle) || !battleFits(s, A_.battle, mineUid)) fail(`That battle card can't be used on ${nm(s, mineUid)}.`);
         p.hand.splice(p.hand.indexOf(A_.battle), 1);
         c.eng.battles[actor] = A_.battle;
+      }
+      /* Nov 24 (playtester): a swap (Long Range Fighters, Close Cover) changes who is fighting whom, so the other side, who may have just
+         declined a battle card against the old opponent, is asked again against the new one. */
+      if (A_.escort || (A_.battle && D(s, A_.battle).special === 'longRange')) {
+        const o2 = other(actor);
+        if (!c.eng.battles[o2]) {
+          c.eng.asked = (c.eng.asked || []).filter((x) => x !== o2);
+          if (canRespond(s, o2)) { c.respondQueue = c.respondQueue || []; if (!c.respondQueue.includes(o2)) c.respondQueue.unshift(o2); }
+        }
       }
       (c.eng.asked = c.eng.asked || []).push(actor);
       while (c.respondQueue && c.respondQueue.length) {
@@ -3801,6 +3812,8 @@ function planRaid(s, side, prof, intelOnly) {
   const noCv = tnE && !opp.carriers.length;
   let keepHome = Math.min(noCv ? Math.min(prof.homeGuard, 2) : prof.homeGuard, pure.length);
   if (tnE && !noCv && pure.length >= 3) keepHome = Math.min(keepHome, pure.length - 1);
+  // Nov 24 (playtester: the Allies left fighters on the ground on the last turn): with the landing due there is no next turn to guard.
+  if (tuned(s) && !OFF.has('lastshot') && E.troopConvoy(s, E.other(side)) && E.landingDue(s)) keepHome = 0;
   const escortPool = pure.slice(0, Math.max(0, pure.length - keepHome));
   void spare;
 
@@ -3853,14 +3866,15 @@ function planRaid(s, side, prof, intelOnly) {
     const cards = [...bombers].sort((a, b) => hit(D(s, b)) - hit(D(s, a)) || D(s, b).def - D(s, a).def).slice(0, cap);
     const es = escortPool.slice(0, Math.max(0, cap - cards.length));
     const all = cards.concat(es), o = outlook(all, hit, 'convoy');
-    const dmg = Math.max(0, o.delivered + E.leaderBonus(s, all.map((u) => ({ uid: u }))) * Math.max(0, 1 - o.lost / Math.max(1, all.length)) - aaa('convoy'));
+    // Nov 24 (playtester: a lone A-20 into -3 carrier cover is harmless): the cover comes off once per attack, as the engine takes it.
+    const dmg = Math.max(0, o.delivered + E.leaderBonus(s, all.map((u) => ({ uid: u }))) * Math.max(0, 1 - o.lost / Math.max(1, all.length)) - aaa('convoy') - E.carrierCover(s, E.other(side)));
     const left = E.convoyMax(s, E.other(side)) - opp.convoy;
     if (E.landingDue(s)) {
       // The transports land at the end of this turn: every point off them now decides the battle, and nothing
       // held back is worth anything afterwards. Enough to push them to Henderson's Defense or below wins.
       const hb = E.siegeBase(s, side), def = hb ? E.facDef(s, hb) : 0, st = E.landingStrength(s);
       options.push({ target: { kind: 'convoy' }, cards: all, lost: o.lost, value: dmg >= left || st - dmg <= def ? WIN_VALUE : 100 + dmg * 20, sure: true });
-    } else
+    } else if (dmg > 0 || OFF.has('cover0'))
     options.push({ target: { kind: 'convoy' }, cards: all, lost: o.lost, value: (dmg >= left ? WIN_VALUE : dmg * (prof.troopW ?? 4)) - o.lost * lossW, sure: o.lost <= (prof.sureLoss ?? 1.5) });
   } else if (allowed.has('convoy') && (prof.target === 'convoy' || prof.target === 'balanced')) {
     const cards = build('conv');
@@ -3880,7 +3894,14 @@ function planRaid(s, side, prof, intelOnly) {
     // Nov 21 (Eastern Solomons playtests: four lone Bettys lost to single P-39s for nothing): a lone bomber into their
     // fighters is a gift. Wait for a real raid (two bombers, or a bomber with escort) unless time is short.
     const nBc = cards.filter((u) => (D(s, u).conv || 0) > 0 && !isFighter(D(s, u))).length, nEc = cards.length - nBc;
-    const thinC = tn && !OFF.has('thin') && (nBc < 2 && !(nBc >= 1 && nEc >= 1) || (tac === 'big' && nBc < 3)) && enemyThreat(s, side, 'convoy').n >= 1 && !lastChance && !desperate && !OFF.has('thin2');   // Nov 21: a lone fighter isn't an escort (games 3 and 4: one P-39 flew at the convoy)
+    /* Nov 24 (playtester, three games: two Bettys flew at the convoy on turn 1, one was lost and the Allies shrugged it off): the invader waits
+       for three bombers, or two with an escort. A raid that size takes more of their fighters, and the Carrier Strike behind it finds fewer. */
+    /* A 2-plane raid is allowed as bait now and then (judgement and trickery): with 4 or more carrier bombers behind it, a small raid that
+       draws four F4Fs leaves the Carrier Stage open. */
+    const followBc = p.hand.filter((u) => D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && (D(s, u).conv || 0) > 0 && !cards.includes(u)).length;
+    const bait2 = nBc >= 2 && followBc >= 4 && ((s.turnNo * 37 + p.hand.length * 11) % 10) < 4;
+    const inv3 = tn && !OFF.has('wait3') && !!E.troopConvoy(s, side) && (nBc < 3 && !(nBc >= 2 && nEc >= 1)) && !bait2;
+    const thinC = tn && !OFF.has('thin') && (inv3 || nBc < 2 && !(nBc >= 1 && nEc >= 1) || (tac === 'big' && nBc < 3)) && enemyThreat(s, side, 'convoy').n >= 1 && !lastChance && !desperate && !OFF.has('thin2');   // Nov 21: a lone fighter isn't an escort (games 3 and 4: one P-39 flew at the convoy)
     if (!thinC) options.push({ target: { kind: 'convoy' }, cards, lost: o.lost, value: cwin ? WIN_VALUE : (prof.target === 'convoy' ? 1000 + dmg : dmg * cw) - o.lost * (prof.planeLoss || PLANE_LOSS), sure: cwin });
   }
   if (allowed.has('industry') && (prof.target === 'industry' || prof.target === 'balanced')) {
@@ -3895,7 +3916,9 @@ function planRaid(s, side, prof, intelOnly) {
       const sbase = t.kind === 'airbase' && E.siegeBase(s, E.other(side));
       if (sbase && sbase.uid === t.uid) {
         // Henderson Field: every point of damage stays and brings the landing closer. Combined Arms adds 3 if bombs land.
-        const cards = build('bomb'), o = outlook(cards, (d) => (d.bomb || 0) * bm, 'airbase');
+        const finalTurn = tn && !OFF.has('gasp') && E.troopConvoy(s, side) && s.turnNo >= (E.invasionLast(s) || 99);
+        // Nov 24 (playtester): on the last turn the fighters stay home to defend what the raid gains, one at most goes with the bombers.
+        const cards = build('bomb', finalTurn ? (Math.round(enemyThreat(s, side, s.stage === 'carrier' ? 'carrier' : 'airbase').n || 0) >= 3 ? 1 : 0) : undefined), o = outlook(cards, (d) => (d.bomb || 0) * bm, 'airbase');
         let ca = p.hand.find((u) => D(s, u).special === 'combined');
         const room = E.facDef(s, sbase);
         /* Nov 21: Combined Arms is held for the moment it decides the battle (the raid gets the landing past Henderson only with
@@ -3911,7 +3934,19 @@ function planRaid(s, side, prof, intelOnly) {
         const nB = cards.filter((u) => (D(s, u).bomb || 0) > 0 && !isFighter(D(s, u))).length, nE = cards.length - nB;
         const thin = (nB < 2 && nE < 1 && enemyThreat(s, side, 'airbase').n >= 1 && !lastChance && s.turnNo < (E.invasionLast(s) || 99) - 2)
           || (tac === 'big' && nB < 3 && !lastChance && s.turnNo < (E.invasionLast(s) || 99) - 2);   // waiting for the big raid
-        if (dmg > 0 && !thin) options.push({ target: t, cards, lost: o.lost, value: dmg * (prof.siegeW ?? 4) + sbase.landed.length * 2 - o.lost * lossW, sure: o.lost <= (prof.sureLoss ?? 1.5), combined: !!ca });
+        /* Nov 24 (playtester: "he never made that final all-out attack and left planes on the ground"): on the Axis's last turn nothing held back is
+           worth anything. The Airbase Stage sends fighters up as bait, so the Allies scramble theirs; the Carrier Stage then sends every bomber,
+           win or not. */
+                if (finalTurn && s.stage === 'airbase') {
+          /* Bait for the Carrier Stage, bombers only (a sacrificial carrier bomber may go too): the fighters are kept for the Allies' last turn. */
+          const lows = [...bombers].sort((a, b) => (D(s, a).bomb || 0) - (D(s, b).bomb || 0));
+          const landB = lows.filter((u) => !E.carrierCapable(D(s, u))).slice(0, 2), cvB = lows.filter((u) => E.carrierCapable(D(s, u)));
+          const followB = p.hand.filter((u) => D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && (D(s, u).bomb || 0) > 0 && !landB.includes(u)).length;
+          const baitC = landB.slice(0, cap);
+          if (baitC.length < Math.min(cap, 2) && cvB.length > 1 && followB >= 3) baitC.push(cvB[0]);
+          if (baitC.length && followB >= 3) options.push({ target: t, cards: baitC, lost: baitC.length, value: 10, sure: true, bait: true });
+        }
+        if ((dmg > 0 || finalTurn) && !thin) options.push({ target: t, cards, lost: o.lost, value: Math.max(finalTurn ? 3 : 0, dmg * (prof.siegeW ?? 4) + sbase.landed.length * 2 - o.lost * lossW), sure: finalTurn || o.lost <= (prof.sureLoss ?? 1.5), combined: !!ca });
         continue;
       }
       const stat = t.kind === 'carrier' ? 'car' : 'bomb';
@@ -4047,6 +4082,12 @@ function planRaid(s, side, prof, intelOnly) {
      transports about to land, the only target is the convoy, and everything we can send goes. */
   if (tuned(s) && !OFF.has('lastshot') && E.landingDue(s) && E.troopConvoy(s, E.other(side)) && options.some((x) => x.target.kind === 'convoy'))
     for (let i = options.length - 1; i >= 0; i--) if (options[i].target.kind !== 'convoy') options.splice(i, 1);
+  /* Nov 24 (playtester game 1: the Allies went for Ryujo while the convoy could still be hit): here a carrier only takes 1 off the convoy's cover,
+     so while the convoy is a real target the carrier options count for much less. */
+  if (tuned(s) && !OFF.has('cvlow') && E.troopConvoy(s, E.other(side)) && !E.landingDue(s)) {
+    const cv = options.find((x) => x.target.kind === 'convoy' && x.value > 0);
+    if (cv) for (const x of options) if (x.target.kind === 'carrier' && !x.sure) x.value *= 0.3;
+  }
   options.sort((a, b) => b.value - a.value);
   /* Nov 23 (Coral Sea games 1-3: the Axis computer sent two-plane raids that died, held 11 cards, and never massed a raid on Moresby):
      the side that has to take Moresby waits and masses bombers. Only a raid that wins, a carrier kill shot, or a cheap sure hit
@@ -4211,6 +4252,8 @@ function tactic(s, side, prof) {
 }
 function sweepDay(s, side, prof) {
   if (!tuned(s) || OFF.has('swp') || prof.sweep === false) return false;
+  // Nov 24 (playtester games 4 and 5: a 2-fighter sweep at Ryujo with the landing due and the carrier bombers still in hand): no sweeping now.
+  if (!OFF.has('lastshot') && E.troopConvoy(s, E.other(side)) && E.landingDue(s)) return false;
   const t = tactic(s, side, prof);
   return t === 'sweep';
 }
@@ -4704,7 +4747,11 @@ function respondMove(s, side) {
     const dm = D(s, mineUid), isHeavy = dm.type === 'bomber' && dm.def >= 4 && ((dm.bomb || 0) >= 3 || (dm.car || 0) >= 3);
     const heavyN = s.combat.mission.filter((m) => m.alive && !m.safe && D(s, m.uid).type === 'bomber' && D(s, m.uid).def >= 4).length;
     const bombersN = s.combat.mission.filter((m) => m.alive && !m.safe && D(s, m.uid).type === 'bomber').length;
-    if (isHeavy && (heavyN >= 2 || bombersN === 1 || base.iDie)) {
+    /* Nov 24 (playtester): the card waits. With 4 bombers and an escort hidden among 5 against 4 interceptors, the interceptor may find
+       the escort instead, so early bombers are not worth it. Use it on the last bomber, or once every hidden card will be found anyway. */
+    const cb = s.combat, hidden = cb.mission.filter((m) => m.alive && !m.safe && !m.revealed).length, intLeft = cb.intercept.filter((e) => e.alive && !e.spent && !e.escaped).length;
+    void heavyN;
+    if (isHeavy && base.iDie && (bombersN === 1 || hidden <= intLeft)) {
       const sub = lo.subs.map((u) => ({ u, r: duel(eff(s, u, foeUid, null, struckMe, true), eff(s, foeUid, u, foeBattle, struckFoe, false)) }))
         .sort((a, b) => (a.r.killA - b.r.killA) || (b.r.killB - a.r.killB))[0];
       if (sub && sub.r.killA < 0.6) return { type: 'respond', battle: lo.cards[0], sub: sub.u };
@@ -4974,7 +5021,17 @@ function choice(s, side, prof) {
       // The Allies get one more turn at the transports (and Seabees at Henderson) before they land: order only with
       // a lead that should survive it, or with any lead when time is nearly out.
       const need = prof && prof.landMargin != null ? prof.landMargin : LAND_MARGIN;
-      return { type: 'invasion', land: st - def >= need || (st > def && s.turnNo >= last - 2) };
+      /* Nov 24 (playtester game 2: landed with a 3-point lead, then an 8-plane Carrier Strike took 8): the lead has to survive what their hand
+         could throw at the convoy. Expected strike = planes it could launch x the share of their carrier aircraft that are bombers. */
+      let need2 = need;
+      if (tuned(s) && !OFF.has('landwait') && E.troopConvoy(s, side)) {
+        const op = s.players[E.other(side)], dn = new Set(s.downed || []);
+        const roster = Object.keys(s.cards).filter((u) => { const d = D(s, u); return d.side === E.other(side) && d.kind === 'aircraft' && E.carrierCapable(d) && !dn.has(u); });
+        const share = roster.length ? roster.filter((u) => dmgCapable(D(s, u))).length / roster.length : 0.5;
+        const nS = Math.min(op.hand.length, E.availCap(s, op, 'carrier')), est = Math.max(0, nS * share * 2.5 + 3 - E.carrierCover(s, side) - 2 * s.players[side].resWar.convoy.length);
+        need2 = need + Math.round(est * 0.5);
+      }
+      return { type: 'invasion', land: st - def >= need2 || (st > def && s.turnNo >= last - 2) };
     }
     case 'smallArms': case 'damageControl': return { type: 'choose', uids: pc.card ? opts.slice() : [] };
     case 'ddAssign': {
@@ -5191,7 +5248,7 @@ const BALANCE = {
   campaign1943: { surpriseAttack: true, axis: 1 },    // Nov 10 (v151, Operations 1+2): 48.4 / 48.2% (+2 was 53.3 / 53.0)
   campaigndynamic: { surpriseAttack: true, axis: 0 }, // Nov 10 (v151): 51.3 / 52.2% (+1 was 58.0 / 56.8): Dec 1941 decks, production schedule delayed by Industry damage
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
-  eastsol: { surpriseAttack: false, axis: 0 },     // Nov 23: troop convoy hit by CNV, not doubled; a sunk Allied convoy takes 3 off Henderson for good: +0 cards 50.8–51.4% (600/500 games), +1 56.6%. Before that: two A-20s (CNV 3 vs the troop convoy), night raids level bombers only: +1 card 44.8%, +2 card 53.9% (800 games). Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
+  eastsol: { surpriseAttack: false, axis: 1 },     // Nov 24: the Allied computer no longer sweeps or hits carriers with the landing due: +0 cards 42.0%, +1 50.4% (500 games). Before that:     // Nov 23: troop convoy hit by CNV, not doubled; a sunk Allied convoy takes 3 off Henderson for good: +0 cards 50.8–51.4% (600/500 games), +1 56.6%. Before that: two A-20s (CNV 3 vs the troop convoy), night raids level bombers only: +1 card 44.8%, +2 card 53.9% (800 games). Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
   coralsea: { surpriseAttack: false, axis: 0 },  // Nov 23: 15 turns and the sharper computer (finishing carriers, massed raids): Axis +3 cards had gone to 75% in self-play, +0 is 50%
   guadalcanal: { surpriseAttack: false, axis: 0 }, // Nov 10: 48.0 / 47.9%: 14 turns, 13-kill air war, Rabaul Defense 14, one B-17
   wewak: { surpriseAttack: false, axis: 0 },       // Nov 10: 51.2 / 49.9% with fields Defense 10; before: 50.7 / 51.0%, 12 turns, 15-turn limit so the Allies move last; Moresby 16, 3 extra P-47s; mixed-up computer tactics (68th presses on vs fighter-bombers): fields Defense 9, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
@@ -5296,6 +5353,9 @@ function sprAdd(e) {
   e._spr = SPR[k]; e._t0 = performance.now(); e.style.backgroundPosition = '0% 0%';
   const was = sprLive.size; sprLive.add(e); if (!was) requestAnimationFrame(sprStep);
 }
+/* Nov 24: an animation that plays again on the same element (the page replays it after the phone wakes) restarts its sprite too; before,
+   the finished sprite stayed on its last, empty frame the second time. */
+document.addEventListener('animationstart', (ev) => { const t = ev.target; if (t && t._spr && t.classList && t.classList.contains('fxs') && !sprLive.has(t)) { t._t0 = performance.now(); t.style.backgroundPosition = '0% 0%'; const was = sprLive.size; sprLive.add(t); if (!was) requestAnimationFrame(sprStep); } }, true);
 new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1) { sprAdd(n); n.querySelectorAll && n.querySelectorAll('.fxs').forEach(sprAdd); } }))).observe(document.documentElement, { childList: true, subtree: true });
 
 /* ---------------------------------------------------------------- fit: full screen on phones, a scaled phone on desktop */
@@ -6826,7 +6886,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 201;
+const APP_VERSION = 204;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
