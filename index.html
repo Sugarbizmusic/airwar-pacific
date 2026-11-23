@@ -1216,16 +1216,16 @@ const SCENARIOS = {
     // (siege). From turn 7 the Axis may order the landing at the end of its turn; it lands at the end of the Allied
     // turn after (v161, designer: the Allies get one last go at the transports, no recall). Must order by turn 13. Strength above Henderson's Defense wins. Carriers sunk don't decide it.
     resourceTargets: ['convoy'], noIndustry: true,
-    exclude: ['moresby', 'milne', 'darwin', 'lexington', 'yorktown', 'f2a', 'p38', 'p40b', 'p40ft', 'p40e', 'f4u', 'b26', 'beaufort', 'a20', 'b25', 'tbd', 'sb2u', 'foss', 'parafrag',
+    exclude: ['moresby', 'milne', 'darwin', 'lexington', 'yorktown', 'f2a', 'p38', 'p40b', 'p40ft', 'p40e', 'f4u', 'b26', 'beaufort', 'b25', 'tbd', 'sb2u', 'foss', 'parafrag',
               'wewak', 'leyte', 'claude', 'tojo', 'nick', 'nate', 'tainan', 'lily', 'sally', 'tony', 'oscar', 'frances', 'peggy', 'akagi'],
     // Nov 10 (v157): Landing Strength 18 against Henderson 18 (only the gap matters to the result; bigger numbers mean
     // fewer convoys beaten back by one strike). v158: Dawn Strafing Run replaces Night Bombardment, Allied Light AAA added,
     // Seabees 3, Axis +1 card (ui BALANCE): 50.9 / 51.1% Axis at 2,000 games.
     turnLimit: 14, defs: { guadalcanal: 18 }, carrierCover: 1, timeoutWinner: 'allied', timeoutText: 'The convoy never landed. Guadalcanal holds.',
-    siege: 'guadalcanal', troopConvoy: { side: 'axis', strength: 18, stat: 'car' }, invasion: { side: 'axis', from: 7 },
-    convoyEffects: {},
+    siege: 'guadalcanal', troopConvoy: { side: 'axis', strength: 18, stat: 'conv' }, nightLevelOnly: true, carrierBaseDouble: true, invasion: { side: 'axis', from: 7 },
+    convoyEffects: { allied: { base: 'guadalcanal', fortDelta: -3, text: 'Supplies for Henderson Field went down with the convoy.' } },
     victory: {},
-    victoryText: 'The troop convoy (the Axis Convoy) has a Landing Strength of 18. Allied attacks on it count CAR (no doubling from carriers); at 0 it turns back and the Allies win. Henderson Field (Guadalcanal, Defense 18) cannot be destroyed: every hit lowers its Defense for the rest of the battle. From turn 7, at the end of an Axis turn, the Axis may order the landing. It cannot be called back: the transports go in during the Allied turn that follows, the Allies\u2019 last chance to hit them, and the troops land at the end of it. The Axis must order it by the end of turn 13 (it lands at the end of turn 14). If the Landing Strength is greater than Henderson\u2019s Defense, the Axis wins; otherwise the Allies win. While Ryujo is afloat she is the only Axis carrier the Allies can attack. Sinking carriers doesn\u2019t win the battle.',
+    victoryText: 'The troop convoy (the Axis Convoy) has a Landing Strength of 18. Allied attacks on it count CNV (no doubling from carriers); at 0 it turns back and the Allies win. Henderson Field (Guadalcanal, Defense 18) cannot be destroyed: every hit lowers its Defense for the rest of the battle. From turn 7, at the end of an Axis turn, the Axis may order the landing. It cannot be called back: the transports go in during the Allied turn that follows, the Allies\u2019 last chance to hit them, and the troops land at the end of it. The Axis must order it by the end of turn 13 (it lands at the end of turn 14). If the Landing Strength is greater than Henderson\u2019s Defense, the Axis wins; otherwise the Allies win. While Ryujo is afloat she is the only Axis carrier the Allies can attack. Sinking carriers doesn\u2019t win the battle. In the Carrier Stage, carrier aircraft bomb an airfield for double (BMB ×2). If the Allied convoy (Shipping) is sunk, Henderson loses 3 Defense for good. Night Raids are flown by multi-engine level bombers only.',
     sides: {
       allied: { home: null, inPlay: ['guadalcanal', 'fighterone', 'saratoga', 'enterprise'], hand: ['f4f4', 'f4f4', 'f4f4', 'sbd', 'tbf'],
                 special: ['vb3', 'damagecontrol', 'seabees', 'smallAl', 'laaaEs', 'santo'], specialInDeck: ['vb3', 'damagecontrol', 'seabees', 'smallAl', 'laaaEs', 'santo'],
@@ -1267,13 +1267,14 @@ const SCENARIOS = {
     // objectiveFrom 2: Port Moresby can't be attacked on the Axis first turn (9% of games ended there; 49.5/47.9% Axis after).
     objectiveFrom: 2,
     // Nov 10: 14 turns (was 15) with two Operations a side, which pushed the Axis to 54.5%: 50.8 / 49.4% Axis at 2,000 games.
-    turnLimit: 14, stackAirbaseDamage: 'all', defs: { moresby: 9 }, timeoutWinner: 'allied', timeoutText: 'The last turn is over and the invasion fleet has turned back. Port Moresby holds.',
+    // Nov 23: 15 turns. At 14 the Allies moved last, and the Axis (who cannot attack Moresby on turn 1) had only six attack turns.
+    turnLimit: 15, stackAirbaseDamage: 'all', defs: { moresby: 9 }, timeoutWinner: 'allied', timeoutText: 'The last turn is over and the invasion fleet has turned back. Port Moresby holds.',
     convoyEffects: {
       allied: { base: 'moresby', fortDelta: -2, text: 'Supplies for Port Moresby went down with the convoy.' },
       axis: { clock: -2, text: 'The invasion transports were hit and the landing is delayed.' },
     },
     victory: { sinkCarriers: 2, holdBase: { allied: 'moresby' } },
-    victoryText: 'The Axis wins by destroying Port Moresby (Defense 9). Damage to a base or carrier from the Airbase Stage and the Carrier Stage of the same turn adds up. Either side wins by sinking two enemy carriers (the light carrier Shoho counts). If Port Moresby still stands after turn 14, the Allies win. The scenario cards (Operation MO, Weather Front, Station HYPO) are shuffled into the decks and must be drawn. No Industry: a sunk Allied convoy cuts Moresby\u2019s supplies (−2 Defense); a sunk Axis convoy hits the invasion transports (the battle ends 2 turns sooner).',
+    victoryText: 'The Axis wins by destroying Port Moresby (Defense 9). Damage to a base or carrier from the Airbase Stage and the Carrier Stage of the same turn adds up. Either side wins by sinking two enemy carriers (the light carrier Shoho counts). If Port Moresby still stands after turn 15, the Allies win. The scenario cards (Operation MO, Weather Front, Station HYPO) are shuffled into the decks and must be drawn. No Industry: a sunk Allied convoy cuts Moresby\u2019s supplies (−2 Defense); a sunk Axis convoy hits the invasion transports (the battle ends 2 turns sooner).',
     sides: {
       // extra: additional copies of existing cards to fill out period air groups, plus one newer model each for fun.
       // A 2nd P-40E (No. 75 Sqn RAAF at Moresby) and a 2nd A6M3 answer the Betty and the B-26. Tainan Kokutai is a unique squadron.
@@ -1325,8 +1326,8 @@ const costOf = (id) => COSTS[id] || 1;
 const INDUSTRY_MAX = 60, CONVOY_MAX = 15, CONVOY_PENALTY = 4;
 const troopConvoy = (s, side) => { const t = (scenarioOf(s) || {}).troopConvoy; return t && t.side === side ? t : null; };
 const convoyMax = (s, side) => { const t = side && troopConvoy(s, side); return t ? t.strength : (scenarioOf(s) || {}).convoyMax || CONVOY_MAX; };
-/* Eastern Solomons: what an aircraft does to a convoy (the troop convoy counts CAR, never doubled). */
-const convoyHit = (s, d, side, mult) => { const t = troopConvoy(s, side); return t ? (d[t.stat] || 0) : (d.conv || 0) * mult; };
+/* Troop convoy (Eastern Solomons): hit with CNV, never doubled by carriers. */
+const convoyHit = (s, d, side, mult) => { const t = troopConvoy(s, side); return t ? ((t.levelStat && !carrierCapable(d) ? d[t.levelStat] : d[t.stat]) || 0) : (d.conv || 0) * mult; };
 const landingStrength = (s) => { const sc = scenarioOf(s), t = sc && sc.troopConvoy; return t ? Math.max(0, t.strength - s.players[t.side].convoy) : null; };
 /* Carrier cover (Eastern Solomons): every carrier a side has afloat takes this much off each attack on its troop convoy
    or its siege base, so the carriers have to be dealt with first. */
@@ -1532,7 +1533,7 @@ function eligibleOps(s, side) {
   const p = s.players[side], sc = scenarioOf(s) || {};
   const out = [];
   if (topAce(s, side) && s.turnNo >= WARBOND_FROM) out.push('warbond'); // an ace rotates home only after turn 5
-  if (p.airbases.length && p.hand.some((u) => { const d = D(s, u); return d.kind === 'aircraft' && !d.vip && (d.type === 'bomber' || d.twin); })) out.push('night');
+  if (p.airbases.length && p.hand.some((u) => { const d = D(s, u); return d.kind === 'aircraft' && !d.vip && nightFlyer(s, d); })) out.push('night');
   if (aaaCovers(s).includes('convoy')) out.push('routing');
   if (p.carriers.length && !sc.noCarriers && s.options.mode === 'campaign') out.push('refit'); // Nov 21: campaigns only; in a scenario deck space is rarely the limit
   if (p.deck.length >= PRIO_DRAW) out.push('prio');
@@ -1966,11 +1967,15 @@ function warTargets(s, uid) {
 
 /* What Heavy AAA can cover: the resource targets this mode allows (scenarios without Industry: Convoy only). */
 function aaaCovers(s) { const sc = scenarioOf(s); return sc && sc.resourceTargets ? sc.resourceTargets.slice() : ['industry', 'convoy']; }
+/* Eastern Solomons (carrierBaseDouble): carrier aircraft bomb an airfield for double in the Carrier Stage, as they do a carrier. */
+const airbaseMult = (s, stage) => (stage === 'carrier' && (scenarioOf(s) || {}).carrierBaseDouble ? 2 : 1);
+/* Night Raid: bombers and twin-engine fighters. Eastern Solomons (nightLevelOnly): multi-engine level bombers only, not carrier bombers. */
+const nightFlyer = (s, d) => !!d.twin || (d.type === 'bomber' && !((scenarioOf(s) || {}).nightLevelOnly && carrierCapable(d)));
 function launchKind(s) { return s.stage === 'carrier' ? 'carrier' : 'airbase'; }
 function launchEligible(s, uid) {
   const d = D(s, uid);
   if (d.kind !== 'aircraft' || d.vip) return false; // transports and rescue floatplanes join a raid (launch with vip), never alone
-  if (s.stage === 'night') return d.type === 'bomber' || !!d.twin; // Night Raid: bombers and twin-engine fighters only
+  if (s.stage === 'night') return nightFlyer(s, d); // Night Raid: bombers and twin-engine fighters only
   return s.stage !== 'carrier' || carrierCapable(d);
 }
 /* Fuel reserve destroyed: half of the free room (rounded up) for each of this side's next 2 turns of raids. */
@@ -2939,8 +2944,8 @@ function goDamage(s) {
   // An aircraft scores a mission (a bomb marker) only if it actually drops something on this target:
   // a P-38 on a convoy attack (CNV 0) is flying escort, not bombing.
   const troop = c.target.kind === 'convoy' && troopConvoy(s, c.def);
-  const tk = c.target.kind, mult = !troop && c.stage === 'carrier' && (tk === 'carrier' || ((tk === 'convoy' || tk === 'destroyers') && s.options.convoyCarrierDouble !== false)) ? 2 : 1;
-  const stat = tk === 'airbase' || tk === 'industry' || tk === 'fuel' ? ['bomb', 'BMB'] : tk === 'carrier' ? ['car', 'CAR'] : tk === 'convoy' ? (troop ? ['car', 'CAR'] : ['conv', 'CNV']) : tk === 'destroyers' ? ['ddv', 'BMB/CNV'] : tk === 'vip' ? ['a2a', 'A2A'] : tk === 'rescue' || tk === 'ferry' ? ['none', '—'] : null;
+  const tk = c.target.kind, mult = tk === 'airbase' ? airbaseMult(s, c.stage) : !troop && c.stage === 'carrier' && (tk === 'carrier' || ((tk === 'convoy' || tk === 'destroyers') && s.options.convoyCarrierDouble !== false)) ? 2 : 1;
+  const stat = tk === 'airbase' || tk === 'industry' || tk === 'fuel' ? ['bomb', 'BMB'] : tk === 'carrier' ? ['car', 'CAR'] : tk === 'convoy' ? ['conv', 'CNV'] : tk === 'destroyers' ? ['ddv', 'BMB/CNV'] : tk === 'vip' ? ['a2a', 'A2A'] : tk === 'rescue' || tk === 'ferry' ? ['none', '—'] : null;
   const st = stats(s, c.att); st.missions = st.missions || {};
   const noDrop = tk === 'vip' || tk === 'rescue' || tk === 'ferry'; // no bombs on these: no missions counted for Veterans
   const drops = (d) => (noDrop ? false : tk === 'destroyers' ? ddHit(d, mult) > 0 : stat ? (d[stat[0]] || 0) > 0 : (d.bomb || 0) + (d.conv || 0) > 0); // resources: Industry or Convoy
@@ -2957,7 +2962,7 @@ function goDamage(s) {
   c.strikePlanes = arriving.map((m) => { const d = D(s, m.uid), tags = [];
     let v = 0;
     if (tk === 'airbase') { const from = findFac(s.players[c.att], m.fac), ak = c.stage === 'carrier' && from && has(D(s, from.f.uid), 'akagi');
-      v = (d.bomb || 0) * (ak ? 2 : 1); if (ak && d.bomb) tags.push('Akagi ×2'); if (armedWith(s, m.uid)) { v += 4; tags.push('Para-Frags +4'); }
+      const am = airbaseMult(s, c.stage); v = (d.bomb || 0) * (ak ? 2 : am); if (ak && d.bomb) tags.push('Akagi ×2'); else if (am > 1 && d.bomb) tags.push('Carrier-launched ×2'); if (armedWith(s, m.uid)) { v += 4; tags.push('Para-Frags +4'); }
       if (has(d, 'strafe')) tags.push('Strafing'); }
     else if (tk === 'destroyers') v = ddHit(d, mult);
     else if (stat) { v = (d[stat[0]] || 0) * mult; if (mult > 1 && v) tags.push('×2'); }
@@ -3046,8 +3051,9 @@ function facilityAttack(s, arriving) {
       const d = D(s, m.uid);
       const from = findFac(att, m.fac);
       const akagi = c.stage === 'carrier' && from && has(D(s, from.f.uid), 'akagi');
-      dmg += d.bomb * (akagi ? 2 : 1);
-      if (akagi) notes.push(`Akagi doubles ${d.name}`);
+      const bm = airbaseMult(s, c.stage);
+      dmg += d.bomb * (akagi ? 2 : bm);
+      if (akagi) notes.push(`Akagi doubles ${d.name}`); else if (bm > 1 && d.bomb) notes.push(`carrier-launched ×2 (${d.name})`);
     }
     for (const m of arriving) if (armedWith(s, m.uid)) { dmg += 4; notes.push(`Para-Frags +4 (${nm(s, m.uid)})`); }
     { const pb = pmBonus(s, f, arriving); if (pb.n) { dmg += pb.n; notes.push(pb.note); } }
@@ -3425,7 +3431,7 @@ function allUids(s) {
   return out;
 }
 
-const API = { landingDue, dawnFighters, dawnFields, dawnTargets, carrierCover, troopConvoy, convoyHit, landingStrength, siegeBase, invasionLast, leaderBonus, smallArmsVictims, OPS, OP_CATS, opCat, FUEL_DEF, FUEL_AAA, DD_DEF, DD_N, DD_COVER, ddHit, mainField, ESCORT_TURNS, VIP_DEF, INTEL_KINDS, WARBOND_FROM, OPS_WINDOW, opsList, supplyCut, aceWho, escortOptions, launchCap, routed, ddScreen, topAce, lostElite, abandonOptions, eligibleOps, handScore, CAMPAIGNS, campaignOf, reinforceForTest: reinforce, prodSchedule, prodDelay, PROD_DELAY_PER, PROD_DELAY_MAX, convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
+const API = { landingDue, dawnFighters, dawnFields, dawnTargets, carrierCover, troopConvoy, convoyHit, airbaseMult, landingStrength, siegeBase, invasionLast, leaderBonus, smallArmsVictims, OPS, OP_CATS, opCat, FUEL_DEF, FUEL_AAA, DD_DEF, DD_N, DD_COVER, ddHit, mainField, ESCORT_TURNS, VIP_DEF, INTEL_KINDS, WARBOND_FROM, OPS_WINDOW, opsList, supplyCut, aceWho, escortOptions, launchCap, routed, ddScreen, topAce, lostElite, abandonOptions, eligibleOps, handScore, CAMPAIGNS, campaignOf, reinforceForTest: reinforce, prodSchedule, prodDelay, PROD_DELAY_PER, PROD_DELAY_MAX, convoyOptions, isObjectiveBase, convoyMax, pmBonus, twoMissions, halfOf, opName, recOf, VET_MISSIONS, armedWith, aaaCovers, aaaOnBase, CARD_DB, DECKS, RuleError, ACE_KILLS, ACE_BONUS, aceMod, INDUSTRY_MAX, industryMax, CONVOY_MAX, SIDE, newGame, apply, actorOf, other, D, has, carrierCapable,
   facs, free, availCap, findFac, canMobilize, warTargets, launchKind, launchEligible, attackTargets, interceptEligible,
   SCENARIOS, BASIC, COSTS, POINT_BUY, CAMPAIGN_BUY, buyLimits, costOf,
   markSeen, stacks, killCount, abilityA2A, turnDamage, damageNeeded, landingSpots, stats, engagementPreview, facDef, clockLimit, scenarioOf, planIntercept, interceptCapacity, interceptUsable, strikeable, canInitiate, capOf, usable, battleFits, battleOptions, lrfOptions, squallOptions, defCanAct, attCanStrike, choiceOptions, resourcePreview, allUids, isHomeProtected };
@@ -3494,6 +3500,10 @@ const DOCTRINE = {
     cards: { seabees: { danger: 6, overflow: 11 }, combined: { overflow: 11, lateTurns: 1 } },
   },
 };
+/* Nov 23: Coral Sea doctrine (a playtester's tactics: finish crippled carriers and Shoho with one plane through, the Airbase+Carrier
+   one-two punch, massing bombers for Moresby, an all-in knockout, the full fighter pool on the objective). Separate from `tuned`
+   (Eastern Solomons) so nothing else moves. */
+const cs = (s) => s.options.mode === 'scenario' && s.options.scenario === 'coralsea' && !OFF.has('cs');
 const doctrine = (s) => (s.options.mode === 'scenario' && DOCTRINE[s.options.scenario]) || null;
 const tuned = (s) => !!doctrine(s);
 function baseHolder(s, side) {
@@ -3733,6 +3743,7 @@ function allIn(s, side, prof) {
   const mo = p.hand.find((u) => D(s, u).special === 'opmo');
   return { type: 'launch', target: t, cards, special: mo };
 }
+const desperate0 = (s, side, prof) => prof.lastStand !== false && lastStand(s, side, prof.lastStand);
 function planRaid(s, side, prof, intelOnly) {
   const p = s.players[side], opp = s.players[E.other(side)];
   const kind = E.launchKind(s), fullCap = E.launchCap(s, p, kind);
@@ -3773,7 +3784,14 @@ function planRaid(s, side, prof, intelOnly) {
   if (tac === 'ambush' && s.stage === 'airbase' && opp.carriers.length) pool = pool.filter((u) => { const d = D(s, u); return !(d.type === 'bomber' && d.def <= 2 && E.carrierCapable(d)); });
   const bombers = pool.filter((u) => dmgCapable(D(s, u)));
   if (!bombers.length) return null;
-  const pure = pool.filter((u) => !dmgCapable(D(s, u)) && isFighter(D(s, u))).sort((a, b) => D(s, b).a2a - D(s, a).a2a);
+  const pureAll = pool.filter((u) => !dmgCapable(D(s, u)) && isFighter(D(s, u))).sort((a, b) => D(s, b).a2a - D(s, a).a2a);
+  /* Nov 23 (self-play, Coral Sea: the Allied carriers met a 4-plane strike with one fighter): the carrier fighters are the only
+     cover the carriers get in the Carrier Stage, so two of them stay out of ordinary raids and escorts. A knockout raid
+     (below) may still take them. */
+  let pure = pureAll;
+  if (cs(s) && !OFF.has('cvfh') && p.carriers.length && opp.carriers.length && !desperate0(s, side, prof)) {
+    let kept = 0; pure = pureAll.filter((u) => { const d = D(s, u); if (kept < (prof.cvReserve ?? 2) && E.carrierCapable(d) && d.a2a >= 3) { kept++; return false; } return true; });
+  }
   // Fighters at home defend next turn; keep some back.
   const spare = pure.slice(Math.min(prof.homeGuard, pure.length) > 0 ? 0 : 0);
   /* Nov 21 (Eastern Solomons playtests): the Axis never escorted: homeGuard 5 kept every fighter home, so a lone Betty that
@@ -3786,10 +3804,11 @@ function planRaid(s, side, prof, intelOnly) {
   const escortPool = pure.slice(0, Math.max(0, pure.length - keepHome));
   void spare;
 
+  const bm = E.airbaseMult(s, s.stage);   // Nov 23: carrier aircraft bomb an airfield for double in Eastern Solomons
   const aaa = (k) => opp.resWar[k].length * 2 + (k === 'convoy' ? E.ddScreen(s, E.other(side), 'convoy') : 0);
   const best = (stat) => [...bombers].sort((a, b) => D(s, b)[stat] - D(s, a)[stat] || D(s, b).def - D(s, a).def);
   const options = [];
-  const build = (stat) => {
+  const build = (stat, forceEsc) => {
     let nEsc = Math.min(escortPool.length, Math.max(tnE && bombers.length >= 2 ? 1 : 0, Math.floor(Math.min(bombers.length, cap) * (noCv ? 1 : prof.escortRatio))));
     /* Nov 21: size the escort against the defenders already seen. K known fighters kill a bomber with two hits each, so with B
        bombers going in an escort of K-2B+1 keeps at least one bomber alive (a single escort is often what saves a Betty). */
@@ -3797,6 +3816,7 @@ function planRaid(s, side, prof, intelOnly) {
       const K = Math.round(enemyThreat(s, side, s.stage === 'carrier' ? 'carrier' : 'airbase').n || 0), B = Math.min(bombers.length, Math.max(1, cap - 1));
       if (K >= 2) nEsc = Math.min(escortPool.length, Math.max(nEsc, Math.min(K - 2 * B + 1, 3), 1));
     }
+    if (forceEsc != null) nEsc = Math.min(pureAll.length, forceEsc);
     let bs = best(stat).slice(0, Math.max(1, cap - nEsc));
     /* Nov 21 (a playtester's tactic): carrier bombers (Val, Kate) are cheap on the Airbase Stage. In the same raid as the
        Bettys and Nells, which take two fighters or a P-39 to kill, they soak up the defenders' attacks. */
@@ -3807,7 +3827,7 @@ function planRaid(s, side, prof, intelOnly) {
       if (nDec > 0) { const dec = cheap.slice(0, nDec), hv = best(stat).filter((u) => !dec.includes(u));
         bs = hv.slice(0, room - nDec).concat(dec).concat(hv.slice(room - nDec)).slice(0, room); }
     }
-    const es = escortPool.slice(0, Math.min(nEsc, cap - bs.length));
+    const es = (forceEsc != null ? pureAll : escortPool).slice(0, Math.min(nEsc, cap - bs.length));
     return bs.concat(es);
   };
   const sum = (cards, f) => cards.reduce((n, u) => n + f(D(s, u)), 0);
@@ -3829,7 +3849,7 @@ function planRaid(s, side, prof, intelOnly) {
   const troop = E.troopConvoy(s, E.other(side));
   if (allowed.has('convoy') && troop) {
     // Eastern Solomons: the troop convoy is a victory condition, hit with CAR (never doubled). Beaten back = we win.
-    const hit = (d) => d.car || 0;
+    const hit = (d) => E.convoyHit(s, d, E.other(side), 1);
     const cards = [...bombers].sort((a, b) => hit(D(s, b)) - hit(D(s, a)) || D(s, b).def - D(s, a).def).slice(0, cap);
     const es = escortPool.slice(0, Math.max(0, cap - cards.length));
     const all = cards.concat(es), o = outlook(all, hit, 'convoy');
@@ -3851,6 +3871,8 @@ function planRaid(s, side, prof, intelOnly) {
     // shorter clock has already run out. The Axis has to spend its Zeros on it too.
     const fxC = scc && scc.convoyEffects && scc.convoyEffects[E.other(side)];
     let cw = w, cwin = false;
+    // Nov 23: a sunk Allied convoy cuts Henderson's Defense for good (Eastern Solomons): worth a share of a siege hit per point.
+    if (fxC && fxC.fortDelta && !fxC.clock && E.siegeBase(s, E.other(side)) && tuned(s) && !OFF.has('fortc')) cw = Math.max(w, (prof.fortConvoyW ?? 1.2) * -fxC.fortDelta);
     if (fxC && fxC.clock && holdout(s, side) && prof.clockConvoy !== false) {
       cw = Math.max(w, prof.clockConvoyW ?? 2);
       cwin = dmg >= E.convoyMax(s) - opp.convoy && clock && s.turnNo >= clock + fxC.clock;
@@ -3873,7 +3895,7 @@ function planRaid(s, side, prof, intelOnly) {
       const sbase = t.kind === 'airbase' && E.siegeBase(s, E.other(side));
       if (sbase && sbase.uid === t.uid) {
         // Henderson Field: every point of damage stays and brings the landing closer. Combined Arms adds 3 if bombs land.
-        const cards = build('bomb'), o = outlook(cards, (d) => d.bomb || 0, 'airbase');
+        const cards = build('bomb'), o = outlook(cards, (d) => (d.bomb || 0) * bm, 'airbase');
         let ca = p.hand.find((u) => D(s, u).special === 'combined');
         const room = E.facDef(s, sbase);
         /* Nov 21: Combined Arms is held for the moment it decides the battle (the raid gets the landing past Henderson only with
@@ -3894,12 +3916,26 @@ function planRaid(s, side, prof, intelOnly) {
       }
       const stat = t.kind === 'carrier' ? 'car' : 'bomb';
       const moCard = p.hand.find((u) => D(s, u).special === 'opmo');
-      const cards = build(stat);
+      let cards = build(stat);
+      /* Nov 23 (a playtester): when this raid is the knockout blow, risk it: every fighter goes as escort, because if it wins
+         nothing is needed on defense. Take the escort count that delivers the most, and only when it changes the result. */
+      if (cs(s) && !OFF.has('allin') && t.kind === 'airbase' && !E.isHomeProtected(s, E.findFac(opp, t.uid).f) && sc && sc.victory && sc.victory.holdBase && sc.victory.holdBase[E.other(side)] === s.cards[t.uid]) {
+        const needK = E.damageNeeded(s, E.findFac(opp, t.uid).f), moK = moCard ? Math.min(4, cap) : 0;
+        const mo0 = outlook(cards, (d) => (d.bomb || 0) * bm, 'airbase').delivered;
+        if (mo0 + moK * 0 < needK) {
+          let bestC = null, bestD = -1;
+          for (let ne = 0; ne <= Math.min(pureAll.length, cap - 1); ne++) {
+            const cc = build('bomb', ne), oo = outlook(cc, (d) => (d.bomb || 0) * bm, 'airbase'), bonus = moCard ? Math.min(4, Math.max(0, cc.length - Math.round(oo.lost))) : 0;
+            if (oo.delivered + bonus > bestD) { bestD = oo.delivered + bonus; bestC = cc; }
+          }
+          if (bestC && bestD >= needK) cards = bestC;
+        }
+      }
       const f = E.findFac(opp, t.uid).f, td = D(s, t.uid);
       const need = E.damageNeeded(s, f);
       const safeHome = E.isHomeProtected(s, f);
       if (safeHome && !f.landed.length && !f.war.length) continue; // nothing to gain from hitting a protected empty home
-      const o = outlook(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb), t.kind);
+      const o = outlook(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb * bm), t.kind);
       // Para-Frags: +4 for each armed bomber that gets through to an airbase.
       const pfN = t.kind === 'airbase' ? cards.filter((u) => E.armedWith(s, u)).length : 0;
       if (pfN) o.delivered += 4 * pfN * Math.max(0, 1 - o.lost / cards.length);
@@ -3932,9 +3968,9 @@ function planRaid(s, side, prof, intelOnly) {
       const moD = moCard && t.kind === 'airbase' ? D(s, moCard) : null;
       const moBonus = moD ? (moD.boostPerAircraft ? Math.min(moD.boost || 4, Math.max(0, cards.length - Math.round(o.lost))) : (moD.boost || 4)) : 0;
       const val = (k) => k + f.landed.length * 4 + f.war.length * 3 - o.lost * lossW + opportunity(s, side, f, t.kind);
-      const raw = sum(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb)) + 4 * pfN;
+      const raw = sum(cards, (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb * bm)) + 4 * pfN;
       const plain = t.kind === 'carrier' || (!pfN && !stN && !E.twoMissions(s) && !moCard);
-      const trim = !wins && careful && plain && prof.trimRaids !== false ? { need, tk: t.kind, dmgOf: (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb) } : null;
+      const trim = !wins && careful && plain && prof.trimRaids !== false ? { need, tk: t.kind, dmgOf: (d) => (t.kind === 'carrier' ? d.car * mult : d.bomb * bm) } : null;
       if (o.delivered >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill), sure: o.lost <= (prof.sureLoss ?? 1.5), trim });
       // Last stand: a strike that only gets there if it slips past the fighters is still worth flying.
       // It only uses deck space our carrier fighters won't need: bombers landing back on the carrier take their slots.
@@ -3955,10 +3991,38 @@ function planRaid(s, side, prof, intelOnly) {
         const pm = E.twoMissions(s) && E.halfOf(s) !== 'pm';
         const followCards = p.hand.filter((u) => !cards.includes(u) && D(s, u).kind === 'aircraft' && (pm || E.carrierCapable(D(s, u))) && (D(s, u).bomb || 0) > 0)
           .sort((x, y) => (D(s, y).bomb || 0) - (D(s, x).bomb || 0)).slice(0, pm ? Math.max(0, cap - cards.length) : E.availCap(s, p, 'carrier'));
-        const fo = outlook(followCards, (d) => d.bomb, 'airbase');
+        const fo = outlook(followCards, (d) => d.bomb * E.airbaseMult(s, 'carrier'), 'airbase');
         const later = (prof.softenOutlook === false ? followCards.reduce((x, u) => x + (D(s, u).bomb || 0), 0) : fo.delivered)
           + (moD ? Math.min(moD.boost || 4, Math.max(0, followCards.length - Math.round(fo.lost))) : 0);
         if (o.delivered > 0 && o.delivered + later >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill * 0.7), sure: o.lost + fo.lost <= (prof.sureLoss ?? 1.5) });
+      }
+      /* Nov 23 (a playtester): a crippled carrier or Shoho (Defense 6) dies to ONE plane getting through, so send every plane
+         that can do it plus the escorts and finish her; and the one-two punch: an Airbase Stage raid on a carrier softens her
+         for the Carrier Strike behind it (damage adds up within the turn). */
+      if (cs(s) && t.kind === 'carrier' && !safeHome) {
+        const hit = (d) => d.car * mult;
+        if (!OFF.has('ks')) {
+          const hitters = bombers.filter((u) => hit(D(s, u)) >= need).sort((a, b) => hit(D(s, b)) - hit(D(s, a)) || D(s, b).def - D(s, a).def);
+          if (hitters.length) {
+            const nInt = Math.round(enemyThreat(s, side, 'carrier').n || 0) + (prof.ksMargin ?? 1);
+            let bestK = null;
+            for (let ne = 0; ne <= Math.min(pureAll.length, cap - 1); ne++) {
+              const h = hitters.slice(0, cap - ne), passes = h.length - Math.max(0, nInt - ne);
+              if (!bestK || passes > bestK.passes) bestK = { h, ne, passes };
+            }
+            if (bestK && (bestK.passes >= 1 || (wins && lastChance))) {
+              const cc = bestK.h.concat(pureAll.slice(0, bestK.ne)), oo = outlook(cc, hit, 'carrier');
+              const finishVal = need <= 6 ? (prof.finishW ?? 25) : 0;
+              options.push({ target: t, cards: cc, lost: oo.lost, value: kill + finishVal + f.landed.length * 4 - oo.lost * lossW + opportunity(s, side, f, 'carrier'), sure: bestK.passes >= 1, ks: true });
+            }
+          }
+        }
+        if (!OFF.has('punch') && s.stage === 'airbase' && E.stacks(s, f) && o.delivered > 0) {
+          const follow = p.hand.filter((u) => !cards.includes(u) && D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && (D(s, u).car || 0) > 0)
+            .sort((x, y) => (D(s, y).car || 0) - (D(s, x).car || 0)).slice(0, E.availCap(s, p, 'carrier'));
+          const fo = outlook(follow, (d) => d.car * 2, 'carrier');
+          if (follow.length && o.delivered + fo.delivered >= need) options.push({ target: t, cards, lost: o.lost, value: val(kill * 0.8), sure: o.lost + fo.lost <= (prof.sureLoss ?? 1.5) });
+        }
       }
     }
   }
@@ -3979,7 +4043,16 @@ function planRaid(s, side, prof, intelOnly) {
     if (total > 0) options.push({ target: { kind: 'destroyers' }, cards, lost: o.lost, value: value - o.lost * lossW, sure: o.lost <= (prof.sureLoss ?? 1.5), intel: true });
   }
   if (intelOnly) for (let i = options.length - 1; i >= 0; i--) if (!options[i].intel) options.splice(i, 1);
+  /* Nov 23 (Eastern Solomons game 5: the last shot before the landing went at a carrier with two aircraft and no escort): with the
+     transports about to land, the only target is the convoy, and everything we can send goes. */
+  if (tuned(s) && !OFF.has('lastshot') && E.landingDue(s) && E.troopConvoy(s, E.other(side)) && options.some((x) => x.target.kind === 'convoy'))
+    for (let i = options.length - 1; i >= 0; i--) if (options[i].target.kind !== 'convoy') options.splice(i, 1);
   options.sort((a, b) => b.value - a.value);
+  /* Nov 23 (Coral Sea games 1-3: the Axis computer sent two-plane raids that died, held 11 cards, and never massed a raid on Moresby):
+     the side that has to take Moresby waits and masses bombers. Only a raid that wins, a carrier kill shot, or a cheap sure hit
+     goes before the final turns. */
+  if (cs(s) && !OFF.has('mass') && !holdout(s, side) && !lastChance && !desperate)
+    for (let i = options.length - 1; i >= 0; i--) { const x = options[i]; if (!(x.ks || x.sure || x.target.kind === 'carrier' || x.value >= WIN_VALUE * 0.5 || x.intel || (x.lost <= 0.6 && x.value >= 8))) options.splice(i, 1); }
   // Two missions a day, the side that wins on the clock: no attacks except one that wins, or a cheap, sure kill.
   if (E.twoMissions(s) && holdout(s, side) && prof.doctrine !== false)
     for (let i = options.length - 1; i >= 0; i--) { const x = options[i]; if (!(x.value >= WIN_VALUE * 0.5 || (x.lost <= 0.5 && x.value >= 8) || x.token)) options.splice(i, 1); }
@@ -4036,7 +4109,14 @@ function planRaid(s, side, prof, intelOnly) {
   }
   const mo = p.hand.find((u) => D(s, u).special === 'opmo');
   // Play MO when it is needed for the kill, or on a Carrier Stage strike at an airbase (the last chance this turn).
-  const useMo = mo && o.target.kind === 'airbase' && (o.mo || s.stage === 'carrier' || !(sc && sc.stackAirbaseDamage));
+  let useMo = mo && o.target.kind === 'airbase' && (o.mo || s.stage === 'carrier' || !(sc && sc.stackAirbaseDamage));
+  /* Nov 23: Operation MO adds +1 per aircraft that gets through, so it goes on the mission that will have more planes alive:
+     this Airbase Stage raid, or the Carrier Strike behind it (which also hits an airbase and adds to the same total). */
+  if (mo && cs(s) && !OFF.has('mo2') && o.target.kind === 'airbase' && s.stage === 'airbase' && !o.mo) {
+    const follow = p.hand.filter((u) => !o.cards.includes(u) && D(s, u).kind === 'aircraft' && E.carrierCapable(D(s, u)) && (D(s, u).bomb || 0) > 0)
+      .sort((x, y) => (D(s, y).bomb || 0) - (D(s, x).bomb || 0)).slice(0, E.availCap(s, p, 'carrier'));
+    if (follow.length) { const fo = outlook(follow, (d) => (d.bomb || 0) * E.airbaseMult(s, 'carrier'), 'airbase'); useMo = (o.cards.length - o.lost) >= (follow.length - fo.lost); }
+  }
   const ca = o.combined && p.hand.find((u) => D(s, u).special === 'combined');
   return { type: 'launch', target: o.target, cards: o.cards, special: ca || (useMo ? mo : undefined) };
 }
@@ -4562,16 +4642,31 @@ function attackerMove(s, side) {
      in the hidden raid lowers the odds that an interceptor finds a bomber. And Attack From The Sun is for those hard kills. */
   const tn = tuned(s) && !OFF.has('esc2'), pl = s.players[side];
   const aliveI = c.intercept.filter((e) => e.alive && !e.escaped).length, spare = pl.hand.filter((u) => isFighter(D(s, u)) && !dmgCapable(D(s, u))).length >= 4 && aliveI <= 2;
+  /* Nov 23 (Eastern Solomons games 4-6: escorts "held back" against every interceptor and three TBFs died for no Zero): every
+     interceptor still flying kills a bomber, so with bombers in the raid the escort takes the kill. A free kill is always taken;
+     a trade (our fighter for theirs) when the target is a prize, few interceptors remain, two or more bombers are at risk, or
+     the transports are about to land and nothing held back is worth anything. */
+  const es3 = tn && !OFF.has('esc4');
+  const lateShot = es3 && E.troopConvoy(s, E.other(side)) && (E.landingDue(s) || s.turnNo >= (E.invasionLast(s) || 99) - 1);
+  const spare3 = pl.hand.filter((u) => isFighter(D(s, u)) && !dmgCapable(D(s, u))).length >= 3;
+  /* Nov 23 (playtester): escorts wait. Each escort left in the hidden raid lowers the odds that an interceptor picks a bomber. The
+     last interceptor flying is different: with nothing left to hide from, take the kill if we have fighters to spare, it is a
+     prize (P-39, elite), or the transports are about to land. That kill is a trade when their fighter can shoot ours down too. */
+  const tradeOk = (u) => !es3 || precious(s, u) || (D(s, u).interceptor || 0) > 0 || (aliveI <= 1 && (spare3 || lateShot));
   const worth = (u) => { const d = D(s, u); return precious(s, u) || (d.interceptor || 0) > 0 || aliveI <= 1 || spare; };
   for (const own of mine) for (const t of targets) for (const bc of [null, ...E.battleOptions(s, side, own.uid)]) {
-    if (tn && !worth(t.uid)) continue;
-    if (tn && bc && D(s, bc).name === 'Attack From The Sun' && !(precious(s, t.uid) || (D(s, t.uid).interceptor || 0) > 0 || (aliveI <= 1 && c.mission.some((m) => m.alive && dmgCapable(D(s, m.uid)))))) continue;
     const r = duel(eff(s, own.uid, t.uid, bc, false), eff(s, t.uid, own.uid, null, true, true));
+    /* Nov 23 (playtester, every scenario): the last interceptor flying is always attacked when we win the fight and live. */
+    const lastFree = aliveI <= 1 && r.killB && !r.killA && !bc;
+    if (!lastFree) {
+      if (tn && !worth(t.uid)) continue;
+      if (tn && bc && D(s, bc).name === 'Attack From The Sun' && !(precious(s, t.uid) || (D(s, t.uid).interceptor || 0) > 0 || (aliveI <= 1 && c.mission.some((m) => m.alive && dmgCapable(D(s, m.uid)))))) continue;
+    }
     if (!r.killB) continue;
-    if (tn && r.killA && !spare && !precious(s, t.uid)) continue;   // trading fighters for fighters only with fighters to spare
+    if (tn && r.killA && !spare && !precious(s, t.uid) && !(es3 && tradeOk(t.uid))) continue;   // trading fighters for fighters only with fighters to spare
     // A trade is worth it when the target is worth more than our fighter: a P-40E for a scouted Ki-61 or elite (Wewak).
-    if (r.killA && !(E.twoMissions(s) && precious(s, t.uid) && fWorth(s, own.uid) < fWorth(s, t.uid))) continue;
-    const score = (r.killA ? 6 + fWorth(s, t.uid) - fWorth(s, own.uid) : 10 + fWorth(s, t.uid) * 0.2) - (bc ? 2 : 0);
+    if (r.killA && !(es3 && tradeOk(t.uid)) && !(E.twoMissions(s) && precious(s, t.uid) && fWorth(s, own.uid) < fWorth(s, t.uid))) continue;
+    const score = (r.killA ? 6 + fWorth(s, t.uid) - fWorth(s, own.uid) : 10 + fWorth(s, t.uid) * 0.2) - (bc ? 2 : 0) + (lastFree ? 50 : 0);
     if (!best || score > best.score) best = { score, action: { type: 'engage', mode: 'strike', own: own.uid, target: t.uid, battle: bc || undefined } };
   }
   return best ? best.action : { type: 'yield' };
@@ -4634,7 +4729,8 @@ function objectiveDefenders(s, side, f) {
   const c = s.combat, n = c.mission.length, p = s.players[side];
   const onCarrier = c.target.kind === 'carrier', onConvoy = c.target.kind === 'convoy';
   const mult = c.stage === 'carrier' && (onCarrier || (onConvoy && s.options.convoyCarrierDouble !== false)) ? 2 : 1;
-  const val = (d) => (onCarrier ? (d.car || 0) : onConvoy ? (d.conv || 0) : d.bomb || 0) * mult;
+  const bm = E.airbaseMult(s, c.stage);
+  const val = (d) => (onCarrier ? (d.car || 0) : onConvoy ? (d.conv || 0) : (d.bomb || 0) * bm) * mult;
   // Convoy: what it takes to sink it (Heavy AAA takes 2 off each raid).
   const need = onConvoy ? 15 - p.convoy + 2 * p.resWar.convoy.length : E.damageNeeded(s, f);
   const downed = new Set(s.downed || []);
@@ -4705,14 +4801,36 @@ function interceptMove(s, side, prof) {
   // usually a decoy to pull the carrier fighters away from the Carrier Strike that follows (a playtester's Coral Sea win).
   const reserveCarrierCover = carriersWin && prof && prof.guardCarriers !== false && c.stage === 'airbase'
     && (c.target.kind !== 'carrier' || prof.guardCarrierRaids !== false) && p.carriers.length && s.players[E.other(side)].carriers.length;
-  if (reserveCarrierCover) {
+  /* Nov 23 (a playtester): a raid on Moresby, or on the convoy when we can afford it, gets the full fighter pool. Carriers may go
+     uncovered: with a Rain Squall / Weather Front in hand, or when another carrier loss still leaves the game open. */
+  const csFull = cs(s) && !OFF.has('def') && (mustStop > 0 || c.target.kind === 'convoy') && (() => {
+    if (c.target.kind !== 'convoy') return true;
+    const sinkN2 = (sc && sc.victory && sc.victory.sinkCarriers) || 2;
+    return p.hand.some((u) => D(s, u).special === 'rainSquall') || (p.carriers.length >= 2 && ((s.sunk || {})[side] || 0) + 1 < sinkN2);
+  })();
+  /* Nov 23 (playtester): in Eastern Solomons a carrier matters less than the convoy (each only adds 1 to carrier cover), but it is a judgement
+     call, not "never". Does this raid look like real damage to the convoy (a big raid, and they still have the bombers for it)? Then
+     forget the carriers and defend with everything. Could it be a sweep, or escorts to sucker us, while they hold few carrier bombers?
+     Then the carriers get what the Carrier Strike behind it could need: more with our last carrier, since losing it leaves the convoy
+     with no cover. */
+  let esShare = 0.5;
+  const lastCar = tuned(s) && !OFF.has('lastcar') && !!(sc && sc.carrierCover) && c.stage === 'airbase' && p.carriers.length >= 1 && s.players[E.other(side)].carriers.length && (() => {
+    const dn = new Set(s.downed || []);
+    const roster = Object.keys(s.cards).filter((u) => { const d = D(s, u); return d.side === E.other(side) && d.kind === 'aircraft' && E.carrierCapable(d) && !dn.has(u) && !c.mission.some((m) => m.uid === u); });
+    esShare = roster.length ? roster.filter((u) => dmgCapable(D(s, u))).length / roster.length : 0.5;
+    const convoyRaid = c.target.kind === 'convoy' && (mustStop > 0 || (c.mission.length >= 4 && esShare >= 0.4));
+    return !convoyRaid && !(E.troopConvoy(s, side) && mustStop > 0);
+  })();
+  if ((reserveCarrierCover || lastCar) && !csFull) {
     const isCover = (u) => E.carrierCapable(D(s, u)) && D(s, u).a2a >= 3;
     // How big a carrier strike could still follow this turn? Public info: the enemy's hand size after this
     // launch and its free carrier slots. Keep only as many carrier fighters as that strike could need.
     const op = s.players[E.other(side)];
     const follow = Math.min(op.hand.length, E.availCap(s, op, 'carrier'));
     const weakest = Math.min(...p.carriers.map((f) => E.damageNeeded(s, f)));
-    const keepN = follow * 3 * 2 * 0.75 < weakest || (tuned(s) && !OFF.has('opp') && carrierStrikeSpent(s, side)) ? 0 : Math.min(1 + p.carriers.length, follow);
+    const keepN = lastCar && !reserveCarrierCover
+      ? (carrierStrikeSpent(s, side) ? 0 : Math.min(p.carriers.length === 1 ? 3 : 1, Math.ceil(follow * esShare * 0.75), follow))
+      : follow * 3 * 2 * 0.75 < weakest || (tuned(s) && !OFF.has('opp') && carrierStrikeSpent(s, side)) ? 0 : Math.min(1 + p.carriers.length, follow);
     let keep = usable.filter(isCover).slice(0, keepN);
     // Release reserved carrier fighters when the land-based ones can't stop a raid on the objective. A raid on a
     // carrier that could sink her gets at most half of them: the doubled Carrier Strike is the bigger danger.
@@ -4740,12 +4858,29 @@ function interceptMove(s, side, prof) {
       usable = usable.filter((u) => !keep.includes(u));
     }
   }
+  /* Nov 23 (Eastern Solomons game 3: three Zeros went up against a 4-plane mission whose only bomber was a B-17, and the 8-plane carrier
+     strike behind it found no fighters): with the landing in the balance, the first raid doesn't get every fighter. Half stay back
+     for the Carrier Strike that can follow, as many as its size could need. */
+  let cap2 = Infinity;
+  if (tuned(s) && !OFF.has('hold2') && E.troopConvoy(s, side) && E.landingDue(s) && c.stage === 'airbase' && !mustStop) {
+    /* How many fighters the Carrier Strike could need: the strike is at most their hand (up to the carriers' free slots), and the
+       share that are bombers is what is left of their carrier aircraft (a roster anyone can count). Carrier bombers are the
+       danger; fighters in the strike are only escorts, and nobody sweeps on the last carrier turn. */
+    const op2 = s.players[E.other(side)], follow2 = Math.min(op2.hand.length, E.availCap(s, op2, 'carrier'));
+    if (follow2 >= 2 && op2.carriers.length) {
+      const dn = new Set(s.downed || []);
+      const roster = Object.keys(s.cards).filter((u) => { const d = D(s, u); return d.side === E.other(side) && d.kind === 'aircraft' && E.carrierCapable(d) && !dn.has(u) && !c.mission.some((m) => m.uid === u); });
+      const nb = roster.filter((u) => dmgCapable(D(s, u))).length, share = roster.length ? nb / roster.length : 0.5;
+      const bombersCome = Math.ceil(follow2 * share), keepN = Math.min(usable.length - 1, Math.max(0, Math.ceil(bombersCome * 0.75)));
+      if (keepN > 0) cap2 = Math.max(1, usable.length - keepN);
+    }
+  }
   if (E.twoMissions(s) && prof && prof.doctrine !== false) return dayIntercept(s, side, usable, mustStop, prof);
   const group = [];
   // Against a dangerous raid the slots go to fighters that can actually shoot something down.
   if (mustStop) usable = [...usable].sort((x, y) => (D(s, y).a2a >= 3) - (D(s, x).a2a >= 3));
   for (const u of usable) {
-    if (group.length >= Math.max(seenN + 1, mustStop)) break;
+    if (group.length >= Math.max(seenN + 1, mustStop) || group.length >= cap2) break;
     if (c.target.kind === 'destroyers' && group.length >= E.DD_COVER) break; // out of range: 2 fighters at most
     if (E.planIntercept(s, group.concat(u))) group.push(u);
   }
@@ -5056,8 +5191,8 @@ const BALANCE = {
   campaign1943: { surpriseAttack: true, axis: 1 },    // Nov 10 (v151, Operations 1+2): 48.4 / 48.2% (+2 was 53.3 / 53.0)
   campaigndynamic: { surpriseAttack: true, axis: 0 }, // Nov 10 (v151): 51.3 / 52.2% (+1 was 58.0 / 56.8): Dec 1941 decks, production schedule delayed by Industry damage
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
-  eastsol: { surpriseAttack: false, axis: 2 },     // Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
-  coralsea: { surpriseAttack: false, axis: 3 },  // Nov 10: 14-turn clock with two Operations a side, 50.8 / 49.4%
+  eastsol: { surpriseAttack: false, axis: 0 },     // Nov 23: troop convoy hit by CNV, not doubled; a sunk Allied convoy takes 3 off Henderson for good: +0 cards 50.8–51.4% (600/500 games), +1 56.6%. Before that: two A-20s (CNV 3 vs the troop convoy), night raids level bombers only: +1 card 44.8%, +2 card 53.9% (800 games). Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
+  coralsea: { surpriseAttack: false, axis: 0 },  // Nov 23: 15 turns and the sharper computer (finishing carriers, massed raids): Axis +3 cards had gone to 75% in self-play, +0 is 50%
   guadalcanal: { surpriseAttack: false, axis: 0 }, // Nov 10: 48.0 / 47.9%: 14 turns, 13-kill air war, Rabaul Defense 14, one B-17
   wewak: { surpriseAttack: false, axis: 0 },       // Nov 10: 51.2 / 49.9% with fields Defense 10; before: 50.7 / 51.0%, 12 turns, 15-turn limit so the Allies move last; Moresby 16, 3 extra P-47s; mixed-up computer tactics (68th presses on vs fighter-bombers): fields Defense 9, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
 };
@@ -5981,12 +6116,16 @@ function warReportHTML(side, full) {
 /* ---------------------------------------------------------------- orders: the decision in front of you */
 function estimate(cards, t) {
   if (!t || !cards.length) return '';
-  const ds = cards.map(D), mult = S.stage === 'carrier' ? 2 : 1;
+  const ds = cards.map(D), mult = S.stage === 'carrier' ? 2 : 1, bmx = E.airbaseMult(S, S.stage);
   const sum = (k) => ds.reduce((n, d) => n + d[k], 0);
   const opp = S.players[E.other(S.active)];
   const aaaN = (k) => opp.resWar[k].length + opp.airbases.flatMap((f) => f.war).filter((w) => E.has(D(w), 'heavyAAA') && (S.aaaCover || {})[w] === k).length;
   const aaa = (k) => aaaN(k) ? ` (Heavy AAA −${2 * aaaN(k)})` : '';
   if (t.kind === 'industry') return `<div class="est">BMB <b>${sum('bomb')}</b> to Industry${aaa('industry')} if all arrive.</div>`;
+  if (t.kind === 'convoy' && E.troopConvoy(S, E.other(S.active))) {
+    const b = ds.reduce((n, d) => n + E.convoyHit(S, d, E.other(S.active), 1), 0) + E.leaderBonus(S, cards.map((u) => ({ uid: u }))), cov = E.carrierCover(S, E.other(S.active));
+    return `<div class="est">CNV <b>${b}</b> (not doubled)${cov ? ` −${cov} carrier cover` : ''}: Landing Strength <b>${E.landingStrength(S)}</b> would drop to <b>${Math.max(0, E.landingStrength(S) - Math.max(0, b - cov))}</b> if all arrive.</div>`;
+  }
   if (t.kind === 'convoy') return `<div class="est">CNV <b>${sum('conv') * mult}</b>${mult > 1 ? ' (×2 from carriers)' : ''} to Convoy${aaa('convoy')} if all arrive. It sinks at 15 (now ${opp.convoy}).</div>`;
   if (t.kind === 'fuel') { const it = (S.intel || {})[S.active] || {}, done = (it.fuel || {}).dmg || 0;
     return `<div class="est">BMB <b>${sum('bomb')}</b> −${E.FUEL_AAA} Heavy AAA vs DEF <b>${E.FUEL_DEF}</b>${done ? `; already hit for <b>${done}</b> this turn` : ''}. Destroyed: the enemy flies at half capacity for 2 turns.</div>`; }
@@ -5998,17 +6137,13 @@ function estimate(cards, t) {
   if (t.kind === 'ferry') { const it = (S.intel || {})[S.active] || {}, to = it.ferry && it.ferry.to;
     return `<div class="est">Your commander’s ${esc(E.CARD_DB[S.active === 'axis' ? 'vipAx' : 'vipAl'].name)} flies with this mission (no slot) to <b>${to ? esc(D(to).name) : 'your main field'}</b>. Lands safely: draw 2 cards. Shot down: skip your next draw. Each escort can take one attack meant for it, and the enemy won’t know how many you sent.</div>`; }
   if (t.kind === 'vip') return `<div class="est">A2A <b>${sum('a2a')}</b> vs the transport’s DEF <b>${E.VIP_DEF}</b> if all arrive. Shot down: the enemy skips their next draw.</div>`;
-  if (t.kind === 'convoy' && E.troopConvoy(S, E.other(S.active))) {
-    const b = sum('car') + E.leaderBonus(S, cards.map((u) => ({ uid: u }))), cov = E.carrierCover(S, E.other(S.active));
-    return `<div class="est">CAR <b>${b}</b> (never doubled)${cov ? ` −${cov} carrier cover` : ''}: Landing Strength <b>${E.landingStrength(S)}</b> would drop to <b>${Math.max(0, E.landingStrength(S) - Math.max(0, b - cov))}</b> if all arrive.</div>`;
-  }
   if (t.kind === 'resources') return `<div class="est">If all arrive: Industry <b>${sum('bomb')}</b> or Convoy <b>${sum('conv') * mult}</b>. You assign each aircraft at the target.</div>`;
   const hf = E.findFac(opp, t.uid).f;
   if (t.kind === 'airbase' && E.isHomeProtected(S, hf))
-    return `<div class="est">Home base: it can't be destroyed, but BMB <b>${sum('bomb')}</b> vs DEF <b>${E.facDef(S, hf)}</b> would wipe out the ${hf.landed.length} aircraft landed there${hf.war.length ? ' and its war cards' : ''}.</div>`;
+    return `<div class="est">Home base: it can't be destroyed, but BMB <b>${sum('bomb') * bmx}</b>${bmx > 1 ? ' (×2 from carriers)' : ''} vs DEF <b>${E.facDef(S, hf)}</b> would wipe out the ${hf.landed.length} aircraft landed there${hf.war.length ? ' and its war cards' : ''}.</div>`;
   if (t.kind === 'airbase' && E.siegeBase(S, E.other(S.active)) === hf) {
-    const ca = ui.special && D(ui.special).special === 'combined', b = sum('bomb') + E.leaderBonus(S, cards.map((u) => ({ uid: u }))), cov = E.carrierCover(S, E.other(S.active));
-    return `<div class="est">BMB <b>${b}</b>${ca && b ? ` +3 Combined Arms` : ''}${cov ? ` −${cov} carrier cover` : ''}: Henderson would go from DEF <b>${E.facDef(S, hf)}</b> to <b>${Math.max(0, E.facDef(S, hf) - Math.max(0, b + (ca && b ? 3 : 0) - cov))}</b> if all arrive. The landing has <b>${E.landingStrength(S)}</b>.</div>`;
+    const ca = ui.special && D(ui.special).special === 'combined', b = sum('bomb') * bmx + E.leaderBonus(S, cards.map((u) => ({ uid: u }))), cov = E.carrierCover(S, E.other(S.active));
+    return `<div class="est">BMB <b>${b}</b>${bmx > 1 ? ' (×2 from carriers)' : ''}${ca && b ? ` +3 Combined Arms` : ''}${cov ? ` −${cov} carrier cover` : ''}: Henderson would go from DEF <b>${E.facDef(S, hf)}</b> to <b>${Math.max(0, E.facDef(S, hf) - Math.max(0, b + (ca && b ? 3 : 0) - cov))}</b> if all arrive. The landing has <b>${E.landingStrength(S)}</b>.</div>`;
   }
   if (t.kind === 'airbase') { const done = E.turnDamage(S, hf);
     const moD = ui.special && D(ui.special).special === 'opmo' ? D(ui.special) : null;
@@ -6016,7 +6151,7 @@ function estimate(cards, t) {
     const akagi = S.stage === 'carrier' && S.players[S.active].carriers.some((c) => E.has(D(c.uid), 'akagi'));
     const guns = 2 * E.aaaOnBase(S, hf);
     const pfB = 4 * cards.filter((u) => E.armedWith(S, u)).length;
-    return `<div class="est">BMB <b>${sum('bomb') + mo + pfB}</b>${mo ? ` (with ${nm(ui.special)} +${mo})` : ''}${guns ? ` −${guns} Heavy AAA` : ''} vs DEF <b>${E.facDef(S, hf)}</b>${done ? `; already hit for <b>${done}</b> this turn, <b>${E.damageNeeded(S, hf)}</b> more destroys it` : ''}${akagi ? '. Akagi-based bombers double' : ''}${pfB ? ` (incl. Para-Frags +${pfB})` : ''}.</div>`; }
+    return `<div class="est">BMB <b>${sum('bomb') * (akagi ? 1 : bmx) + mo + pfB}</b>${bmx > 1 ? ' (×2 from carriers)' : ''}${mo ? ` (with ${nm(ui.special)} +${mo})` : ''}${guns ? ` −${guns} Heavy AAA` : ''} vs DEF <b>${E.facDef(S, hf)}</b>${done ? `; already hit for <b>${done}</b> this turn, <b>${E.damageNeeded(S, hf)}</b> more destroys it` : ''}${akagi ? '. Akagi-based bombers double' : ''}${pfB ? ` (incl. Para-Frags +${pfB})` : ''}.</div>`; }
   return `<div class="est">CAR <b>${sum('car') * mult}</b>${mult > 1 ? ' (×2 from carriers)' : ''} vs DEF <b>${E.has(D(t.uid), 'twoHits') && hf.hits ? 4 : E.facDef(S, hf)}</b>${E.turnDamage(S, hf) ? `; already hit for <b>${E.turnDamage(S, hf)}</b> this turn` : ''}.</div>`;
 }
 const inFight = (u) => !!(S.combat && S.combat.eng && (S.combat.eng.init.uid === u || S.combat.eng.tgt.uid === u));
@@ -6149,7 +6284,7 @@ function decisionHTML() {
         } else if (x.kind === 'convoy' || x.kind === 'industry' || x.kind === 'resources') {
           const troop = x.kind === 'convoy' && E.troopConvoy(S, E.other(v));
           icon = resThumb(x.kind === 'industry' ? 'industry' : 'convoy'); name = troop ? `${flag(E.other(v) === 'axis' ? 'jp' : 'us', 14)} Troop convoy` : RES_NAMES[x.kind];
-          sub2 = troop ? `Landing Strength ${E.landingStrength(S)} of ${troop.strength} · CAR counts, never doubled${E.carrierCover(S, E.other(v)) ? ` · their carriers cover it −${E.carrierCover(S, E.other(v))}` : ''} · at 0 it turns back`
+          sub2 = troop ? `Landing Strength ${E.landingStrength(S)} of ${troop.strength} · CNV counts, not doubled${E.carrierCover(S, E.other(v)) ? ` · their carriers cover it −${E.carrierCover(S, E.other(v))}` : ''} · at 0 it turns back`
             : x.kind === 'convoy' ? `${opp.convoy} of ${E.convoyMax(S)} damage · sinks at ${E.convoyMax(S)}` : x.kind === 'industry' ? `${opp.industry} of ${E.industryMax(S)} damage` : 'Split by aircraft';
           val = troop ? `${E.landingStrength(S)}` : '';
         } else {
@@ -6691,7 +6826,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 197;
+const APP_VERSION = 201;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -7046,26 +7181,26 @@ Dismissed, and good hunting.` },
       allied: {
         situation: 'August 1942. Two weeks ago the Marines took the airfield on Guadalcanal and named it Henderson Field. Now a Japanese troop convoy is coming to take it back, covered by Shokaku, Zuikaku and the light carrier Ryujo. Saratoga and Enterprise wait to the east.',
         win: 'Beat back the **troop convoy** (Landing Strength 18), or keep **Henderson Field** stronger than the convoy when it lands. The Japanese may order the landing at the end of any of their turns from turn 7 (they must by turn 13). Once ordered, the transports land at the end of our next turn: that turn is the last chance to hit them.',
-        rules: 'Henderson can’t be destroyed, but every hit lowers its Defense (18) for the rest of the battle. Hits on the troop convoy count **CAR**, never doubled. Every Japanese carrier afloat takes **1** off each of our attacks on the convoy, and every one of ours takes 1 off theirs on Henderson. While **Ryujo** is afloat she is the only Japanese carrier we can attack. Sinking carriers doesn’t end the battle; what they protect does.',
+        rules: 'Henderson can’t be destroyed, but every hit lowers its Defense (18) for the rest of the battle. Hits on the troop convoy count **CNV**, not doubled by carriers (a strike on a carrier is still doubled). Every Japanese carrier afloat takes **1** off each of our attacks on the convoy, and every one of ours takes 1 off theirs on Henderson. While **Ryujo** is afloat she is the only Japanese carrier we can attack. Sinking carriers doesn’t end the battle; what they protect does. If **our** convoy (Shipping) is sunk, Henderson loses **3** Defense for good. Sinking the **Allied** convoy (Shipping, 15) takes **3** off Henderson’s Defense for good. In the Carrier Stage, carrier aircraft bomb an airfield for **double** (BMB ×2), as they do a carrier. In the Carrier Stage, our carrier aircraft bomb Henderson for **double** (BMB ×2). **Night Raids** are flown by multi-engine level bombers only (Betty, Nell, B-17, A-20): never carrier bombers or single-engine fighters.',
         cards: '**VB-3 Saratoga** (in your deck): a Dauntless squadron that leads its strike (+1 for every other carrier bomber with it) and is covered by the rest of the raid. **Damage Control** saves a carrier from a strike that only just sinks her. **Seabees** repair 3 at Henderson. **Small Arms Fire** downs attackers the air battle left on 1 Defense, and **Light AAA** shoots down one fighter over your field, a dawn strafer included. The enemy has **Combined Arms** (+3 on Henderson when their bombs land; you will be warned), Shokaku’s veteran dive bombers, and a **Dawn Strafing Run** that can destroy any one aircraft or war card parked on one of your airfields.',
         strategy: 'Sink Ryujo first: until she goes, their fleet carriers are out of reach, and every carrier they lose makes the convoy easier to hit. Guard Henderson with fighters, and watch the numbers: when the convoy is weaker than Henderson, they can’t win by landing.' },
       axis: {
         situation: 'August 1942. The Americans hold the airfield on Guadalcanal. Our troop convoy will put the Ichiki and Kawaguchi forces ashore to retake it, with Shokaku, Zuikaku and Ryujo to guard it.',
         win: 'Land the troops with a **Landing Strength** greater than **Henderson Field’s Defense**. Order the landing at the end of any of our turns from turn 7. The transports go in that night and land at the end of the American turn that follows, their last chance at them, so order it with a lead to spare. There is no calling it back. By the end of turn 13 the order goes out anyway. If the convoy is beaten back, we lose.',
-        rules: 'Henderson (Defense 18) can’t be destroyed, but every hit lowers its Defense for good. Our convoy starts at Landing Strength 18; American hits on it count CAR, never doubled. Every carrier we have afloat takes **1** off each American attack on the convoy, and every American carrier takes 1 off ours on Henderson. While **Ryujo** is afloat she is the only carrier of ours they can attack.',
+        rules: 'Henderson (Defense 18) can’t be destroyed, but every hit lowers its Defense for good. Our convoy starts at Landing Strength 18; American hits on it count CNV, not doubled by carriers. Every carrier we have afloat takes **1** off each American attack on the convoy, and every American carrier takes 1 off ours on Henderson. While **Ryujo** is afloat she is the only carrier of ours they can attack. **Night Raids** are flown by multi-engine level bombers only (Betty, Nell, B-17, A-20): never carrier bombers or single-engine fighters.',
         cards: '**Combined Arms**: play it as you launch on Henderson; if any of our aircraft reaches the field and damages it, the Army adds +3 (the Americans are told it is coming). **Shōkaku Kanbaku Chūtai**: Seki’s dive bombers, CAR 4, covered by the rest of their raid. **Dawn Strafing Run**: at the end of your turn, once your aircraft have landed, send any fighter (in hand or just landed) to strafe an American airfield and destroy one aircraft or war card parked there, whatever its numbers. Send one you can spare: their **Light AAA** can shoot it down. Beware their **Damage Control** and **Seabees** too.',
         strategy: 'Bettys from Rabaul are the hammer for Henderson; the carriers fight the American carriers and shield the convoy. Ryujo is bait: she draws their first strike. Land when the convoy is stronger than Henderson with a little to spare.' },
     },
     coralsea: {
       allied: {
         situation: 'May 1942. A Japanese invasion force is steaming for Port Moresby, covered by the carriers Shokaku and Zuikaku and the light carrier Shoho. Our codebreakers have read the plan, and Lexington and Yorktown are waiting.',
-        win: 'Hold **Port Moresby** (Defense 9) until the end of turn 14, or sink **two** Japanese carriers. If Moresby falls, we lose.',
+        win: 'Hold **Port Moresby** (Defense 9) until the end of turn 15, or sink **two** Japanese carriers. If Moresby falls, we lose.',
         rules: 'The Japanese move first, and they can’t touch Moresby on their first turn. Each turn you fly an Attack Mission from your airfields and a **Carrier Strike** from your carriers, and damage to one target from both adds up. Carrier Strikes double damage against carriers and convoys. **Yorktown** takes two hits to sink. If their convoy is sunk, the invasion is delayed and the battle ends 2 turns sooner; if ours is, Moresby loses 2 Defense.',
         cards: '**Station HYPO** (in your deck): play it before you scramble and every incoming aircraft is revealed. The enemy has **Operation MO** (up to +4 on an attack on Moresby) and **Weather Front** (hides a carrier from your strike).',
         strategy: 'The clock is on our side. Keep fighters home to guard Moresby; that is how we win. Hunt their carriers when you can catch them: the light carrier **Shoho** is the easiest kill, and two sinkings end it. Dive and torpedo bombers do double damage on a Carrier Strike.' },
       axis: {
         situation: 'Operation MO. The Navy will seize Port Moresby, and with it northern Australia lies under our bombers. Shokaku, Zuikaku and Shoho cover the landing; the Americans have two carriers somewhere to the south.',
-        win: 'Destroy **Port Moresby** (Defense 9), or sink **two** American carriers. If Moresby still stands after turn 14, the operation has failed.',
+        win: 'Destroy **Port Moresby** (Defense 9), or sink **two** American carriers. If Moresby still stands after turn 15, the operation has failed.',
         rules: 'We move first, but Moresby can’t be attacked on our first turn. Each turn has an Attack Mission from our airfields and a **Carrier Strike** from our carriers, and damage to one target from both adds up. **Yorktown** takes two hits to sink. If our convoy is sunk, the landing is delayed and the battle ends 2 turns sooner. **Lae** is our protected home field.',
         cards: '**Operation MO**: play it as you launch against an Allied airfield for +1 per aircraft that reaches it, up to +4. **Weather Front** hides a carrier from an American strike. Beware their codebreakers: **Station HYPO** reveals our attacks.',
         strategy: 'Time is against us. Build up, then hit Moresby with both missions in the same turn so the damage adds up, ideally with Operation MO. Guard our carriers: losing two ends the battle just as surely.' },
