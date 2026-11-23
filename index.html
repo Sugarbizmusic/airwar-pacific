@@ -411,14 +411,22 @@ p { margin: 0; }
 /* Anchored higher than card-center (40% instead of 50%) so less of the fireball/smoke gets cut by the
    bottom edge, and overflow is let loose on .tban while a burst is showing so the smoke plume can rise
    past the card's own top edge instead of being clipped there too. */
-.fxs.burst { width: 78%; left: 50%; top: 40%; transform: translate(-50%, -50%); background-image: url('art/fx/burst.webp'); background-size: contain; background-position: center; }
-.play .fxs.burst { animation: fxOn2 2s linear forwards; }
+.fxs.burst { width: 78%; left: 50%; top: 40%; transform: translate(-50%, -50%); background-image: url('art/fx/burst-sheet.webp'); background-size: 600% 400%; background-position: 0 0;
+  animation: bsX .5s steps(6, end) 4 forwards, bsY 2s steps(4, end) forwards; }
+.play .fxs.burst { animation: bsX .5s steps(6, end) 4 forwards, bsY 2s steps(4, end) forwards, fxOn2 2s linear forwards; }
+/* Nov 22: the explosions are static sprite sheets stepped by CSS, not animated WebPs. Every play used to be a fresh URL, so iOS
+   decoded a new 64-frame animation each time and ran out of image memory part-way through a game (fireballs missing, late or stuck). */
+@keyframes bsX { from { background-position-x: 0%; } to { background-position-x: 120%; } }
+@keyframes bsY { from { background-position-y: 0%; } to { background-position-y: 133.333%; } }
+@keyframes psX { from { background-position-x: 0%; } to { background-position-x: 114.2857%; } }
+@keyframes psY { from { background-position-y: 0%; } to { background-position-y: 133.333%; } }
 .tban:has(.fxs.burst) { overflow: visible; }
 /* Nov 20: a shot-down plane's chain-reaction bursts — three copies of pburst.webp, each appended directly
    (see battleCardHTML) with its own position/size already set inline. The clip itself dissolves to fully
    transparent by its last frame, so unlike .burst there's no opacity keyframe needed here; the element is
    just removed from the DOM once its one pass is over (so it doesn't loop back to a fresh fireball). */
-.fxs.pburst { transform: translate(-50%, -50%); opacity: 1; background-size: contain; background-position: center; z-index: 4; }
+.fxs.pburst { transform: translate(-50%, -50%); opacity: 1; background-image: url('art/fx/pburst-sheet.webp'); background-size: 800% 400%; background-position: 0 0; z-index: 4;
+  animation: psX .288s steps(8, end) 4 forwards, psY 1.152s steps(4, end) forwards; }
 /* A soft smoke puff behind the plane's three bursts: swells through the whole hit sequence, then keeps
    drifting and fading for about a second after the hero explosion is done (see battleCardHTML). */
 .bart .puff { position: absolute; left: 50%; top: 50%; width: 60%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; z-index: 3;
@@ -5432,7 +5440,7 @@ function battleCardHTML(x, role, o) {
         if (!host) return;
         const span = document.createElement('span');
         span.className = 'fxs pburst';
-        span.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);background-image:url('art/fx/pburst.webp?s=${o.fid.replace(/[^a-z0-9]/gi, '')}_${i}')`;
+        span.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);}_${i}')`;
         host.appendChild(span);
         setTimeout(() => span.remove(), PBURST_MS + 150);
       }, 1750 + p.delay);
@@ -5630,12 +5638,11 @@ function strikeHTML(f) {
       if (host && !host.querySelector('.fxs.burst')) {
         const span = document.createElement('span');
         span.className = 'fxs burst';
-        span.style.backgroundImage = `url('art/fx/burst.webp?s=${burstKey.replace(/[^a-z0-9]/gi, '')}')`;
         host.appendChild(span);
       }
     }, (t0 + burstAt) * 1000);
   }
-  const sprites = showBurst && burstArmed[burstKey] ? `<span class="fxs burst" style="background-image:url('art/fx/burst.webp?s=${burstKey.replace(/[^a-z0-9]/gi, '')}')"></span>` : '';
+  const sprites = showBurst && burstArmed[burstKey] ? `<span class="fxs burst" style="}')"></span>` : '';
   // what is left burning once the bursts die down: one fire on a damaged target, three on one that is gone
   // (Nov 20: parked while the new burst art is being tuned — no lingering fire for now.)
   const fires = '';
@@ -5683,12 +5690,12 @@ function landBattleArm() {
     if (!document.body.contains(el)) return;
     if (p.big) {   // the victory blast is the big airfield/ground fireball, so it reads differently from the marching bursts
       const bg = document.createElement('span'); bg.className = 'fxs burst';
-      bg.style.cssText = `width:80%;left:${p.x}%;top:${p.y}%;z-index:7;background-image:url('art/fx/burst.webp?s=lbv${el.dataset.lb.replace(/[^a-z0-9]/gi, '')}')`;
+      bg.style.cssText = `width:80%;left:${p.x}%;top:${p.y}%;z-index:7;}')`;
       el.appendChild(bg); setTimeout(() => bg.remove(), 2100); return;
     }
     const sp = document.createElement('span'); sp.className = 'fxs pburst';
     const w = 48;
-    sp.style.cssText = `width:${w}%;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) rotate(${(i * 67) % 360}deg);z-index:6;background-image:url('art/fx/pburst.webp?s=lb${el.dataset.lb.replace(/[^a-z0-9]/gi, '')}_${i}')`;
+    sp.style.cssText = `width:${w}%;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) rotate(${(i * 67) % 360}deg);z-index:6;}_${i}')`;
     el.appendChild(sp); setTimeout(() => sp.remove(), p.big ? 1500 : 1300);
   }, Math.max(0, p.t * 1000 - el0)));
 }
@@ -6667,7 +6674,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 195;
+const APP_VERSION = 196;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -7398,7 +7405,7 @@ function strafeArm() {
   P.forEach((p, i) => setTimeout(() => {
     if (!document.body.contains(host)) return;
     const sp = document.createElement('span'); sp.className = 'fxs pburst';
-    sp.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);z-index:6;background-image:url('art/fx/pburst.webp?s=sf${key.replace(/[^a-z0-9]/gi, '')}_${i}')`;
+    sp.style.cssText = `width:${p.sz}%;left:calc(50% + ${p.dx}%);top:calc(50% + ${p.dy}%);transform:translate(-50%,-50%) rotate(${p.rot}deg);z-index:6;}_${i}')`;
     host.appendChild(sp); setTimeout(() => sp.remove(), MS + 150);
   }, (tt + 0.2) * 1000 + p.delay));
 }
