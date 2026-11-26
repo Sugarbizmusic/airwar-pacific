@@ -4223,6 +4223,10 @@ function planRaid(s, side, prof, intelOnly) {
   if (!o || !o.cards.length) return null;
   // The wall holds its strikes for the landing (or a sure kill, or a hand that can't hold more).
   if (tac === 'wall' && !OFF.has('wall') && !lastChance && !desperate && !E.landingDue(s) && !o.sure && o.value < WIN_VALUE * 0.5 && p.hand.length < 13) return null;
+  /* Nov 26 (three Allied computer games, all on turn 4): a Carrier Strike into a full set of untouched fighters lost 3-4 aircraft and hurt nothing.
+     Early on it waits for him to show his hand, unless it is close to free or wins outright. */
+  if (tuned(s) && s.stage === 'carrier' && !OFF.has('earlyStrike') && s.turnNo <= (prof.earlyStrike ?? 6) && !lastChance && !pressInv && !desperate && !E.landingDue(s)
+    && o.value < WIN_VALUE * 0.5 && !o.sure && o.lost > (prof.earlyLoss ?? 1.2)) return null;
   // Nov 25: a scored small raid already weighed its own losses and follow-up: it goes if it nets anything worth a card.
   if (o.chip) return { type: 'launch', target: o.target, cards: o.cards };
   // Nov 25 (playtester): our small raid went unanswered, so his fighters are all still up: the carrier strike waits for the day he answers,
@@ -4980,9 +4984,18 @@ function commitDefense(s, side, prof, usable) {
   const handN = op.hand.length + c.mission.length;   // his hand before this launch
   const cvSlots = E.availCap(s, op, 'carrier');
   const lossW = prof.planeLoss || PLANE_LOSS;
+  /* Nov 25 (playtester): early on it is better to let part of a raid through and keep fighters for the Carrier Stage; near the end of the game
+     there is no time left to repair or to win it back, so the whole raid should be stopped. A ramp over the last turns of the clock. */
+  const clk = E.clockLimit(s), late = !OFF.has('commitLate') && clk ? Math.max(0, Math.min(1, (s.turnNo - (clk - 5)) / 4)) : 0;
   // What a point of damage on each of our targets is worth to us.
   const sc = E.scenarioOf(s), myTroop = E.troopConvoy(s, side), hb = E.siegeBase(s, side);
   const fxC = sc && sc.convoyEffects && sc.convoyEffects[side];
+  /* Landing due (Nov 26: three Axis computer losses, two of them on the last turns): the game turns on one sum. The troops win if the landing strength,
+     less everything this raid and the Carrier Strike behind it take off the convoy, still beats Henderson's Defense. The commitment is judged on that
+     chance, not on the convoy points each fight saves. A margin already gone (or not yet in reach) leaves the ordinary valuation. */
+  const hbOpp = myTroop ? E.siegeBase(s, opp) : null;
+  const dueMargin = myTroop && hbOpp && E.landingDue(s) && !OFF.has('commitDue') ? E.landingStrength(s) - E.facDef(s, hbOpp) : 0;
+  const due = dueMargin > 0;
   /* A carrier lost costs more than the attacker's kill value: her cover on the convoy and Henderson, the only fighters that can meet a strike on
      the convoy in the Carrier Stage, and our own strike force's deck. The last one most of all. */
   const carVal = (f, dmg) => (dmg >= E.damageNeeded(s, f) ? (prof.cvLossW ?? 24) + (p.carriers.length === 1 ? (prof.cvLastW ?? 30) : p.carriers.length === 2 ? (prof.cv2W ?? 12) : 0) + f.landed.length * 4 : 0);
@@ -4992,7 +5005,7 @@ function commitDefense(s, side, prof, usable) {
     // A supply convoy (ours to lose at Henderson): each point counts as the attacker's planning counts it (a sunk convoy cuts Henderson's Defense).
     return dmg * Math.max(convoyWeight(s), fxC && fxC.fortDelta ? 1.2 * -fxC.fortDelta : 0);
   };
-  const baseVal = (f, dmg) => (dmg <= 0 ? 0 : hb && f === hb ? Math.min(dmg, E.facDef(s, f)) * (prof.siegeW ?? 4) : dmg >= E.damageNeeded(s, f) ? 10 + f.landed.length * 4 : 0);
+  const baseVal = (f, dmg) => (dmg <= 0 ? 0 : hb && f === hb ? Math.min(dmg, E.facDef(s, f)) * (prof.siegeW ?? 4) * (1 + late * (prof.commitLateBase ?? 0.5)) : dmg >= E.damageNeeded(s, f) ? 10 + f.landed.length * 4 : 0);
   const flatOf = (kind, uid) => (kind === 'convoy' ? (myTroop ? E.carrierCover(s, side) : 0) + 2 * p.resWar.convoy.length : kind === 'airbase' && hb && uid === hb.uid ? E.carrierCover(s, side) : 0);
   // One fight: our fighters (best first) against a raid of hidden cards. Returns what got through and who was lost.
   const fight = (raid, ours, hitOf) => {
@@ -5026,7 +5039,15 @@ function commitDefense(s, side, prof, usable) {
   const raidHit = (d) => { const k = c.target.kind; if (k === 'convoy') return myTroop ? (d.conv || 0) : (d.conv || 0); if (k === 'carrier') return d.car || 0; return (d.bomb || 0) * E.airbaseMult(s, 'airbase'); };
   const sample = () => {
     const hand = known.slice(0, handN), pool = unknown.slice();
-    while (hand.length < handN && pool.length) hand.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    /* Nov 26: a player holding a big hand is holding the cards he has not flown, and in the Carrier Stage that is the bombers (the playtester's six
+       Axis games: the carrier strike behind a 3-plane raid was 5 or 6 bombers every time). Draw them from the unseen cards at a higher weight. */
+    const hb2 = prof.commitHoldBias ?? 2, wOf = (u) => { const d = D(s, u); return d.kind === 'aircraft' && E.carrierCapable(d) && dmgCapable(d) && handN >= 6 ? hb2 : 1; };
+    while (hand.length < handN && pool.length) {
+      if (OFF.has('commitBias')) { hand.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]); continue; }
+      const tw = pool.reduce((n, u) => n + wOf(u), 0); let r = rng() * tw, i = 0;
+      for (; i < pool.length - 1; i++) { r -= wOf(pool[i]); if (r <= 0) break; }
+      hand.push(pool.splice(i, 1)[0]);
+    }
     const ac = hand.map((u) => D(s, u)).filter((d) => d.kind === 'aircraft');
     // The raid: the cards that best fit this target, the rest escorts; a little randomness in who he picks.
     // With carriers of his own he keeps his carrier bombers for the Carrier Stage: the Airbase Stage raid is land bombers and fighters first.
@@ -5055,7 +5076,17 @@ function commitDefense(s, side, prof, usable) {
     for (const sm of samples) {
       const r = fight(sm.raid, now, raidHit);
       const dmgNow = Math.max(0, r.through - flatNow);
-      let v = -valNow(dmgNow) - r.lostUs * lossW + r.killed * lossW * (prof.commitKillW ?? 0.8); bd.raid += valNow(dmgNow) / N; bd.lost += r.lostUs * lossW / N; bd.kill += r.killed * lossW * (prof.commitKillW ?? 0.8) / N;
+      if (due) {
+        const dmgC = c.target.kind === 'convoy' ? dmgNow : 0;
+        let cdD = 0;
+        if (strikeOn && sm.strike.some((d) => dmgCapable(d))) {
+          const cvDef = left.filter((d) => E.carrierCapable(d) || E.has(d, 'patrol')).sort((a, b) => b.a2a - a.a2a).slice(0, myCvCap);
+          const ov = fight(sm.strike, cvDef, (d) => d.conv || 0); cdD = Math.max(0, ov.through - flatOf('convoy'));
+        }
+        const lose = dmgC + cdD >= dueMargin ? 1 : 0;
+        bd.raid += lose * WIN_VALUE / N; tot += -lose * WIN_VALUE - r.lostUs * lossW * 0.2 + r.killed * lossW * 0.2; continue;
+      }
+      let v = -valNow(dmgNow) - r.lostUs * lossW + r.killed * lossW * (prof.commitKillW ?? 0.8) * (1 + late * (prof.commitLateKill ?? 1)); bd.raid += valNow(dmgNow) / N; bd.lost += r.lostUs * lossW / N; bd.kill += r.killed * lossW * (prof.commitKillW ?? 0.8) * (1 + late * (prof.commitLateKill ?? 1)) / N;
       if (strikeOn && sm.strike.some((d) => dmgCapable(d))) {
         // His target is chosen before the fight: we add up what each one would cost us, and he takes the worst on average.
         const cvDef = left.filter((d) => E.carrierCapable(d) || E.has(d, 'patrol')).sort((a, b) => b.a2a - a.a2a).slice(0, myCvCap);
@@ -5075,7 +5106,7 @@ function commitDefense(s, side, prof, usable) {
       }
       tot += v;
     }
-    if (strikeOn && Object.keys(tgtSum).length) {
+    if (!due && strikeOn && Object.keys(tgtSum).length) {
       // He goes for what is worth most to him; now and then for what hurts us most (he may read it differently).
       // Close calls are shared: each target is likely in proportion to how much more it is worth to him (a soft choice, not a coin on ties).
       const ts = Object.values(tgtSum), T = (prof.commitTemp ?? 3) * N, top = Math.max(...ts.map((t) => t.his));
@@ -5089,7 +5120,72 @@ function commitDefense(s, side, prof, usable) {
   }
   let bestK = 0; for (let k = 1; k < res.length; k++) if (res[k] > res[bestK]) bestK = k;
   if (typeof process !== 'undefined' && process.env && process.env.COMMIT_DEBUG) console.error('commit', side, c.target.kind, 'n', c.mission.length, 'fit', fit.map((u) => s.cards[u]).join(','), 'res', res.map((x) => x.toFixed(1)).join(' '), '-> k', bestK);
+  commitDefense.last = { fit, res, bestK };
   return fit.slice(0, bestK);
+}
+
+/* Nov 26: the fighter split is the decision that loses the most games, so it gets a real look ahead. The heuristic above proposes the few best
+   splits; each is played out through the engine on several guesses at his hidden cards (his mission and hand dealt anew from what we have not
+   seen), both sides playing on with the ordinary computer through the end of the turn. The split with the best average position wins. */
+let ROLL = 0;
+function posScore(s, side) {
+  if (s.phase === 'gameover') return s.winner === side ? 1000 : -1000;
+  const opp = E.other(side), p = s.players[side], op = s.players[opp];
+  const tr = E.troopConvoy(s, side) ? side : E.troopConvoy(s, opp) ? opp : null;
+  let v = 0;
+  if (tr) { const hbo = E.siegeBase(s, E.other(tr)), margin = E.landingStrength(s) - (hbo ? E.facDef(s, hbo) : 0); v += (tr === side ? 1 : -1) * 12 * Math.max(-14, Math.min(14, margin)); }
+  v += 40 * (p.carriers.length - op.carriers.length);
+  const dn = new Set(s.downed || []); let mine = 0, theirs = 0;
+  for (const u of Object.keys(s.cards)) { const d = D(s, u); if (d.kind !== 'aircraft' || dn.has(u)) continue; if (d.side === side) mine++; else theirs++; }
+  return v + 2 * (mine - theirs);
+}
+function determinize(s, side, rng) {
+  const opp = E.other(side), c = s.combat, d = JSON.parse(JSON.stringify(s)), op = d.players[opp];
+  const seen = new Set((d.seen || {})[opp] || []), rev = new Set(c.mission.filter((m) => m.revealed).map((m) => m.uid));
+  const mu = c.mission.map((m) => m.uid).filter((u) => !rev.has(u) && !seen.has(u));
+  const rest = op.hand.concat(op.deck).filter((u) => !seen.has(u));
+  const ids = mu.concat(rest).map((u) => d.cards[u]);
+  const air = (id) => { const x = D(d, Object.keys(d.cards).find((u) => d.cards[u] === id)); return x.kind === 'aircraft'; };
+  const bombW = (id) => { const x = D(d, Object.keys(d.cards).find((u) => d.cards[u] === id)); return (x.bomb || x.conv || 0) > 0 ? 2 : 1; };
+  const pool = ids.slice(), out = {};
+  for (const u of mu) {
+    const cand = pool.map((id, i) => ({ id, i })).filter((x) => air(x.id));
+    if (!cand.length) continue;
+    const tw = cand.reduce((n, x) => n + bombW(x.id), 0); let r = rng() * tw, k = 0;
+    for (; k < cand.length - 1; k++) { r -= bombW(cand[k].id); if (r <= 0) break; }
+    out[u] = cand[k].id; pool.splice(cand[k].i, 1);
+  }
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  let q = 0; for (const u of rest) out[u] = pool[q++];
+  for (const u of Object.keys(out)) d.cards[u] = out[u];
+  return d;
+}
+function searchCommit(s, side, prof, usable, heur) {
+  const L = commitDefense.last; if (!L || L.fit.length === 0) return heur;
+  const order = L.res.map((v, k) => ({ v, k })).sort((a, b) => b.v - a.v).slice(0, prof.searchK ?? 3).map((x) => x.k);
+  if (order.length < 2) return heur;
+  const seed = ((s.aiSeed || s.rng0 || 7) * 17 + s.turnNo * 131 + (s.hist ? s.hist.length : 0)) | 0;
+  let rs = seed || 1; const rng = () => { rs = (Math.imul(rs, 1103515245) + 12345) & 0x7fffffff; return rs / 0x7fffffff; };
+  const N = prof.searchN ?? 8, turn0 = s.turnNo, tot = order.map(() => 0); let used = 0;
+  for (let i = 0; i < N; i++) {
+    const d0 = determinize(s, side, rng); let ok = true; const sc = [];
+    for (const k of order) {
+      const cards = L.fit.slice(0, k); let v = null;
+      ROLL++;
+      try {
+        let x = E.apply(JSON.parse(JSON.stringify(d0)), { type: 'intercept', cards }, true), n = 0;
+        while (x.phase !== 'gameover' && x.turnNo === turn0 && n++ < 250) x = E.apply(x, chooseAction(x, prof), true);
+        v = posScore(x, side);
+      } catch (e) { if (!(e instanceof E.RuleError)) { ROLL--; throw e; } v = null; }
+      ROLL--;
+      if (v === null) { ok = false; break; } sc.push(v);
+    }
+    if (!ok) continue; used++; sc.forEach((v, j) => { tot[j] += v; });
+  }
+  if (!used) return heur;
+  let b = 0; for (let j = 1; j < order.length; j++) if (tot[j] > tot[b]) b = j;
+  if (typeof process !== 'undefined' && process.env && process.env.SEARCH_DEBUG) console.error('search', side, 'turn', s.turnNo, order.map((k, j) => k + ':' + (tot[j] / used).toFixed(0)).join(' '), '-> k', order[b], '(heuristic', L.bestK + ')');
+  return L.fit.slice(0, order[b]);
 }
 
 function interceptMove(s, side, prof) {
@@ -5101,8 +5197,8 @@ function interceptMove(s, side, prof) {
   const allUsable0 = p.hand.filter((u) => E.interceptUsable(s, u));
   let usable = p.hand.filter((u) => E.interceptUsable(s, u)).sort((a, b) => (D(s, b).a2a + D(s, b).def) - (D(s, a).a2a + D(s, a).def));
   // Nov 25: the Airbase Stage commitment is one scored judgement (commitDefense) wherever a Carrier Strike can follow.
-  if (tuned(s) && !OFF.has('commit') && prof.commit !== false && c.stage === 'airbase' && !E.landingDue(s) && ['convoy', 'airbase', 'carrier'].includes(c.target.kind)
-    && s.players[E.other(side)].carriers.length && usable.length) return { type: 'intercept', cards: commitDefense(s, side, prof, usable) };
+  if (tuned(s) && !OFF.has('commit') && prof.commit !== false && c.stage === 'airbase' && (!E.landingDue(s) || (E.troopConvoy(s, side) && !OFF.has('commitDue'))) && ['convoy', 'airbase', 'carrier'].includes(c.target.kind)
+    && s.players[E.other(side)].carriers.length && usable.length) { const h = commitDefense(s, side, prof, usable); return { type: 'intercept', cards: !ROLL && !OFF.has('search') && prof.search !== false && (!E.troopConvoy(s, side) || prof.searchTroop) ? searchCommit(s, side, prof, usable, h) : h }; }
   // Carrier fighters are the only cover our carriers get in the Carrier Stage. Against an Airbase Stage raid that
   // isn't aimed at a carrier, keep enough of them out of the fight (land-based fighters go first).
   // Self-play: worth it only when losing carriers loses the game (in Basic rules it cost far more than it saved).
@@ -5422,7 +5518,7 @@ function choice(s, side, prof) {
       return { type: 'choose', uids: [[...opts].sort((a, b) => best(b) - best(a))[0]] };
     }
     case 'dawnTarget': return { type: 'choose', uids: [[...opts].sort((a, b) => value(s, b) - value(s, a))[0]] };
-    case 'discardOne': return { type: 'choose', uids: [...opts].sort((a, b) => value(s, a) - value(s, b)).slice(0, 1) };
+    case 'discardOne': return { type: 'choose', uids: [...opts].sort((a, b) => (value(s, a) + (D(s, a).special === 'seabees' && !OFF.has('keepSb') ? 40 : 0)) - (value(s, b) + (D(s, b).special === 'seabees' && !OFF.has('keepSb') ? 40 : 0))).slice(0, 1) };
     case 'lightAAA': {
       // Shoot down the fighter that would do the most damage (strafers first).
       if (!pc.card) return { type: 'choose', uids: [] };
@@ -5433,7 +5529,7 @@ function choice(s, side, prof) {
       // Convoy discard: give up the least useful hand cards; protect bases and carriers on the table.
       const p = s.players[side];
       const inPlay = new Set([...p.airbases, ...p.carriers].map((f) => f.uid));
-      const cost = (u) => value(s, u) + (inPlay.has(u) ? 20 : 0);
+      const cost = (u) => value(s, u) + (inPlay.has(u) ? 20 : 0) + (D(s, u).special === 'seabees' && !OFF.has('keepSb') ? 40 : 0);   // Nov 26: Seabees are the last card to give up
       return { type: 'choose', uids: [...opts].sort((a, b) => cost(a) - cost(b)).slice(0, n) };
     }
   }
@@ -5538,6 +5634,12 @@ function chooseAction0(s, profile) {
   if (skill === 'easy') { const b = easyBlunder(s, side); if (b) return b; }
   const intelUp = s.phase === 'attack' && E.attackTargets(s).some((t) => t.kind === 'fuel' || t.kind === 'destroyers');
   const intelF = s.phase === 'attack' && skill !== 'easy' && E.attackTargets(s).some((t) => t.kind === 'rescue' || t.kind === 'vip' || t.kind === 'ferry') && intelFighters(s, side, prof);
+  /* Nov 25 (playtest game 4: the Allied computer flew the commander's escort mission on turn 14 with the landing coming that night): on the
+     decisive turn (the landing is due, or the last turn on the clock) a real raid comes before the Intel mission, which only pays cards. */
+  if (intelF && !OFF.has('intelLast') && s.phase === 'attack' && (E.landingDue(s) || (E.clockLimit(s) && s.turnNo >= E.clockLimit(s) - 1))) {
+    const real = allIn(s, side, prof) || planRaid(s, side, prof);
+    if (real && real.type === 'launch' && !['rescue', 'vip', 'ferry'].includes((real.target || {}).kind)) return real;
+  }
   if (intelF) return intelF;
   if (s.phase === 'attack' && skill !== 'yamamoto') return planRaid(s, side, prof) || { type: 'skipStage' };
   switch (s.phase) {
@@ -5594,7 +5696,7 @@ const BALANCE = {
   campaign1943: { surpriseAttack: true, axis: 1 },    // Nov 10 (v151, Operations 1+2): 48.4 / 48.2% (+2 was 53.3 / 53.0)
   campaigndynamic: { surpriseAttack: true, axis: 0 }, // Nov 10 (v151): 51.3 / 52.2% (+1 was 58.0 / 56.8): Dec 1941 decks, production schedule delayed by Industry damage
   classic:  { surpriseAttack: false, axis: 0 },  // 51%
-  eastsol: { surpriseAttack: false, axis: 2 },     // Nov 25 (v208: scored small raids, fighter commitment by lookahead, both sides): +0 cards 25.0%, +1 37.1%, +2 52.4%, +3 64.5% (6000 games each). Nov 24: the Allied computer no longer sweeps or hits carriers with the landing due: +0 cards 42.0%, +1 50.4% (500 games). Before that:     // Nov 23: troop convoy hit by CNV, not doubled; a sunk Allied convoy takes 3 off Henderson for good: +0 cards 50.8–51.4% (600/500 games), +1 56.6%. Before that: two A-20s (CNV 3 vs the troop convoy), night raids level bombers only: +1 card 44.8%, +2 card 53.9% (800 games). Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
+  eastsol: { surpriseAttack: false, axis: 2 },     // Nov 26 (v212: fighter-split search for the Allied computer only: +0 22.7%, +1 34.1%, +2 47.6%, +3 59.3%, 1000 games each). (v210: Seabees last to discard, early-strike gate: +0 31.9%, +1 41.3%, +2 53.7%). (v209: landing-due commitment by win chance, hand-bias for unseen bombers): +0 33.0%, +1 43.8%, +2 56.9% (1000 games). Nov 25 (v208: scored small raids, fighter commitment by lookahead, both sides): +0 cards 25.0%, +1 37.1%, +2 52.4%, +3 64.5% (6000 games each). Nov 24: the Allied computer no longer sweeps or hits carriers with the landing due: +0 cards 42.0%, +1 50.4% (500 games). Before that:     // Nov 23: troop convoy hit by CNV, not doubled; a sunk Allied convoy takes 3 off Henderson for good: +0 cards 50.8–51.4% (600/500 games), +1 56.6%. Before that: two A-20s (CNV 3 vs the troop convoy), night raids level bombers only: +1 card 44.8%, +2 card 53.9% (800 games). Nov 10 (v161): 49.8%: landing ordered at the end of an Axis turn, lands after the Allied turn (14-turn clock); Landing 18 vs Henderson 18, Seabees 3, Dawn Strafing Run, Allied Light AAA (+1 was 39.7%)
   coralsea: { surpriseAttack: false, axis: 0 },  // Nov 23: 15 turns and the sharper computer (finishing carriers, massed raids): Axis +3 cards had gone to 75% in self-play, +0 is 50%
   guadalcanal: { surpriseAttack: false, axis: 0 }, // Nov 10: 48.0 / 47.9%: 14 turns, 13-kill air war, Rabaul Defense 14, one B-17
   wewak: { surpriseAttack: false, axis: 0 },       // Nov 10: 51.2 / 49.9% with fields Defense 10; before: 50.7 / 51.0%, 12 turns, 15-turn limit so the Allies move last; Moresby 16, 3 extra P-47s; mixed-up computer tactics (68th presses on vs fighter-bombers): fields Defense 9, 3 fields, 16-kill air war (ground ½), afternoon +1, convoys at 10; two Ki-61s, no Axis Engineers
@@ -7232,7 +7334,7 @@ function reportsPage(mode) {
 // A game is "in progress" once anyone has made a move in it (a fresh unplayed game doesn't count).
 const inProgress = () => !!S && (S.turnNo > 1 || S.log.some((l) => l.actor) || hist.length > 0);
 /* Bump with every publish: shown small on the start screen to tell builds apart. */
-const APP_VERSION = 208;
+const APP_VERSION = 212;
 function startHTML() {
   const cont = inProgress();
   const what = cont ? `${esc(modeName())} · ${over() ? (S.winner === 'draw' ? 'draw' : SIDE[S.winner] + ' victory') : `turn ${S.turnNo}${scen() && scen().turnLimit ? ' of ' + E.clockLimit(S) : ''}`}` : '';
@@ -8049,7 +8151,7 @@ const htmlText = (h) => h.replace(/<li[^>]*>/g, '\n  - ').replace(/<h4>/g, '\n')
 function reportText() {
   const sc = scen(), o = S.options, full = over(), L = [];
   const now = new Date(), d2 = (n) => String(n).padStart(2, '0');
-  L.push('AIRWAR PACIFIC! GAME REPORT', `Exported ${now.getFullYear()}-${d2(now.getMonth() + 1)}-${d2(now.getDate())} ${d2(now.getHours())}:${d2(now.getMinutes())}`, '');
+  L.push('AIRWAR PACIFIC! GAME REPORT', `Exported ${now.getFullYear()}-${d2(now.getMonth() + 1)}-${d2(now.getDate())} ${d2(now.getHours())}:${d2(now.getMinutes())} (v${APP_VERSION})`, '');
   L.push(`Game: ${modeName()}${sc ? ' (scenario)' : ''}`);
   L.push(`Players: ${aiSide() ? `human ${SIDE[human()]} vs computer ${SIDE[aiSide()]} (${enemyName()}, ${styleName(o.ai.profile)} level)` : 'pass and play'}`);
   L.push(`Options: Axis +${(o.bonusCards || {}).axis || 0} cards; surprise attack ${o.surpriseAttack ? 'on' : 'off'}; draw 3 keep 2 ${o.drawKeep ? 'on' : 'off'}; protected home ${o.indestructibleHome ? 'on' : 'off'}; convoy discards ${o.convoyDiscards ?? 2}${o.singleMobilization ? '; single mobilization' : ''}`);
